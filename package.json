@@ -1,0 +1,28 @@
+{
+  "name": "remitchain",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "format": "biome format --write .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.6.4",
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.2",
+    "turbo": "^2.0.9",
+    "typescript": "^5.5.3"
+  },
+  "packageManager": "pnpm@9.4.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}
