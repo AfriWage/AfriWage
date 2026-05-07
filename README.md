@@ -1,20 +1,20 @@
 ```
-██████╗ ███████╗███╗   ███╗██╗████████╗ ██████╗██╗  ██╗ █████╗ ██╗███╗   ██╗
-██╔══██╗██╔════╝████╗ ████║██║╚══██╔══╝██╔════╝██║  ██║██╔══██╗██║████╗  ██║
-██████╔╝█████╗  ██╔████╔██║██║   ██║   ██║     ███████║███████║██║██╔██╗ ██║
-██╔══██╗██╔══╝  ██║╚██╔╝██║██║   ██║   ██║     ██╔══██║██╔══██║██║██║╚██╗██║
-██║  ██║███████╗██║ ╚═╝ ██║██║   ██║   ╚██████╗██║  ██║██║  ██║██║██║ ╚████║
-╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+ █████╗ ███████╗██████╗ ██╗██╗    ██╗ █████╗  ██████╗ ███████╗
+██╔══██╗██╔════╝██╔══██╗██║██║    ██║██╔══██╗██╔════╝ ██╔════╝
+███████║█████╗  ██████╔╝██║██║ █╗ ██║███████║██║  ███╗█████╗  
+██╔══██║██╔══╝  ██╔══██╗██║██║███╗██║██╔══██║██║   ██║██╔══╝  
+██║  ██║██║     ██║  ██║██║╚███╔███╔╝██║  ██║╚██████╔╝███████╗
+╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
 
 **Instant, borderless payroll for African gig workers — powered by Stellar & USDC**
 
-[![CI](https://github.com/RemitChain/RemitChain/actions/workflows/ci.yml/badge.svg)](https://github.com/RemitChain/RemitChain/actions/workflows/ci.yml)
+[![CI](https://github.com/AfriWage/AfriWage/actions/workflows/ci.yml/badge.svg)](https://github.com/AfriWage/AfriWage/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Built on Stellar](https://img.shields.io/badge/Built%20on-Stellar-blueviolet?logo=stellar)](https://stellar.org)
 [![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
 
-**🌍 Live Demo:** [https://remitchain.vercel.app](https://remitchain.vercel.app)
+**🌍 Live Demo:** [https://afriwage.vercel.app](https://afriwage.vercel.app)
 
 ---
 
@@ -22,7 +22,7 @@
 
 Over 70 million gig workers across Africa are paid through legacy wire transfers and mobile money corridors that charge 5–15% fees and take 1–5 business days to settle. For a freelancer in Lagos waiting on a $200 invoice, that's a $30 loss and a week of waiting. This is broken.
 
-**RemitChain fixes it.** Employers send USDC via Stellar. It settles in 5 seconds. Workers automatically off-ramp to local currency through integrated Stellar anchors. The entire flow is transparent, on-chain, and costs fractions of a cent.
+**AfriWage fixes it.** Employers send USDC via Stellar. It settles in 5 seconds. Workers automatically off-ramp to local currency through integrated Stellar anchors. The entire flow is transparent, on-chain, and costs fractions of a cent.
 
 ---
 
@@ -55,7 +55,7 @@ Over 70 million gig workers across Africa are paid through legacy wire transfers
 - ✅ **Worker payment passport** — public proof-of-payment page for any Stellar address
 - ✅ **Employer dashboard** — send payments, view balance, manage payroll
 - ✅ **8+ African countries** — off-ramp support for NGN, GHS, KES, ZAR, TZS, UGX, XOF, XAF
-- ✅ **@remitchain/sdk** — standalone Stellar helper package for the community
+- ✅ **@AfriWage/sdk** — standalone Stellar helper package for the community
 
 ---
 
@@ -79,7 +79,7 @@ Over 70 million gig workers across Africa are paid through legacy wire transfers
 ## Monorepo Structure
 
 ```
-RemitChain/
+Afriwage/
 ├── apps/
 │   └── web/                          ← Next.js 14 app (App Router)
 │       └── src/
@@ -97,7 +97,7 @@ RemitChain/
 │               ├── stellar.ts        ← Stellar SDK helpers
 │               └── freighter.ts      ← Freighter wallet integration
 ├── packages/
-│   └── sdk/                          ← @remitchain/sdk
+│   └── sdk/                          ← @AfriWage/sdk
 │       └── src/
 │           ├── payment.ts            ← sendPayment, getBalance, getHistory
 │           ├── account.ts            ← createKeypair, fundTestnet
@@ -120,8 +120,8 @@ RemitChain/
 ### Clone & Install
 
 ```bash
-git clone https://github.com/RemitChain/RemitChain.git
-cd RemitChain
+git clone https://github.com/AfriWage/AfriWage.git
+cd AfriWage
 pnpm install
 ```
 
@@ -170,11 +170,11 @@ pnpm build
 
 ## Contributing
 
-We welcome contributions from developers at all levels. RemitChain is a real open-source project actively building toward production.
+We welcome contributions from developers at all levels. AfriWage is a real open-source project actively building toward production.
 
 👉 Read [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
 
-Look for issues labelled [`good-first-issue`](https://github.com/RemitChain/RemitChain/labels/good-first-issue) on GitHub.
+Look for issues labelled [`good-first-issue`](https://github.com/AfriWage/AfriWage/labels/good-first-issue) on GitHub.
 
 ---
 
@@ -186,7 +186,7 @@ Look for issues labelled [`good-first-issue`](https://github.com/RemitChain/Remi
 
 ## Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=RemitChain/RemitChain)](https://github.com/RemitChain/RemitChain/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=Afriwage/Afriwage)](https://github.com/Afriwage/Afriwage/graphs/contributors)
 
 ---
 

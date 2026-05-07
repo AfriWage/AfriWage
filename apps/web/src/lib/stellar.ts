@@ -5,7 +5,7 @@ export type {
   PaymentResult,
   StellarKeypair,
   TransactionRecord,
-} from '@remitchain/sdk';
+} from '@AfriWage/sdk';
 // Re-export SDK helpers for use in web app
 export {
   accountExists,
@@ -17,7 +17,7 @@ export {
   sendPayment,
   USDC_ASSET_CODE,
   USDC_ISSUER_TESTNET,
-} from '@remitchain/sdk';
+} from '@AfriWage/sdk';
 
 // Network configuration
 export const HORIZON_URL =

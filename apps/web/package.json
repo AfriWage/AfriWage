@@ -1,5 +1,5 @@
 {
-  "name": "@remitchain/web",
+  "name": "@AfriWage/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@remitchain/sdk": "workspace:*",
+    "@AfriWage/sdk": "workspace:*",
     "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^12.3.0",
     "@tanstack/react-query": "^5.51.1",

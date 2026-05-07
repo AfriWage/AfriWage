@@ -1,4 +1,4 @@
-// @remitchain/sdk — Stellar helpers for instant USDC payroll
+// @AfriWage/sdk — Stellar helpers for instant USDC payroll
 // Re-export everything needed by consuming apps
 
 export { accountExists, createKeypair, fundTestnetAccount } from './account';

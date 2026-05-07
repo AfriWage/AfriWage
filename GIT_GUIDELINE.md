@@ -1,4 +1,4 @@
-# Git Guidelines — RemitChain
+# Git Guidelines — AfriWage
 
 This document defines the branching strategy, commit standards, and PR rules that keep our history clean and our collaboration efficient.
 

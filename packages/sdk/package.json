@@ -1,7 +1,7 @@
 {
-  "name": "@remitchain/sdk",
+  "name": "@AfriWage/sdk",
   "version": "0.1.0",
-  "description": "Stellar SDK helpers for RemitChain — instant USDC payroll for African gig workers",
+  "description": "Stellar SDK helpers for AfriWage — instant USDC payroll for African gig workers",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

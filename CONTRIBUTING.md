@@ -1,12 +1,12 @@
-# Contributing to RemitChain
+# Contributing to AfriWage
 
-Welcome, and thank you for your interest in contributing to **RemitChain** — open-source, instant USDC payroll for African gig workers. Every contribution, from a typo fix to a new feature, directly helps freelancers across Africa get paid faster and more fairly.
+Welcome, and thank you for your interest in contributing to **AfriWage** — open-source, instant USDC payroll for African gig workers. Every contribution, from a typo fix to a new feature, directly helps freelancers across Africa get paid faster and more fairly.
 
 ---
 
 ## Project Mission
 
-RemitChain exists to eliminate the friction of cross-border payroll for Africa's growing gig economy. We believe financial infrastructure should be open, transparent, and accessible to everyone — not gatekept by legacy banking systems.
+AfriWage exists to eliminate the friction of cross-border payroll for Africa's growing gig economy. We believe financial infrastructure should be open, transparent, and accessible to everyone — not gatekept by legacy banking systems.
 
 ---
 
@@ -26,8 +26,8 @@ Before contributing, make sure you have:
 
 ```bash
 # 1. Fork the repository on GitHub, then clone your fork
-git clone https://github.com/<your-username>/RemitChain.git
-cd RemitChain
+git clone https://github.com/<your-username>/AfriWage.git
+cd AfriWage
 
 # 2. Install all dependencies
 pnpm install
@@ -108,9 +108,9 @@ Before opening a PR, make sure:
 
 ## Finding Issues to Work On
 
-1. Browse [open issues](https://github.com/RemitChain/RemitChain/issues)
-2. Filter by [`good-first-issue`](https://github.com/RemitChain/RemitChain/labels/good-first-issue) for beginner-friendly tasks
-3. Filter by [`help wanted`](https://github.com/RemitChain/RemitChain/labels/help%20wanted) for higher-priority items
+1. Browse [open issues](https://github.com/AfriWage/AfriWage/issues)
+2. Filter by [`good-first-issue`](https://github.com/AfriWage/AfriWage/labels/good-first-issue) for beginner-friendly tasks
+3. Filter by [`help wanted`](https://github.com/AfriWage/AfriWage/labels/help%20wanted) for higher-priority items
 4. Comment on an issue to claim it before starting work
 5. If you have a new idea, open a Feature Request issue first
 
@@ -124,4 +124,4 @@ For full branching strategy, PR rules, and commit signing guidance, see [GIT_GUI
 
 ## Questions?
 
-Open a [Discussion](https://github.com/RemitChain/RemitChain/discussions) or drop a message in our [Telegram](https://t.me/remitchain) (coming soon).
+Open a [Discussion](https://github.com/AfriWage/AfriWage/discussions) or drop a message in our [Telegram](https://t.me/AfriWage) (coming soon).

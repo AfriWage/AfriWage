@@ -34,7 +34,7 @@ function EmptyState() {
       <Clock className="h-10 w-10 text-slate-600" />
       <p className="font-medium text-slate-400">No transactions yet</p>
       <p className="text-sm text-slate-600">
-        Send your first payment to get started with RemitChain
+        Send your first payment to get started with AfriWage
       </p>
     </div>
   );

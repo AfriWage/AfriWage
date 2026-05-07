@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for RemitChain
+about: Suggest a new feature for AfriWage
 title: '[FEAT] '
 labels: ['enhancement']
 assignees: ''

@@ -1,6 +1,6 @@
 ---
 name: Good First Issue
-about: A well-scoped issue for new contributors to RemitChain
+about: A well-scoped issue for new contributors to AfriWage
 title: '[GOOD FIRST ISSUE] '
 labels: ['good-first-issue', 'help wanted']
 assignees: ''
@@ -12,7 +12,7 @@ assignees: ''
 
 ## Why This Matters
 
-<!-- Explain the user impact and how it fits RemitChain's mission -->
+<!-- Explain the user impact and how it fits AfriWage's mission -->
 
 ## Acceptance Criteria
 
@@ -39,8 +39,8 @@ assignees: ''
 
 - [Stellar SDK docs](https://stellar.github.io/js-stellar-sdk/)
 - [Freighter API docs](https://docs.freighter.app/)
-- [RemitChain CONTRIBUTING.md](../../CONTRIBUTING.md)
-- [RemitChain GIT_GUIDELINE.md](../../GIT_GUIDELINE.md)
+- [AfriWage CONTRIBUTING.md](../../CONTRIBUTING.md)
+- [AfriWage GIT_GUIDELINE.md](../../GIT_GUIDELINE.md)
 
 ## How to Get Started
 

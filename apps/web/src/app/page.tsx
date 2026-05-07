@@ -12,7 +12,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'RemitChain — Instant, Borderless Payroll for African Gig Workers',
+  title: 'AfriWage — Instant, Borderless Payroll for African Gig Workers',
   description:
     'Pay African gig workers instantly in USDC via Stellar. No banks, no delays, no hidden fees. From employer wallet to worker bank account in seconds.',
 };
@@ -53,7 +53,7 @@ const steps = [
     icon: Users,
     title: 'Connect Your Wallet',
     description:
-      'Install Freighter, the official Stellar browser wallet. Connect it to RemitChain with one click — no account creation required.',
+      'Install Freighter, the official Stellar browser wallet. Connect it to AfriWage with one click — no account creation required.',
   },
   {
     number: '02',
@@ -88,16 +88,16 @@ export default function HomePage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-gradient">
               <span className="text-sm font-bold text-white">RC</span>
             </div>
-            <span className="text-lg font-bold text-white">RemitChain</span>
+            <span className="text-lg font-bold text-white">AfriWage</span>
           </div>
 
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/RemitChain/RemitChain"
+              href="https://github.com/AfriWage/AfriWage"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
-              aria-label="View RemitChain on GitHub"
+              aria-label="View AfriWage on GitHub"
             >
               <Github className="h-4 w-4" />
               GitHub
@@ -129,7 +129,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-slate-400 md:text-xl">
-            RemitChain lets employers pay African freelancers and gig workers in USDC via Stellar,
+            AfriWage lets employers pay African freelancers and gig workers in USDC via Stellar,
             with automatic local currency off-ramp. No banks. No delays. No friction.
           </p>
 
@@ -143,7 +143,7 @@ export default function HomePage() {
               <ArrowRight className="h-5 w-5" />
             </Link>
             <a
-              href="https://github.com/RemitChain/RemitChain"
+              href="https://github.com/AfriWage/AfriWage"
               target="_blank"
               rel="noopener noreferrer"
               id="cta-view-github"
@@ -202,7 +202,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-brand-500">
-              Why RemitChain
+              Why AfriWage
             </p>
             <h2 id="features-heading" className="text-4xl font-bold text-white">
               Built for speed, built for Africa
@@ -296,7 +296,7 @@ export default function HomePage() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-gradient">
               <span className="text-xs font-bold text-white">RC</span>
             </div>
-            <span className="font-semibold text-white">RemitChain</span>
+            <span className="font-semibold text-white">AfriWage</span>
             <span className="text-slate-600">·</span>
             <span className="text-sm text-slate-500">MIT License</span>
           </div>
@@ -309,7 +309,7 @@ export default function HomePage() {
               Worker Portal
             </Link>
             <a
-              href="https://github.com/RemitChain/RemitChain"
+              href="https://github.com/AfriWage/AfriWage"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 transition-colors hover:text-white"

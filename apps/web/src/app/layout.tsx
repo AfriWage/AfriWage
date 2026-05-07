@@ -8,23 +8,23 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: {
-    default: 'RemitChain — Instant Payroll for African Gig Workers',
-    template: '%s | RemitChain',
+    default: 'AfriWage — Instant Payroll for African Gig Workers',
+    template: '%s | AfriWage',
   },
   description:
     'Pay African gig workers instantly in USDC via Stellar with automatic local currency off-ramp. Borderless, transparent, and built on open-source infrastructure.',
   keywords: ['payroll', 'USDC', 'Stellar', 'Africa', 'gig workers', 'blockchain', 'crypto'],
   authors: [{ name: 'Adesanya Fuhad', url: 'https://github.com/K1NGD4VID' }],
   openGraph: {
-    title: 'RemitChain — Instant Payroll for African Gig Workers',
+    title: 'AfriWage — Instant Payroll for African Gig Workers',
     description: 'Borderless USDC payroll powered by Stellar',
-    url: 'https://remitchain.vercel.app',
-    siteName: 'RemitChain',
+    url: 'https://AfriWage.vercel.app',
+    siteName: 'AfriWage',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RemitChain — Instant Payroll for African Gig Workers',
+    title: 'AfriWage — Instant Payroll for African Gig Workers',
     description: 'Borderless USDC payroll powered by Stellar',
   },
   robots: {

@@ -35,7 +35,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@remitchain/sdk':
+      '@AfriWage/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       '@stellar/freighter-api':

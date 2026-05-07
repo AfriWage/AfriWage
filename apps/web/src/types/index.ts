@@ -1,4 +1,4 @@
-// Global type definitions for RemitChain web app
+// Global type definitions for AfriWage web app
 
 export interface Worker {
   id: string;

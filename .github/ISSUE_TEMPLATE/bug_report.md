@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in RemitChain
+about: Report a bug in AfriWage
 title: '[BUG] '
 labels: ['bug', 'triage']
 assignees: ''

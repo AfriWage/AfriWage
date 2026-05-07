@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@remitchain/sdk'],
+  transpilePackages: ['@AfriWage/sdk'],
   webpack: (config, { isServer }) => {
     // Stellar SDK uses Node.js built-ins that need to be polyfilled for browser
     config.resolve.fallback = {

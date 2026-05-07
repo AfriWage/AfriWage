@@ -1,8 +1,8 @@
-# RemitChain Architecture
+# AfriWage Architecture
 
 ## Overview
 
-RemitChain is a monorepo containing a Next.js 14 frontend and a Stellar SDK package.
+AfriWage is a monorepo containing a Next.js 14 frontend and a Stellar SDK package.
 The project is built on top of the Stellar network using USDC as the settlement layer.
 
 ## Stack
