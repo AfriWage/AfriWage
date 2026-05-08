@@ -1,9 +1,9 @@
 'use client';
 
-import { CheckCircle, Copy, ExternalLink, MapPin } from 'lucide-react';
+import { ArrowRight, CheckCircle, Copy, ExternalLink, MapPin } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { formatAmount, truncatePublicKey } from '@/lib/stellar';
-import { copyToClipboard } from '@/lib/utils';
+import { formatAmount } from '@/lib/stellar';
+import { cn, copyToClipboard } from '@/lib/utils';
 import type { Worker } from '@/types';
 import { SUPPORTED_COUNTRIES } from '@/types';
 
@@ -35,19 +35,22 @@ export function WorkerCard({ worker, onPay, className }: WorkerCardProps) {
 
   return (
     <div
-      className={`group relative rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition-all duration-200 hover:border-brand-500/30 hover:bg-white/[0.07] hover:shadow-card-hover ${className ?? ''}`}
+      className={cn(
+        'group relative rounded-[24px] border border-brand-outline-variant bg-white p-6 transition-all duration-300 hover:border-brand-primary/30 hover:shadow-2xl hover:shadow-brand-navy/5',
+        className
+      )}
     >
       {/* Avatar + Name */}
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gradient text-sm font-bold text-white shadow-brand-glow">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-primary shadow-lg shadow-brand-primary/20 text-lg font-black text-white">
             {initials}
           </div>
           <div>
-            <p className="font-semibold text-white">{worker.name}</p>
-            <div className="mt-0.5 flex items-center gap-1.5">
-              {country && <span className="text-base leading-none">{country.flag}</span>}
-              <div className="flex items-center gap-1 text-xs text-slate-400">
+            <p className="text-lg font-black text-brand-navy">{worker.name}</p>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-lg leading-none">{country?.flag}</span>
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-brand-secondary opacity-60">
                 <MapPin className="h-3 w-3" />
                 {country?.name ?? worker.country}
               </div>
@@ -56,58 +59,53 @@ export function WorkerCard({ worker, onPay, className }: WorkerCardProps) {
         </div>
 
         {/* Total received badge */}
-        <div className="rounded-lg bg-green-500/10 px-3 py-1.5 text-center">
-          <p className="text-xs font-medium text-green-400">
+        <div className="rounded-xl bg-brand-surface border border-brand-outline-variant px-4 py-2 text-right">
+          <p className="font-mono text-sm font-black text-brand-navy">
             {formatAmount(worker.totalReceived, 'USDC')}
           </p>
-          <p className="text-[10px] text-slate-500">Total received</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-brand-secondary opacity-40">Lifetime</p>
         </div>
       </div>
 
       {/* Wallet address */}
-      <div className="mb-4 flex items-center gap-2 rounded-xl bg-black/20 px-3 py-2">
-        <p className="flex-1 font-mono text-xs text-slate-400">
-          {truncatePublicKey(worker.publicKey, 8)}
+      <div className="mb-6 flex items-center gap-3 rounded-2xl bg-brand-surface border border-brand-outline-variant p-3">
+        <p className="flex-1 font-mono text-xs font-medium text-brand-navy/60 truncate">
+          {worker.publicKey}
         </p>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="text-slate-500 transition-colors hover:text-slate-300"
-          aria-label={copied ? 'Copied!' : 'Copy wallet address'}
-        >
-          {copied ? (
-            <CheckCircle className="h-3.5 w-3.5 text-green-400" />
-          ) : (
-            <Copy className="h-3.5 w-3.5" />
-          )}
-        </button>
-        <a
-          href={`https://stellar.expert/explorer/testnet/account/${worker.publicKey}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-slate-500 transition-colors hover:text-slate-300"
-          aria-label="View on Stellar Explorer"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+        <div className="flex items-center gap-1 border-l border-brand-outline-variant pl-3">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="p-1 text-brand-secondary transition-colors hover:text-brand-primary"
+            title="Copy address"
+          >
+            {copied ? (
+              <CheckCircle className="h-4 w-4 text-brand-primary" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </button>
+          <a
+            href={`https://stellar.expert/explorer/testnet/account/${worker.publicKey}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1 text-brand-secondary transition-colors hover:text-brand-primary"
+            title="View on Explorer"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        </div>
       </div>
-
-      {/* Last payment */}
-      {worker.lastPayment && (
-        <p className="mb-4 text-xs text-slate-500">
-          Last payment: <span className="text-slate-400">{worker.lastPayment}</span>
-        </p>
-      )}
 
       {/* Pay button */}
       {onPay && (
         <button
           type="button"
           onClick={() => onPay(worker)}
-          className="w-full rounded-xl bg-brand-gradient py-2.5 text-sm font-semibold text-white opacity-0 transition-all duration-200 group-hover:opacity-100 hover:shadow-brand-glow"
-          aria-label={`Send payment to ${worker.name}`}
+          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-brand-navy py-4 text-sm font-black text-white shadow-xl shadow-brand-navy/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
-          Pay {worker.name.split(' ')[0]}
+          Initiate Payment
+          <ArrowRight className="h-4 w-4" />
         </button>
       )}
     </div>

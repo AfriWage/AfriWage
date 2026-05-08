@@ -1,242 +1,257 @@
 'use client';
 
-import {
-  AlertCircle,
-  ArrowUpRight,
-  Home,
-  RefreshCw,
-  Send,
-  TrendingUp,
-  Users,
-  Wallet,
-} from 'lucide-react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import React from 'react';
-import { SendPaymentForm } from '@/components/SendPaymentForm';
-import { TransactionHistory } from '@/components/TransactionHistory';
-import { WalletConnect } from '@/components/WalletConnect';
-import type { Balance } from '@/lib/stellar';
-import { formatAmount, getBalance } from '@/lib/stellar';
+import { useRouter } from 'next/navigation';
+import { Sidebar } from '@/components/Sidebar';
 
-function BalanceCard({
-  label,
-  value,
-  subtext,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  subtext: string;
-  icon: React.ElementType;
-  color: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-400">{label}</p>
-        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
-          <Icon className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      <p className="mt-1 text-sm text-slate-500">{subtext}</p>
-    </div>
-  );
-}
+const MOCK_TRANSACTIONS = [
+  {
+    id: '1',
+    date: 'Oct 24, 2024',
+    recipient: 'GBX4...L9P2',
+    amount: '50.00 USDC',
+    status: 'Sent',
+    statusType: 'sent',
+    hash: 'abc123',
+  },
+  {
+    id: '2',
+    date: 'Oct 22, 2024',
+    recipient: 'GAY7...M2N1',
+    amount: '120.00 USDC',
+    status: 'Sent',
+    statusType: 'sent',
+    hash: 'def456',
+  },
+  {
+    id: '3',
+    date: 'Oct 20, 2024',
+    recipient: 'External Sender',
+    amount: '+250.00 USDC',
+    status: 'Received',
+    statusType: 'received',
+    hash: 'ghi789',
+  },
+  {
+    id: '4',
+    date: 'Oct 18, 2024',
+    recipient: 'GCZ9...R4Q8',
+    amount: '15.50 XLM',
+    status: 'Sent',
+    statusType: 'sent',
+    hash: 'jkl012',
+  },
+];
 
 export default function DashboardPage() {
-  const [publicKey, setPublicKey] = useState<string | null>(null);
-  const [balance, setBalance] = useState<Balance | null>(null);
-  const [balanceLoading, setBalanceLoading] = useState(false);
-  const [balanceError, setBalanceError] = useState<string | null>(null);
-
-  const loadBalance = useCallback(async (pk: string) => {
-    setBalanceLoading(true);
-    setBalanceError(null);
-    try {
-      const bal = await getBalance(pk);
-      setBalance(bal);
-    } catch (err) {
-      setBalanceError(err instanceof Error ? err.message : 'Failed to load balance');
-    } finally {
-      setBalanceLoading(false);
-    }
-  }, []);
-
-  const handleConnect = useCallback(
-    (pk: string) => {
-      setPublicKey(pk);
-      loadBalance(pk);
-    },
-    [loadBalance]
-  );
-
-  const handleDisconnect = useCallback(() => {
-    setPublicKey(null);
-    setBalance(null);
-    setBalanceError(null);
-  }, []);
-
-  // Auto-redirect to home if user navigates here without connecting
-  // (only after a brief delay to allow auto-connect)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // This is handled via WalletConnect's auto-connect logic
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  const router = useRouter();
+  const [recipient, setRecipient] = useState('GBX4...L9P2');
+  const [amount, setAmount] = useState('');
+  const [memo, setMemo] = useState('');
 
   return (
-    <div className="min-h-screen bg-hero-gradient">
-      {/* Top nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-stellar-blue/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-400 transition-colors hover:text-white"
-              aria-label="Back to home"
-            >
-              <Home className="h-4 w-4" />
-              <span className="text-sm">Home</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-gradient">
-                <span className="text-xs font-bold text-white">RC</span>
+    <div className="min-h-screen bg-surface text-on-surface font-body text-body">
+      <Sidebar />
+
+      <main className="min-h-screen px-4 py-6 md:ml-64 md:px-margin md:py-margin">
+        <div className="mx-auto max-w-container-max space-y-6 md:space-y-gutter">
+          <header className="flex items-center justify-between rounded-2xl border border-outline-variant bg-surface-container-lowest px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)] md:hidden">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-[0_1px_2px_rgba(14,29,38,0.08)]">
+                <div className="relative h-5 w-5 rotate-[18deg]">
+                  <span className="absolute left-[1px] top-[2px] h-2 w-1.5 rounded-sm bg-primary" />
+                  <span className="absolute left-[7px] top-0 h-3 w-1.5 rounded-sm bg-primary-container" />
+                  <span className="absolute left-[13px] top-[4px] h-2 w-1.5 rounded-sm bg-on-surface" />
+                  <span className="absolute left-[4px] top-[10px] h-2 w-1.5 rounded-sm bg-on-surface" />
+                  <span className="absolute left-[10px] top-[8px] h-3 w-1.5 rounded-sm bg-primary" />
+                </div>
               </div>
-              <span className="font-semibold text-white">Dashboard</span>
+              <div>
+                <p className="text-xl font-bold text-primary">AfriWage</p>
+                <p className="text-sm text-secondary">Enterprise Payroll</p>
+              </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/worker"
-              className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
+            <button
+              type="button"
+              onClick={() => router.push('/send')}
+              className="rounded-lg bg-primary-container px-4 py-2 text-sm font-bold text-on-primary"
             >
-              <Users className="h-4 w-4" />
-              Worker Portal
-            </Link>
-            <WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />
-          </div>
-        </div>
-      </nav>
+              Send
+            </button>
+          </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        {!publicKey ? (
-          /* Not connected — prompt */
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <Wallet className="h-10 w-10 text-brand-400" />
-            </div>
+          <header className="mb-8 flex justify-between items-end">
             <div>
-              <h1 className="text-2xl font-bold text-white">Connect Your Wallet</h1>
-              <p className="mt-2 max-w-sm text-slate-400">
-                Connect your Freighter wallet to view your balance and send USDC payments to your
-                workers.
+              <h2 className="font-h2 text-h2 text-on-surface mb-2">Dashboard</h2>
+              <p className="font-body-sm text-body-sm text-secondary">
+                Manage your enterprise payroll and connected wallet.
               </p>
             </div>
-            <WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />
-            <p className="text-xs text-slate-600">
-              Don't have Freighter?{' '}
-              <a
-                href="https://freighter.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-500 hover:text-brand-400"
-              >
-                Download it here
-              </a>
-            </p>
-          </div>
-        ) : (
-          <div className="animate-fade-in space-y-8">
-            {/* Page header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-white">Employer Dashboard</h1>
-                <p className="mt-1 text-sm text-slate-400">
-                  Manage payroll and send USDC to your workers
-                </p>
+          </header>
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="rounded-lg bg-surface-container-high p-3 text-primary">
+                  <span className="material-symbols-outlined">currency_exchange</span>
+                </div>
+                <h3 className="font-body-sm text-body-sm text-secondary">XLM Balance</h3>
               </div>
-              <button
-                type="button"
-                onClick={() => loadBalance(publicKey)}
-                disabled={balanceLoading}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
-                aria-label="Refresh balances"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${balanceLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
+              <div className="font-label-mono text-[32px] font-medium leading-none text-on-surface md:text-[44px]">
+                124.50 <span className="text-body text-secondary ml-1">XLM</span>
+              </div>
             </div>
 
-            {/* Balance cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {balanceLoading ? (
-                [...Array(2)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-36 animate-pulse rounded-2xl border border-white/10 bg-white/5"
-                  />
-                ))
-              ) : balanceError ? (
-                <div className="col-span-full flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-                  <AlertCircle className="h-5 w-5 shrink-0" />
-                  {balanceError}
+            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="rounded-lg bg-surface-container-high p-3 text-primary">
+                  <span className="material-symbols-outlined">payments</span>
                 </div>
-              ) : balance ? (
-                <>
-                  <BalanceCard
-                    label="USDC Balance"
-                    value={formatAmount(balance.usdc, 'USDC')}
-                    subtext="Available to send"
-                    icon={TrendingUp}
-                    color="bg-brand-gradient"
+                <h3 className="font-body-sm text-body-sm text-secondary">USDC Balance</h3>
+              </div>
+              <div className="font-label-mono text-[32px] font-medium leading-none text-on-surface md:text-[44px]">
+                250.00 <span className="text-body text-secondary ml-1">USDC</span>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="rounded-lg bg-surface-container-high p-3 text-primary">
+                  <span className="material-symbols-outlined">send</span>
+                </div>
+                <h3 className="font-body-sm text-body-sm text-secondary">Payments Sent</h3>
+              </div>
+              <div className="font-label-mono text-[32px] font-medium leading-none text-on-surface md:text-[44px]">
+                12
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] xl:col-span-4">
+              <h3 className="mb-8 text-h3 font-h3 text-on-surface">Quick Send</h3>
+              <form
+                className="space-y-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  router.push('/send');
+                }}
+              >
+                <div>
+                  <label className="block font-body-sm text-body-sm text-secondary mb-2">
+                    Recipient Address
+                  </label>
+                  <input
+                    type="text"
+                    value={recipient}
+                    onChange={(e) => setRecipient(e.target.value)}
+                    placeholder="G..."
+                    className="h-[60px] w-full rounded-lg border border-outline-variant bg-surface px-5 font-label-mono text-label-mono text-on-surface outline-none transition-all focus:border-primary"
                   />
-                  <BalanceCard
-                    label="XLM Balance"
-                    value={formatAmount(balance.xlm, 'XLM')}
-                    subtext="For transaction fees"
-                    icon={ArrowUpRight}
-                    color="bg-blue-500/50"
-                  />
-                  <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 sm:col-span-2 lg:col-span-1">
-                    <p className="mb-2 text-sm font-medium text-brand-400">Quick Actions</p>
-                    <div className="space-y-2">
-                      <Link
-                        href="/send"
-                        className="flex items-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90"
-                      >
-                        <Send className="h-4 w-4" />
-                        Send Payment
-                      </Link>
-                      <Link
-                        href="/worker"
-                        className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-300 transition-all hover:bg-white/10"
-                      >
-                        <Users className="h-4 w-4" />
-                        View Worker Portal
-                      </Link>
+                </div>
+                <div>
+                  <label className="block font-body-sm text-body-sm text-secondary mb-2">
+                    Amount (USDC)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="h-[60px] w-full rounded-lg border border-outline-variant bg-surface px-5 pr-24 font-label-mono text-label-mono text-on-surface outline-none transition-all focus:border-primary"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                      <span className="font-body-sm text-body-sm text-secondary">USDC</span>
                     </div>
                   </div>
-                </>
-              ) : null}
+                </div>
+                <div>
+                  <label className="block font-body-sm text-body-sm text-secondary mb-2">
+                    Memo (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={memo}
+                    onChange={(e) => setMemo(e.target.value)}
+                    placeholder="Payment reference"
+                    className="h-[60px] w-full rounded-lg border border-outline-variant bg-surface px-5 font-body text-body text-on-surface outline-none transition-all focus:border-primary"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="mt-2 w-full rounded-lg bg-primary-container px-6 py-4 text-center font-bold text-on-primary transition-transform hover:scale-[0.98] active:scale-95"
+                >
+                  Send Payment
+                </button>
+              </form>
             </div>
 
-            {/* Send payment + history grid */}
-            <div className="grid gap-8 lg:grid-cols-[1fr_1.5fr]">
-              <SendPaymentForm
-                senderPublicKey={publicKey}
-                // Note: In production, the secret key is never stored in state.
-                // Payments are signed via Freighter. This is a testnet demo.
-                senderSecret={undefined}
-              />
-              <TransactionHistory publicKey={publicKey} />
+            <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-[0_1px_3px_rgba(0,0,0,0.08)] xl:col-span-8">
+              <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest p-8">
+                <h3 className="font-h3 text-h3 text-on-surface">Recent Transactions</h3>
+                <Link
+                  href="/transactions"
+                  className="font-body-sm text-body-sm text-primary font-medium hover:underline"
+                >
+                  View All
+                </Link>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-lowest border-b border-outline-variant">
+                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Date</th>
+                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Recipient</th>
+                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Amount</th>
+                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Status</th>
+                      <th className="px-5 py-5 text-right font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Explorer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {MOCK_TRANSACTIONS.map((tx, idx) => (
+                      <tr
+                        key={tx.id}
+                        className={`min-h-[56px] border-b border-surface-container-highest transition-colors ${
+                          idx % 2 === 1
+                            ? 'bg-surface hover:bg-surface-container-highest'
+                            : 'hover:bg-surface'
+                        }`}
+                      >
+                        <td className="px-5 py-5 font-body-sm text-body-sm text-on-surface">{tx.date}</td>
+                        <td className="px-5 py-5 font-label-mono text-label-mono text-on-surface">{tx.recipient}</td>
+                        <td className="px-5 py-5 font-label-mono text-label-mono text-on-surface">{tx.amount}</td>
+                        <td className="px-5 py-5">
+                          {tx.statusType === 'sent' ? (
+                            <span className="inline-flex items-center rounded bg-primary-container/10 px-2.5 py-1 text-label-mono font-label-mono text-primary">
+                              Sent
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded bg-surface-container-highest px-2.5 py-1 text-label-mono font-label-mono text-on-surface">
+                              Received
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-5 text-right">
+                          <a
+                            href={`https://stellar.expert/explorer/testnet/tx/${tx.hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-secondary hover:text-primary transition-colors inline-flex"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

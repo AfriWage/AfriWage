@@ -81,167 +81,137 @@ export function SendPaymentForm({ senderSecret, className }: SendPaymentFormProp
   }, []);
 
   return (
-    <div className={cn('rounded-2xl border border-white/10 bg-white/5 p-6', className)}>
-      <h2 className="mb-6 text-xl font-semibold text-white">Send USDC Payment</h2>
-
+    <div className={cn('tonal-card rounded-2xl p-8', className)}>
       {status === 'success' && txHash ? (
-        <div className="animate-fade-in space-y-4">
-          <div className="flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 p-4">
-            <CheckCircle2 className="h-6 w-6 shrink-0 text-green-400" />
-            <div>
-              <p className="font-semibold text-green-400">Payment Sent Successfully!</p>
-              <p className="text-sm text-slate-400">
-                Your USDC has been delivered on the Stellar network.
-              </p>
+        <div className="animate-fade-in space-y-6">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+              <CheckCircle2 className="h-10 w-10 text-brand-primary" />
             </div>
-          </div>
-
-          <div className="rounded-xl bg-black/20 p-4">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-500">
-              Transaction Hash
+            <h3 className="text-xl font-bold text-brand-navy">Payment Successful</h3>
+            <p className="mt-2 text-sm text-brand-secondary">
+              Your USDC has been delivered instantly.
             </p>
-            <p className="break-all font-mono text-xs text-slate-300">{txHash}</p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="rounded-xl border border-brand-outline-variant bg-brand-surface p-4">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-brand-secondary">
+              Transaction ID
+            </p>
+            <p className="break-all font-mono text-xs text-brand-navy">{txHash}</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
             <a
               href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/5 py-2.5 text-sm text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex items-center justify-center gap-2 rounded-xl border border-brand-outline-variant py-3 text-sm font-semibold text-brand-secondary transition-all hover:bg-brand-surface"
             >
               <ExternalLink className="h-4 w-4" />
-              View on Explorer
+              View on Stellar Expert
             </a>
             <button
               type="button"
               onClick={handleReset}
-              className="flex-1 rounded-xl bg-brand-gradient py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90"
+              className="rounded-xl bg-brand-primary py-3 text-sm font-bold text-white transition-all hover:bg-brand-primary/90"
             >
-              Send Another
+              Send New Payment
             </button>
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
           {/* Recipient Address */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label
               htmlFor="recipientPublicKey"
-              className="block text-sm font-medium text-slate-300"
+              className="text-xs font-bold uppercase tracking-widest text-brand-secondary"
             >
-              Recipient Address <span className="text-red-400">*</span>
+              Recipient Public Key <span className="text-red-500">*</span>
             </label>
             <input
               id="recipientPublicKey"
               type="text"
-              placeholder="G... Stellar public key"
+              placeholder="G... Stellar address"
               className={cn(
-                'w-full rounded-xl border bg-white/5 px-4 py-3 font-mono text-sm text-white placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-brand-500/50',
-                errors.recipientPublicKey
-                  ? 'border-red-500/50 focus:ring-red-500/30'
-                  : 'border-white/10 focus:border-brand-500/50'
+                'w-full rounded-xl border bg-brand-surface px-4 py-4 font-mono text-sm text-brand-navy placeholder-brand-secondary/50 transition-all focus:border-brand-primary/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/5',
+                errors.recipientPublicKey ? 'border-red-500/50' : 'border-brand-outline-variant'
               )}
               {...register('recipientPublicKey', {
                 required: 'Recipient address is required',
                 validate: (value) =>
-                  StrKey.isValidEd25519PublicKey(value) ||
-                  'Invalid Stellar address — must be a valid G... public key',
+                  StrKey.isValidEd25519PublicKey(value) || 'Invalid Stellar address format',
               })}
-              aria-describedby={errors.recipientPublicKey ? 'recipient-error' : undefined}
-              aria-invalid={!!errors.recipientPublicKey}
             />
             {errors.recipientPublicKey && (
-              <p
-                id="recipient-error"
-                className="flex items-center gap-1.5 text-xs text-red-400"
-                role="alert"
-              >
+              <p className="flex items-center gap-1.5 text-xs font-medium text-red-500">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {errors.recipientPublicKey.message}
               </p>
             )}
           </div>
 
-          {/* Amount */}
-          <div className="space-y-1.5">
-            <label htmlFor="amount" className="block text-sm font-medium text-slate-300">
-              Amount (USDC) <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="0.00"
-                className={cn(
-                  'w-full rounded-xl border bg-white/5 py-3 pl-4 pr-16 text-sm text-white placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-brand-500/50',
-                  errors.amount
-                    ? 'border-red-500/50 focus:ring-red-500/30'
-                    : 'border-white/10 focus:border-brand-500/50'
-                )}
-                {...register('amount', {
-                  required: 'Amount is required',
-                  min: { value: 0.01, message: 'Minimum amount is 0.01 USDC' },
-                  pattern: {
-                    value: /^\d+(\.\d{1,7})?$/,
-                    message: 'Invalid amount format',
-                  },
-                })}
-                aria-describedby={errors.amount ? 'amount-error' : undefined}
-                aria-invalid={!!errors.amount}
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-brand-400">
-                USDC
-              </span>
-            </div>
-            {errors.amount && (
-              <p
-                id="amount-error"
-                className="flex items-center gap-1.5 text-xs text-red-400"
-                role="alert"
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* Amount */}
+            <div className="space-y-2">
+              <label
+                htmlFor="amount"
+                className="text-xs font-bold uppercase tracking-widest text-brand-secondary"
               >
-                <AlertCircle className="h-3.5 w-3.5" />
-                {errors.amount.message}
-              </p>
-            )}
-          </div>
+                Amount (USDC) <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className={cn(
+                    'w-full rounded-xl border bg-brand-surface py-4 pl-4 pr-16 text-sm font-bold text-brand-navy placeholder-brand-secondary/50 transition-all focus:border-brand-primary/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/5',
+                    errors.amount ? 'border-red-500/50' : 'border-brand-outline-variant'
+                  )}
+                  {...register('amount', {
+                    required: 'Amount is required',
+                    min: { value: 0.01, message: 'Min 0.01' },
+                  })}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-xs font-bold text-brand-primary">
+                  USDC
+                </span>
+              </div>
+              {errors.amount && (
+                <p className="flex items-center gap-1.5 text-xs font-medium text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {errors.amount.message}
+                </p>
+              )}
+            </div>
 
-          {/* Memo (optional) */}
-          <div className="space-y-1.5">
-            <label htmlFor="memo" className="block text-sm font-medium text-slate-300">
-              Memo <span className="text-slate-500">(optional, max 28 chars)</span>
-            </label>
-            <input
-              id="memo"
-              type="text"
-              placeholder="e.g. Invoice #42, July salary"
-              maxLength={28}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/50"
-              {...register('memo', {
-                maxLength: {
-                  value: 28,
-                  message: 'Memo must be 28 characters or fewer',
-                },
-              })}
-            />
-            {errors.memo && (
-              <p className="flex items-center gap-1.5 text-xs text-red-400" role="alert">
-                <AlertCircle className="h-3.5 w-3.5" />
-                {errors.memo.message}
-              </p>
-            )}
+            {/* Memo */}
+            <div className="space-y-2">
+              <label
+                htmlFor="memo"
+                className="text-xs font-bold uppercase tracking-widest text-brand-secondary"
+              >
+                Memo <span className="text-[10px] opacity-50">(Optional)</span>
+              </label>
+              <input
+                id="memo"
+                type="text"
+                placeholder="Reference"
+                maxLength={28}
+                className="w-full rounded-xl border border-brand-outline-variant bg-brand-surface px-4 py-4 text-sm text-brand-navy placeholder-brand-secondary/50 transition-all focus:border-brand-primary/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/5"
+                {...register('memo', { maxLength: 28 })}
+              />
+            </div>
           </div>
 
           {/* Error display */}
           {status === 'error' && errorMessage && (
-            <div
-              className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4"
-              role="alert"
-            >
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
-              <p className="text-sm text-red-300">{errorMessage}</p>
+            <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-4">
+              <AlertCircle className="h-5 w-5 shrink-0 text-red-500" />
+              <p className="text-xs font-medium text-red-600">{errorMessage}</p>
             </div>
           )}
 
@@ -250,37 +220,24 @@ export function SendPaymentForm({ senderSecret, className }: SendPaymentFormProp
             type="submit"
             disabled={status === 'loading' || !senderSecret}
             className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-white transition-all duration-200',
+              'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-sm font-bold text-white transition-all',
               status === 'loading' || !senderSecret
-                ? 'cursor-not-allowed bg-white/10 text-slate-500'
-                : 'bg-brand-gradient shadow-brand-glow hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]'
+                ? 'cursor-not-allowed bg-brand-secondary/20 text-brand-secondary'
+                : 'bg-brand-primary shadow-lg shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98]'
             )}
-            aria-label={
-              !senderSecret
-                ? 'Connect wallet to send payment'
-                : status === 'loading'
-                  ? 'Processing payment...'
-                  : 'Send USDC payment'
-            }
           >
             {status === 'loading' ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Sending Payment...
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Sending USDC...
               </>
             ) : (
               <>
-                <Send className="h-4 w-4" />
-                {!senderSecret ? 'Connect Wallet to Send' : 'Send USDC'}
+                <Send className="h-5 w-5" />
+                {!senderSecret ? 'Connect Wallet' : 'Send Payment'}
               </>
             )}
           </button>
-
-          {!senderSecret && (
-            <p className="text-center text-xs text-slate-500">
-              Connect your Freighter wallet to enable payments
-            </p>
-          )}
         </form>
       )}
     </div>
