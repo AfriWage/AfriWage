@@ -1,56 +1,62 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { StrKey } from '@stellar/stellar-sdk';
-import { Loader2, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
-import { Sidebar } from '@/components/Sidebar';
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, ShieldCheck } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { useCallback, useState } from 'react';
+import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { sendPayment } from '@/lib/stellar';
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
 
-export default function SendPage() {
-  const router = useRouter();
-  const [senderSecret, setSenderSecret] = useState<string | undefined>(undefined);
+function isValidStellarPublicKey(value: string) {
+  return /^G[A-Z2-7]{55}$/.test(value.trim());
+}
 
+export default function SendPage() {
+  const [senderSecret, setSenderSecret] = useState<string | undefined>(undefined);
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
-
   const [status, setStatus] = useState<FormStatus>('idle');
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   const [errors, setErrors] = useState<{ recipient?: string; amount?: string }>({});
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleConnect = useCallback((_pk: string) => { setSenderSecret(undefined); }, []);
-  const handleDisconnect = useCallback(() => { setSenderSecret(undefined); }, []);
+  const handleConnect = useCallback(() => {
+    setSenderSecret(undefined);
+  }, []);
+
+  const handleDisconnect = useCallback(() => {
+    setSenderSecret(undefined);
+  }, []);
 
   const validate = () => {
-    const newErrors: { recipient?: string; amount?: string } = {};
+    const nextErrors: { recipient?: string; amount?: string } = {};
+
     if (!recipient) {
-      newErrors.recipient = 'Recipient address is required';
-    } else if (!StrKey.isValidEd25519PublicKey(recipient)) {
-      newErrors.recipient = 'Invalid Stellar address format';
+      nextErrors.recipient = 'Recipient address is required.';
+    } else if (!isValidStellarPublicKey(recipient)) {
+      nextErrors.recipient = 'Enter a valid Stellar public key.';
     }
+
     if (!amount) {
-      newErrors.amount = 'Amount is required';
-    } else if (parseFloat(amount) < 0.01) {
-      newErrors.amount = 'Minimum amount is 0.01';
+      nextErrors.amount = 'Amount is required.';
+    } else if (Number.parseFloat(amount) < 0.01) {
+      nextErrors.amount = 'Minimum amount is 0.01.';
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     if (!validate()) return;
 
     if (!senderSecret) {
-      setErrorMessage('Please connect your wallet before sending a payment.');
       setStatus('error');
+      setErrorMessage('Please connect a payout wallet before sending.');
       return;
     }
 
@@ -62,15 +68,13 @@ export default function SendPage() {
       const result = await sendPayment(senderSecret, recipient, amount, memo || undefined);
       setTxHash(result.hash);
       setStatus('success');
-    } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : 'Payment failed. Please check your balance and try again.'
-      );
+    } catch (error) {
       setStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Payment failed.');
     }
   };
 
-  const handleReset = () => {
+  const resetForm = () => {
     setStatus('idle');
     setTxHash(null);
     setErrorMessage(null);
@@ -80,232 +84,164 @@ export default function SendPage() {
     setErrors({});
   };
 
-  // Estimated NGN equivalent (mock conversion at ~825 NGN/USD)
-  const ngnEstimate = amount ? (parseFloat(amount) * 825).toLocaleString('en-NG') : '0';
+  const ngnEstimate = amount ? (Number.parseFloat(amount) * 1580).toLocaleString('en-NG') : '0';
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-body text-body flex">
-      <Sidebar />
-
-      <main className="ml-64 flex-grow flex items-center justify-center py-12 px-4">
-        {status === 'success' && txHash ? (
-          /* ── Success State ── */
-          <div className="w-full max-w-[560px] animate-fade-in">
-            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-margin shadow-sm">
-              <div className="flex flex-col items-center text-center gap-4 mb-8">
-                <div className="w-16 h-16 rounded-full bg-primary-container/10 flex items-center justify-center">
-                  <CheckCircle2 className="h-10 w-10 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-h3 text-h3 text-on-surface">Payment Successful</h2>
-                  <p className="font-body-sm text-body-sm text-secondary mt-2">
-                    Your USDC has been delivered instantly.
-                  </p>
-                </div>
+    <DashboardShell
+      title="Send Payout"
+      description="A guided payment flow optimized for fast operator decisions on both desktop and mobile."
+      actions={<WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />}
+    >
+      {status === 'success' && txHash ? (
+        <div className="mx-auto max-w-2xl">
+          <SurfaceCard className="bg-[linear-gradient(135deg,#fffdf8_0%,#fff7ec_100%)]">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-[#dff3e8] text-[#1f8f55]">
+                <CheckCircle2 className="h-8 w-8" />
               </div>
-
-              <div className="bg-surface rounded-xl border border-outline-variant p-4 mb-6">
-                <p className="font-body-sm text-body-sm text-secondary mb-1">Transaction ID</p>
-                <p className="font-label-mono text-label-mono text-on-surface break-all">{txHash}</p>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <a
-                  href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-lg border border-outline-variant py-3 font-body-sm text-body-sm text-secondary transition-all hover:bg-surface-container"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  View on Stellar Expert
-                </a>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="w-full bg-primary-container text-on-primary rounded-lg py-3 font-bold transition-transform hover:scale-[0.98]"
-                >
-                  Send New Payment
-                </button>
-              </div>
+              <h2 className="mt-6 font-display text-3xl font-semibold text-[#102033]">Payout submitted</h2>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-[#637085]">
+                The success state is intentionally simple: hash, explorer link, and one clear path back into the workflow.
+              </p>
             </div>
-          </div>
-        ) : (
-          /* ── Send Form ── */
-          <div className="w-full max-w-[560px]">
-            <header className="flex items-center mb-8">
+
+            <div className="mt-8 rounded-[24px] border border-[#e7dccb] bg-white p-5">
+              <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Transaction hash</p>
+              <p className="mt-3 break-all font-mono text-sm text-[#102033]">{txHash}</p>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <a
+                href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-2 rounded-[18px] border border-[#e7dccb] bg-white px-4 py-3 font-semibold text-[#102033]"
+              >
+                View on explorer
+                <ExternalLink className="h-4 w-4" />
+              </a>
               <button
                 type="button"
-                aria-label="Go back"
-                onClick={() => router.push('/dashboard')}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-secondary"
+                onClick={resetForm}
+                className="flex-1 rounded-[18px] bg-[#1f8f55] px-4 py-3 font-semibold text-white"
               >
-                <span className="material-symbols-outlined">arrow_back</span>
+                Send another payout
               </button>
-              <h1 className="font-h3 text-h3 text-on-surface ml-4">Send Payment</h1>
-              <div className="ml-auto">
-                <WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />
+            </div>
+          </SurfaceCard>
+        </div>
+      ) : (
+        <div className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
+          <SurfaceCard>
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Recipient</p>
+                <input
+                  type="text"
+                  value={recipient}
+                  onChange={(event) => setRecipient(event.target.value)}
+                  placeholder="G... Stellar wallet"
+                  className="mt-3 h-14 w-full rounded-[20px] border border-[#e7dccb] bg-[#fffaf2] px-4 font-mono text-sm text-[#102033] outline-none focus:border-[#1f8f55]"
+                />
+                {errors.recipient && <p className="mt-2 text-sm text-[#c45a43]">{errors.recipient}</p>}
               </div>
-            </header>
 
-            <form
-              onSubmit={handleSubmit}
-              className="bg-surface-container-lowest border border-outline-variant rounded-xl p-margin shadow-sm flex flex-col gap-margin hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-300"
-              noValidate
-            >
-              {/* Step 1: Recipient */}
-              <section>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="font-body-sm text-body-sm text-on-surface-variant" htmlFor="recipient">
-                    Step 1: Recipient
-                  </label>
-                </div>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">person</span>
+              <div className="grid gap-5 sm:grid-cols-[1fr_180px]">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Amount</p>
                   <input
-                    id="recipient"
-                    type="text"
-                    value={recipient}
-                    onChange={(e) => setRecipient(e.target.value)}
-                    placeholder="Enter Stellar address or federated ID"
-                    className={`w-full h-[48px] pl-10 pr-4 rounded-lg border bg-surface-container-lowest font-label-mono text-label-mono text-on-surface placeholder:text-secondary-fixed-dim transition-all outline-none focus:border-2 focus:border-primary-container ${
-                      errors.recipient ? 'border-error' : 'border-outline-variant'
-                    }`}
-                  />
-                </div>
-                {errors.recipient && (
-                  <p className="flex items-center gap-1.5 mt-1 text-xs text-error">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {errors.recipient}
-                  </p>
-                )}
-              </section>
-
-              {/* Step 2: Amount */}
-              <section>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="font-body-sm text-body-sm text-on-surface-variant" htmlFor="amount">
-                    Step 2: Amount
-                  </label>
-                  <span className="font-body-sm text-body-sm text-secondary">Balance: 1,240.50 USDC</span>
-                </div>
-                <div className="relative">
-                  <input
-                    id="amount"
                     type="text"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(event) => setAmount(event.target.value)}
                     placeholder="0.00"
-                    className={`w-full h-[64px] pl-4 pr-24 rounded-lg border bg-surface-container-lowest font-h2 text-h2 text-on-surface text-right transition-all outline-none focus:border-2 focus:border-primary-container ${
-                      errors.amount ? 'border-error' : 'border-outline-variant'
-                    }`}
+                    className="mt-3 h-14 w-full rounded-[20px] border border-[#e7dccb] bg-[#fffaf2] px-4 text-lg font-semibold text-[#102033] outline-none focus:border-[#1f8f55]"
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-surface px-3 py-1.5 rounded border border-outline-variant shadow-sm">
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary text-[10px] font-bold">
-                      $
-                    </div>
-                    <span className="font-label-mono text-label-mono text-on-surface">USDC</span>
+                  {errors.amount && <p className="mt-2 text-sm text-[#c45a43]">{errors.amount}</p>}
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Asset</p>
+                  <div className="mt-3 flex h-14 items-center justify-center rounded-[20px] border border-[#e7dccb] bg-white font-mono text-sm text-[#102033]">
+                    USDC
                   </div>
                 </div>
-                {errors.amount && (
-                  <p className="flex items-center gap-1.5 mt-1 text-xs text-error">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {errors.amount}
-                  </p>
-                )}
-                {amount && !errors.amount && (
-                  <div className="mt-3 flex justify-end items-center text-secondary gap-1">
-                    <span className="material-symbols-outlined text-[16px]">swap_vert</span>
-                    <span className="font-label-mono text-label-mono">≈ NGN {ngnEstimate}</span>
-                  </div>
-                )}
-              </section>
+              </div>
 
-              {/* Step 3: Summary */}
-              <section className="bg-surface rounded-lg border border-outline-variant p-gutter flex flex-col gap-4 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-primary-container" />
-                <h3 className="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider font-semibold mb-1">
-                  Step 3: Summary
-                </h3>
-                <div className="flex justify-between items-center">
-                  <span className="font-body-sm text-body-sm text-secondary">To</span>
-                  <span className="font-label-mono text-label-mono text-on-surface">
-                    {recipient ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}` : '—'}
-                  </span>
-                </div>
-                <div className="h-px w-full bg-outline-variant opacity-30" />
-                <div className="flex justify-between items-center">
-                  <span className="font-body-sm text-body-sm text-secondary">Amount</span>
-                  <span className="font-label-mono text-label-mono text-on-surface font-bold text-[15px]">
-                    {amount || '0.00'} USDC
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-1">
-                    <span className="font-body-sm text-body-sm text-secondary">Network Fee</span>
-                    <span
-                      className="material-symbols-outlined text-[14px] text-secondary cursor-help"
-                      title="Standard Stellar Network Fee"
-                    >
-                      info
-                    </span>
-                  </div>
-                  <span className="font-label-mono text-label-mono text-secondary">0.00001 XLM</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-body-sm text-body-sm text-secondary">Estimated Delivery</span>
-                  <span className="font-body-sm text-body-sm text-primary font-semibold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[16px]">bolt</span>
-                    Instant
-                  </span>
-                </div>
-              </section>
-
-              {/* Error message */}
-              {status === 'error' && errorMessage && (
-                <div className="flex items-start gap-3 rounded-lg border border-error-container bg-error-container/30 p-4">
-                  <AlertCircle className="h-5 w-5 shrink-0 text-error" />
-                  <p className="font-body-sm text-body-sm text-error">{errorMessage}</p>
-                </div>
-              )}
-
-              {/* Memo (optional) */}
               <div>
-                <label className="block font-body-sm text-body-sm text-on-surface-variant mb-2" htmlFor="memo">
-                  Memo (Optional)
-                </label>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Memo</p>
                 <input
-                  id="memo"
                   type="text"
                   value={memo}
-                  onChange={(e) => setMemo(e.target.value)}
-                  placeholder="Payment reference..."
+                  onChange={(event) => setMemo(event.target.value)}
+                  placeholder="Optional payment note"
                   maxLength={28}
-                  className="w-full h-[48px] px-4 rounded-lg border border-outline-variant bg-surface-container-lowest font-body text-body text-on-surface focus:ring-0 focus:border-2 focus:border-primary-container outline-none transition-all"
+                  className="mt-3 h-14 w-full rounded-[20px] border border-[#e7dccb] bg-[#fffaf2] px-4 text-sm text-[#102033] outline-none focus:border-[#1f8f55]"
                 />
               </div>
 
-              {/* Submit */}
+              {status === 'error' && errorMessage && (
+                <div className="flex items-start gap-3 rounded-[20px] border border-[#f0cfbf] bg-[#fff2ec] p-4 text-sm text-[#c45a43]">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>{errorMessage}</p>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full bg-primary-container text-on-primary py-3 px-6 rounded-lg font-body text-body font-semibold hover:bg-primary hover:shadow-md transition-all duration-200 mt-2 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-[#1f8f55] px-4 py-4 font-semibold text-white shadow-[0_18px_36px_rgba(31,143,85,0.22)] disabled:opacity-70"
               >
                 {status === 'loading' ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Sending...
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Sending payout
                   </>
                 ) : (
-                  <>
-                    <span>Confirm &amp; Send</span>
-                    <span className="material-symbols-outlined text-[20px]">send</span>
-                  </>
+                  'Confirm payout'
                 )}
               </button>
             </form>
+          </SurfaceCard>
+
+          <div className="space-y-6">
+            <SurfaceCard className="bg-[#fff8ef]">
+              <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Payment summary</p>
+              <div className="mt-5 space-y-4 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#637085]">Recipient</span>
+                  <span className="font-mono text-[#102033]">
+                    {recipient ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}` : 'Not set'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#637085]">Amount</span>
+                  <span className="font-mono text-[#102033]">{amount || '0.00'} USDC</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#637085]">Estimated NGN value</span>
+                  <span className="font-mono text-[#102033]">NGN {ngnEstimate}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#637085]">Network fee</span>
+                  <span className="font-mono text-[#102033]">0.00001 XLM</span>
+                </div>
+              </div>
+            </SurfaceCard>
+
+            <SurfaceCard>
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-0.5 h-5 w-5 text-[#1f8f55]" />
+                <div>
+                  <p className="font-semibold text-[#102033]">Operator-first flow</p>
+                  <p className="mt-2 text-sm leading-6 text-[#637085]">
+                    The redesigned send screen keeps validation, summary, and wallet status in one place instead of splitting the decision across several screens.
+                  </p>
+                </div>
+              </div>
+            </SurfaceCard>
           </div>
-        )}
-      </main>
-    </div>
+        </div>
+      )}
+    </DashboardShell>
   );
 }

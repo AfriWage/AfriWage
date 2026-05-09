@@ -1,334 +1,212 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sidebar } from '@/components/Sidebar';
+import { Search, SlidersHorizontal } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
+import { WalletConnect } from '@/components/WalletConnect';
 
-type TxStatus = 'Sent' | 'Received' | 'Pending';
-type TxType = 'Out' | 'In';
+type TxStatus = 'Delivered' | 'Received' | 'Pending review';
 
 interface Transaction {
   id: string;
   date: string;
-  type: TxType;
-  name: string;
-  initials: string;
+  counterpart: string;
   address: string;
   amount: string;
-  isIncoming: boolean;
-  memo: string;
+  currency: 'USDC' | 'XLM';
   status: TxStatus;
-  hash: string;
+  memo: string;
 }
 
 const ALL_TRANSACTIONS: Transaction[] = [
   {
     id: '1',
-    date: 'Oct 24, 2024',
-    type: 'Out',
-    name: 'John Doe',
-    initials: 'JD',
+    date: 'May 9, 2026',
+    counterpart: 'Amina Yusuf',
     address: 'GABC...X7Y9',
-    amount: '250.00 USDC',
-    isIncoming: false,
-    memo: 'Weekly Retainer',
-    status: 'Sent',
-    hash: 'tx1',
+    amount: '-1,850.00',
+    currency: 'USDC',
+    status: 'Delivered',
+    memo: 'Weekly payroll',
   },
   {
     id: '2',
-    date: 'Oct 23, 2024',
-    type: 'In',
-    name: 'External Wallet',
-    initials: '',
+    date: 'May 8, 2026',
+    counterpart: 'Corporate reserve',
     address: 'G9K2...P4M1',
-    amount: '+1,500.00 USDC',
-    isIncoming: true,
-    memo: 'Fund Account',
+    amount: '+25,000.00',
+    currency: 'USDC',
     status: 'Received',
-    hash: 'tx2',
+    memo: 'Treasury top-up',
   },
   {
     id: '3',
-    date: 'Oct 21, 2024',
-    type: 'Out',
-    name: 'Alice Mwangi',
-    initials: 'AM',
+    date: 'May 8, 2026',
+    counterpart: 'Lerato Mbeki',
     address: 'GZ5T...L9Q3',
-    amount: '1,250.00 XLM',
-    isIncoming: false,
-    memo: 'Project Milestone 2',
-    status: 'Sent',
-    hash: 'tx3',
+    amount: '-2,400.00',
+    currency: 'USDC',
+    status: 'Pending review',
+    memo: 'Sprint payroll',
   },
   {
     id: '4',
-    date: 'Oct 18, 2024',
-    type: 'Out',
-    name: 'David Kimani',
-    initials: 'DK',
+    date: 'May 7, 2026',
+    counterpart: 'Kwame Owusu',
     address: 'GB7R...W2E8',
-    amount: '450.00 USDC',
-    isIncoming: false,
-    memo: 'Design Services',
-    status: 'Pending',
-    hash: 'tx4',
+    amount: '-980.00',
+    currency: 'USDC',
+    status: 'Delivered',
+    memo: 'Design retainer',
   },
   {
     id: '5',
-    date: 'Oct 15, 2024',
-    type: 'In',
-    name: 'Corporate Account',
-    initials: '',
+    date: 'May 7, 2026',
+    counterpart: 'Treasury sweep',
     address: 'GC3A...V8N4',
-    amount: '+5,000.00 USDC',
-    isIncoming: true,
-    memo: 'Monthly Top-up',
-    status: 'Received',
-    hash: 'tx5',
+    amount: '-140.00',
+    currency: 'XLM',
+    status: 'Delivered',
+    memo: 'Fees reserve',
   },
 ];
 
-function StatusBadge({ status }: { status: TxStatus }) {
-  if (status === 'Sent') {
-    return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-label-mono bg-primary-container/10 text-primary border border-primary-container/20">
-        Sent
-      </span>
-    );
-  }
-  if (status === 'Received') {
-    return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-label-mono bg-surface-container-high text-secondary border border-outline-variant">
-        Received
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-label-mono bg-surface-container text-secondary border border-outline-variant">
-      Pending
-    </span>
-  );
-}
-
 export default function TransactionsPage() {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [currencyFilter, setCurrencyFilter] = useState<string>('All');
-  const [page, setPage] = useState(1);
-  const PER_PAGE = 5;
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [currencyFilter, setCurrencyFilter] = useState('All');
 
-  const filtered = ALL_TRANSACTIONS.filter((tx) => {
-    const matchSearch =
-      search === '' ||
-      tx.name.toLowerCase().includes(search.toLowerCase()) ||
-      tx.memo.toLowerCase().includes(search.toLowerCase()) ||
-      tx.address.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'All' || tx.status === statusFilter;
-    const matchCurrency =
-      currencyFilter === 'All' ||
-      tx.amount.includes(currencyFilter);
-    return matchSearch && matchStatus && matchCurrency;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-
-  const handleClear = () => {
-    setSearch('');
-    setStatusFilter('All');
-    setCurrencyFilter('All');
-    setPage(1);
-  };
+  const filtered = useMemo(
+    () =>
+      ALL_TRANSACTIONS.filter((tx) => {
+        const query = search.toLowerCase();
+        const matchesSearch =
+          !query ||
+          tx.counterpart.toLowerCase().includes(query) ||
+          tx.memo.toLowerCase().includes(query) ||
+          tx.address.toLowerCase().includes(query);
+        const matchesStatus = statusFilter === 'All' || tx.status === statusFilter;
+        const matchesCurrency = currencyFilter === 'All' || tx.currency === currencyFilter;
+        return matchesSearch && matchesStatus && matchesCurrency;
+      }),
+    [currencyFilter, search, statusFilter]
+  );
 
   return (
-    <div className="bg-background text-on-surface font-body text-body antialiased flex min-h-screen">
-      <Sidebar />
-
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen">
-        <div className="p-gutter max-w-container-max mx-auto w-full flex-1 flex flex-col gap-8 pt-8">
-
-          {/* Header & Search */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h1 className="font-h2 text-h2 text-on-surface">Transaction History</h1>
-            <div className="relative w-full md:w-96">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">search</span>
+    <DashboardShell
+      title="Transaction History"
+      description="Track treasury inflows, worker payouts, and anything that needs human review before delivery."
+      actions={<WalletConnect />}
+    >
+      <div className="space-y-6">
+        <SurfaceCard>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8c7760]" />
               <input
                 type="text"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                placeholder="Search by recipient or memo..."
-                className="w-full h-12 pl-10 pr-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-body font-body focus:outline-none focus:border-primary-container focus:border-2 transition-all"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by worker, memo, or wallet"
+                className="h-12 w-full rounded-[18px] border border-[#e7dccb] bg-[#fffaf2] pl-11 pr-4 text-sm text-[#102033] outline-none transition-colors focus:border-[#1f8f55]"
               />
             </div>
-          </div>
 
-          {/* Filter Bar */}
-          <div className="flex flex-wrap gap-4 items-center bg-surface-container-lowest p-4 rounded-xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary">filter_list</span>
-              <span className="font-body-sm text-body-sm text-secondary">Filters:</span>
-            </div>
-
-            {/* Status filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="flex items-center gap-2 pl-4 pr-8 py-2 border border-outline-variant rounded-lg text-body-sm font-body-sm hover:border-secondary transition-colors bg-surface-container-lowest appearance-none outline-none cursor-pointer"
-              >
-                <option>All</option>
-                <option>Sent</option>
-                <option>Received</option>
-                <option>Pending</option>
-              </select>
-              <span className="material-symbols-outlined text-sm absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">expand_more</span>
-            </div>
-
-            {/* Currency filter */}
-            <div className="relative">
-              <select
-                value={currencyFilter}
-                onChange={(e) => { setCurrencyFilter(e.target.value); setPage(1); }}
-                className="flex items-center gap-2 pl-4 pr-8 py-2 border border-outline-variant rounded-lg text-body-sm font-body-sm hover:border-secondary transition-colors bg-surface-container-lowest appearance-none outline-none cursor-pointer"
-              >
-                <option value="All">Currency: All</option>
-                <option value="USDC">USDC</option>
-                <option value="XLM">XLM</option>
-              </select>
-              <span className="material-symbols-outlined text-sm absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">expand_more</span>
-            </div>
-
-            <button
-              type="button"
-              className="ml-auto text-secondary hover:text-primary transition-colors font-body-sm text-body-sm"
-              onClick={handleClear}
-            >
-              Clear All
-            </button>
-          </div>
-
-          {/* Transactions Table */}
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden flex-1">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-outline-variant bg-surface-container-low text-secondary font-body-sm text-body-sm">
-                    <th className="py-4 px-6 font-semibold whitespace-nowrap">Date</th>
-                    <th className="py-4 px-6 font-semibold whitespace-nowrap">Type</th>
-                    <th className="py-4 px-6 font-semibold min-w-[200px]">Recipient/Sender</th>
-                    <th className="py-4 px-6 font-semibold whitespace-nowrap text-right">Amount</th>
-                    <th className="py-4 px-6 font-semibold min-w-[150px]">Memo</th>
-                    <th className="py-4 px-6 font-semibold whitespace-nowrap">Status</th>
-                    <th className="py-4 px-6 font-semibold whitespace-nowrap text-center">Explorer</th>
-                  </tr>
-                </thead>
-                <tbody className="font-body text-body divide-y divide-outline-variant">
-                  {paginated.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-16 text-center text-secondary font-body-sm text-body-sm">
-                        No transactions found.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginated.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-surface-container-low transition-colors group">
-                        <td className="py-4 px-6 text-on-surface whitespace-nowrap font-body-sm text-body-sm">{tx.date}</td>
-                        <td className="py-4 px-6">
-                          <div className={`flex items-center gap-2 ${tx.type === 'Out' ? 'text-error' : 'text-primary-container'}`}>
-                            <span className="material-symbols-outlined fill text-xl">
-                              {tx.type === 'Out' ? 'arrow_upward' : 'arrow_downward'}
-                            </span>
-                            <span className="text-sm">{tx.type}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary-container font-semibold text-xs shrink-0">
-                              {tx.initials ? (
-                                tx.initials
-                              ) : (
-                                <span className="material-symbols-outlined text-[16px] text-secondary">account_balance</span>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-on-surface">{tx.name}</div>
-                              <div className="text-xs text-secondary font-label-mono text-label-mono">{tx.address}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className={`py-4 px-6 text-right font-label-mono text-label-mono font-semibold ${tx.isIncoming ? 'text-primary-container' : 'text-on-surface'}`}>
-                          {tx.amount}
-                        </td>
-                        <td className="py-4 px-6 text-secondary text-sm">{tx.memo}</td>
-                        <td className="py-4 px-6">
-                          <StatusBadge status={tx.status} />
-                        </td>
-                        <td className="py-4 px-6 text-center">
-                          <a
-                            href={`https://stellar.expert/explorer/testnet/tx/${tx.hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-secondary hover:text-primary transition-colors inline-flex opacity-0 group-hover:opacity-100"
-                          >
-                            <span className="material-symbols-outlined text-[20px]">open_in_new</span>
-                          </a>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="border-t border-outline-variant px-6 py-4 flex items-center justify-between bg-surface-container-lowest">
-              <div className="text-sm text-secondary font-body-sm">
-                Showing{' '}
-                <span className="font-semibold text-on-surface">{Math.min((page - 1) * PER_PAGE + 1, filtered.length)}</span>
-                {' '}to{' '}
-                <span className="font-semibold text-on-surface">{Math.min(page * PER_PAGE, filtered.length)}</span>
-                {' '}of{' '}
-                <span className="font-semibold text-on-surface">{filtered.length}</span>
-                {' '}results
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="inline-flex items-center gap-2 rounded-[18px] border border-[#e7dccb] bg-[#fffaf2] px-4">
+                <SlidersHorizontal className="h-4 w-4 text-[#8c7760]" />
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  className="h-12 bg-transparent text-sm text-[#102033] outline-none"
+                >
+                  <option>All</option>
+                  <option>Delivered</option>
+                  <option>Received</option>
+                  <option>Pending review</option>
+                </select>
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1 rounded border border-outline-variant text-secondary hover:bg-surface-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
+              <div className="inline-flex items-center rounded-[18px] border border-[#e7dccb] bg-[#fffaf2] px-4">
+                <select
+                  value={currencyFilter}
+                  onChange={(event) => setCurrencyFilter(event.target.value)}
+                  className="h-12 bg-transparent text-sm text-[#102033] outline-none"
                 >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPage(p)}
-                    className={`w-8 h-8 rounded flex items-center justify-center font-semibold transition-colors ${
-                      p === page
-                        ? 'bg-primary-container text-on-primary-container'
-                        : 'hover:bg-surface-container text-secondary'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1 rounded border border-outline-variant text-secondary hover:bg-surface-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+                  <option>All</option>
+                  <option>USDC</option>
+                  <option>XLM</option>
+                </select>
               </div>
             </div>
           </div>
+        </SurfaceCard>
 
-          <div className="h-12" />
+        <SurfaceCard className="hidden overflow-hidden lg:block">
+          <table className="w-full table-fixed text-left">
+            <thead>
+              <tr className="border-b border-[#efe3d0] text-sm text-[#8c7760]">
+                <th className="pb-4 font-medium">Date</th>
+                <th className="pb-4 font-medium">Counterparty</th>
+                <th className="pb-4 font-medium">Wallet</th>
+                <th className="pb-4 font-medium">Memo</th>
+                <th className="pb-4 text-right font-medium">Amount</th>
+                <th className="pb-4 text-right font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((tx) => (
+                <tr key={tx.id} className="border-b border-[#f3ecdf] last:border-b-0">
+                  <td className="py-5 text-sm text-[#637085]">{tx.date}</td>
+                  <td className="py-5 font-medium text-[#102033]">{tx.counterpart}</td>
+                  <td className="py-5 font-mono text-sm text-[#637085]">{tx.address}</td>
+                  <td className="py-5 text-sm text-[#637085]">{tx.memo}</td>
+                  <td className="py-5 text-right font-mono text-sm text-[#102033]">
+                    {tx.amount} {tx.currency}
+                  </td>
+                  <td className="py-5 text-right">
+                    <span className="rounded-full bg-[#fff8ef] px-3 py-1 text-xs font-semibold text-[#8c7760]">
+                      {tx.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </SurfaceCard>
+
+        <div className="space-y-4 lg:hidden">
+          {filtered.map((tx) => (
+            <SurfaceCard key={tx.id} className="bg-white/96">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-semibold text-[#102033]">{tx.counterpart}</p>
+                  <p className="mt-1 text-sm text-[#637085]">{tx.memo}</p>
+                </div>
+                <span className="rounded-full bg-[#fff8ef] px-3 py-1 text-xs font-semibold text-[#8c7760]">
+                  {tx.status}
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-[#8c7760]">Date</p>
+                  <p className="mt-1 text-[#102033]">{tx.date}</p>
+                </div>
+                <div>
+                  <p className="text-[#8c7760]">Amount</p>
+                  <p className="mt-1 font-mono text-[#102033]">
+                    {tx.amount} {tx.currency}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[#8c7760]">Wallet</p>
+                  <p className="mt-1 font-mono text-sm text-[#637085]">{tx.address}</p>
+                </div>
+              </div>
+            </SurfaceCard>
+          ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

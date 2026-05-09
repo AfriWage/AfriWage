@@ -1,258 +1,251 @@
 'use client';
 
-import React, { useState } from 'react';
+import { ArrowRight, CheckCircle2, Clock3, MoveUpRight, Users2, Wallet2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Sidebar } from '@/components/Sidebar';
-
-const MOCK_TRANSACTIONS = [
-  {
-    id: '1',
-    date: 'Oct 24, 2024',
-    recipient: 'GBX4...L9P2',
-    amount: '50.00 USDC',
-    status: 'Sent',
-    statusType: 'sent',
-    hash: 'abc123',
-  },
-  {
-    id: '2',
-    date: 'Oct 22, 2024',
-    recipient: 'GAY7...M2N1',
-    amount: '120.00 USDC',
-    status: 'Sent',
-    statusType: 'sent',
-    hash: 'def456',
-  },
-  {
-    id: '3',
-    date: 'Oct 20, 2024',
-    recipient: 'External Sender',
-    amount: '+250.00 USDC',
-    status: 'Received',
-    statusType: 'received',
-    hash: 'ghi789',
-  },
-  {
-    id: '4',
-    date: 'Oct 18, 2024',
-    recipient: 'GCZ9...R4Q8',
-    amount: '15.50 XLM',
-    status: 'Sent',
-    statusType: 'sent',
-    hash: 'jkl012',
-  },
-];
+import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
+import { WalletConnect } from '@/components/WalletConnect';
+import {
+  dashboardMetrics,
+  payoutQueues,
+  recentTransactions,
+  workerHighlights,
+} from '@/lib/dashboard-data';
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [recipient, setRecipient] = useState('GBX4...L9P2');
-  const [amount, setAmount] = useState('');
-  const [memo, setMemo] = useState('');
-
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-body text-body">
-      <Sidebar />
+    <DashboardShell
+      title="Operations Overview"
+      description="Monitor treasury health, move payroll faster, and catch payout blockers before workers feel them."
+      actions={<WalletConnect />}
+    >
+      <div className="space-y-6">
+        <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+          <SurfaceCard className="overflow-hidden bg-[linear-gradient(135deg,#102033_0%,#18324c_54%,#1f8f55_160%)] text-white">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/60">Today&apos;s command view</p>
+                <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+                  Keep every payout lane visible, funded, and trusted.
+                </h2>
+                <p className="mt-4 max-w-xl text-sm leading-6 text-white/74">
+                  The redesigned AfriWage dashboard centers the actual operator workflow:
+                  fund treasury, review workers, send payroll, and confirm delivery.
+                </p>
+              </div>
 
-      <main className="min-h-screen px-4 py-6 md:ml-64 md:px-margin md:py-margin">
-        <div className="mx-auto max-w-container-max space-y-6 md:space-y-gutter">
-          <header className="flex items-center justify-between rounded-2xl border border-outline-variant bg-surface-container-lowest px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)] md:hidden">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-[0_1px_2px_rgba(14,29,38,0.08)]">
-                <div className="relative h-5 w-5 rotate-[18deg]">
-                  <span className="absolute left-[1px] top-[2px] h-2 w-1.5 rounded-sm bg-primary" />
-                  <span className="absolute left-[7px] top-0 h-3 w-1.5 rounded-sm bg-primary-container" />
-                  <span className="absolute left-[13px] top-[4px] h-2 w-1.5 rounded-sm bg-on-surface" />
-                  <span className="absolute left-[4px] top-[10px] h-2 w-1.5 rounded-sm bg-on-surface" />
-                  <span className="absolute left-[10px] top-[8px] h-3 w-1.5 rounded-sm bg-primary" />
-                </div>
-              </div>
-              <div>
-                <p className="text-xl font-bold text-primary">AfriWage</p>
-                <p className="text-sm text-secondary">Enterprise Payroll</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push('/send')}
-              className="rounded-lg bg-primary-container px-4 py-2 text-sm font-bold text-on-primary"
-            >
-              Send
-            </button>
-          </header>
-
-          <header className="mb-8 flex justify-between items-end">
-            <div>
-              <h2 className="font-h2 text-h2 text-on-surface mb-2">Dashboard</h2>
-              <p className="font-body-sm text-body-sm text-secondary">
-                Manage your enterprise payroll and connected wallet.
-              </p>
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="rounded-lg bg-surface-container-high p-3 text-primary">
-                  <span className="material-symbols-outlined">currency_exchange</span>
-                </div>
-                <h3 className="font-body-sm text-body-sm text-secondary">XLM Balance</h3>
-              </div>
-              <div className="font-label-mono text-[32px] font-medium leading-none text-on-surface md:text-[44px]">
-                124.50 <span className="text-body text-secondary ml-1">XLM</span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="rounded-lg bg-surface-container-high p-3 text-primary">
-                  <span className="material-symbols-outlined">payments</span>
-                </div>
-                <h3 className="font-body-sm text-body-sm text-secondary">USDC Balance</h3>
-              </div>
-              <div className="font-label-mono text-[32px] font-medium leading-none text-on-surface md:text-[44px]">
-                250.00 <span className="text-body text-secondary ml-1">USDC</span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="rounded-lg bg-surface-container-high p-3 text-primary">
-                  <span className="material-symbols-outlined">send</span>
-                </div>
-                <h3 className="font-body-sm text-body-sm text-secondary">Payments Sent</h3>
-              </div>
-              <div className="font-label-mono text-[32px] font-medium leading-none text-on-surface md:text-[44px]">
-                12
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-8 shadow-[0_1px_3px_rgba(0,0,0,0.08)] xl:col-span-4">
-              <h3 className="mb-8 text-h3 font-h3 text-on-surface">Quick Send</h3>
-              <form
-                className="space-y-6"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  router.push('/send');
-                }}
-              >
-                <div>
-                  <label className="block font-body-sm text-body-sm text-secondary mb-2">
-                    Recipient Address
-                  </label>
-                  <input
-                    type="text"
-                    value={recipient}
-                    onChange={(e) => setRecipient(e.target.value)}
-                    placeholder="G..."
-                    className="h-[60px] w-full rounded-lg border border-outline-variant bg-surface px-5 font-label-mono text-label-mono text-on-surface outline-none transition-all focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block font-body-sm text-body-sm text-secondary mb-2">
-                    Amount (USDC)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="h-[60px] w-full rounded-lg border border-outline-variant bg-surface px-5 pr-24 font-label-mono text-label-mono text-on-surface outline-none transition-all focus:border-primary"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                      <span className="font-body-sm text-body-sm text-secondary">USDC</span>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block font-body-sm text-body-sm text-secondary mb-2">
-                    Memo (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={memo}
-                    onChange={(e) => setMemo(e.target.value)}
-                    placeholder="Payment reference"
-                    className="h-[60px] w-full rounded-lg border border-outline-variant bg-surface px-5 font-body text-body text-on-surface outline-none transition-all focus:border-primary"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="mt-2 w-full rounded-lg bg-primary-container px-6 py-4 text-center font-bold text-on-primary transition-transform hover:scale-[0.98] active:scale-95"
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Link
+                  href="/send"
+                  className="rounded-[20px] bg-white px-5 py-4 text-center font-semibold text-[#102033] transition-transform hover:scale-[0.99] active:scale-[0.97]"
                 >
-                  Send Payment
-                </button>
-              </form>
-            </div>
-
-            <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-[0_1px_3px_rgba(0,0,0,0.08)] xl:col-span-8">
-              <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest p-8">
-                <h3 className="font-h3 text-h3 text-on-surface">Recent Transactions</h3>
+                  Send payroll
+                </Link>
                 <Link
                   href="/transactions"
-                  className="font-body-sm text-body-sm text-primary font-medium hover:underline"
+                  className="rounded-[20px] border border-white/15 px-5 py-4 text-center font-semibold text-white transition-colors hover:bg-white/8"
                 >
-                  View All
+                  Review activity
                 </Link>
               </div>
+            </div>
+          </SurfaceCard>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-container-lowest border-b border-outline-variant">
-                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Date</th>
-                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Recipient</th>
-                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Amount</th>
-                      <th className="px-5 py-5 font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Status</th>
-                      <th className="px-5 py-5 text-right font-body-sm text-body-sm font-medium text-secondary whitespace-nowrap">Explorer</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MOCK_TRANSACTIONS.map((tx, idx) => (
-                      <tr
-                        key={tx.id}
-                        className={`min-h-[56px] border-b border-surface-container-highest transition-colors ${
-                          idx % 2 === 1
-                            ? 'bg-surface hover:bg-surface-container-highest'
-                            : 'hover:bg-surface'
-                        }`}
-                      >
-                        <td className="px-5 py-5 font-body-sm text-body-sm text-on-surface">{tx.date}</td>
-                        <td className="px-5 py-5 font-label-mono text-label-mono text-on-surface">{tx.recipient}</td>
-                        <td className="px-5 py-5 font-label-mono text-label-mono text-on-surface">{tx.amount}</td>
-                        <td className="px-5 py-5">
-                          {tx.statusType === 'sent' ? (
-                            <span className="inline-flex items-center rounded bg-primary-container/10 px-2.5 py-1 text-label-mono font-label-mono text-primary">
-                              Sent
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center rounded bg-surface-container-highest px-2.5 py-1 text-label-mono font-label-mono text-on-surface">
-                              Received
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-5 text-right">
-                          <a
-                            href={`https://stellar.expert/explorer/testnet/tx/${tx.hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-secondary hover:text-primary transition-colors inline-flex"
-                          >
-                            <span className="material-symbols-outlined text-[20px]">open_in_new</span>
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <SurfaceCard className="bg-[#fff8ef]">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Payroll runway</p>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">17 days funded</h3>
+              </div>
+              <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55]">
+                <Wallet2 className="h-5 w-5" />
               </div>
             </div>
+            <div className="mt-6 h-3 rounded-full bg-[#efe3d0]">
+              <div className="h-3 w-[72%] rounded-full bg-[linear-gradient(90deg,#1f8f55_0%,#8dca62_100%)]" />
+            </div>
+            <div className="mt-5 space-y-3 text-sm text-[#637085]">
+              <div className="flex items-center justify-between">
+                <span>USDC treasury available</span>
+                <span className="font-mono text-[#102033]">$124,500</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Next scheduled batch</span>
+                <span className="font-medium text-[#102033]">Tuesday, 11:00 WAT</span>
+              </div>
+            </div>
+          </SurfaceCard>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {dashboardMetrics.map((metric) => (
+            <SurfaceCard key={metric.label} className="bg-white/95">
+              <p className="text-sm text-[#637085]">{metric.label}</p>
+              <div className="mt-4 flex items-end justify-between gap-4">
+                <p className="font-display text-3xl font-semibold text-[#102033]">{metric.value}</p>
+                <span className="rounded-full bg-[#f3ecdf] px-3 py-1 text-xs font-semibold text-[#8c7760]">
+                  {metric.change}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-[#637085]">{metric.detail}</p>
+            </SurfaceCard>
+          ))}
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_1.1fr]">
+          <SurfaceCard>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Queue status</p>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">What needs attention next</h3>
+              </div>
+              <Clock3 className="h-5 w-5 text-[#8c7760]" />
+            </div>
+            <div className="mt-6 space-y-4">
+              {payoutQueues.map((queue) => (
+                <div
+                  key={queue.title}
+                  className="rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-display text-lg font-semibold text-[#102033]">{queue.title}</p>
+                    <span className="font-mono text-sm text-[#1f8f55]">{queue.amount}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-[#637085]">{queue.detail}</p>
+                </div>
+              ))}
+            </div>
+          </SurfaceCard>
+
+          <SurfaceCard>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Worker readiness</p>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">Who can be paid right now</h3>
+              </div>
+              <Link href="/worker" className="text-sm font-semibold text-[#1f8f55]">
+                Open worker view
+              </Link>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {workerHighlights.map((worker) => (
+                <div
+                  key={worker.name}
+                  className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#102033] text-sm font-semibold text-white">
+                      {worker.name
+                        .split(' ')
+                        .map((name) => name[0])
+                        .join('')
+                        .slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#102033]">{worker.name}</p>
+                      <p className="text-sm text-[#637085]">{worker.country}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 sm:justify-end">
+                    <span className="font-mono text-sm text-[#102033]">{worker.amount}</span>
+                    <span className="rounded-full bg-[#dff3e8] px-3 py-1 text-xs font-semibold text-[#1f8f55]">
+                      {worker.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SurfaceCard>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <SurfaceCard>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Recent activity</p>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">Payment confidence feed</h3>
+              </div>
+              <Link
+                href="/transactions"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#1f8f55]"
+              >
+                All transactions
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {recentTransactions.map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55]">
+                      <MoveUpRight className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#102033]">{transaction.title}</p>
+                      <p className="mt-1 text-sm text-[#637085]">
+                        {transaction.counterparty} • {transaction.time}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 sm:justify-end">
+                    <p className="font-mono text-sm text-[#102033]">{transaction.amount}</p>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#8c7760]">
+                      {transaction.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SurfaceCard>
+
+          <div className="space-y-6">
+            <SurfaceCard className="bg-[#fff8ef]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Primary path</p>
+                  <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">Ship payroll in 3 steps</h3>
+                </div>
+                <Users2 className="h-5 w-5 text-[#8c7760]" />
+              </div>
+              <div className="mt-6 space-y-4">
+                {[
+                  'Review which workers are ready and which profiles still need offramp details.',
+                  'Use Send payout to move USDC from treasury to the selected worker wallet.',
+                  'Confirm delivery from transaction history and share the worker passport when needed.',
+                ].map((step, index) => (
+                  <div key={step} className="flex gap-4">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#102033] text-sm font-semibold text-white">
+                      0{index + 1}
+                    </div>
+                    <p className="text-sm leading-6 text-[#637085]">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </SurfaceCard>
+
+            <SurfaceCard>
+              <div className="flex items-start gap-4">
+                <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55]">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-display text-xl font-semibold text-[#102033]">Mobile-first operator flow</p>
+                  <p className="mt-2 text-sm leading-6 text-[#637085]">
+                    The bottom navigation keeps the core routes reachable on small screens,
+                    while the sticky header preserves the main payout action.
+                  </p>
+                </div>
+              </div>
+            </SurfaceCard>
           </div>
-        </div>
-      </main>
-    </div>
+        </section>
+      </div>
+    </DashboardShell>
   );
 }
