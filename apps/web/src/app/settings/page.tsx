@@ -1,6 +1,6 @@
 'use client';
 
-import { BellRing, Building2, LockKeyhole, Wallet2 } from 'lucide-react';
+import { Building2, LockKeyhole, Wallet2 } from 'lucide-react';
 import { useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';

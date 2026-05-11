@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { COMPANY_WALLET } from '@/lib/dashboard-data';
 import { copyToClipboard, cn } from '@/lib/utils';
 
@@ -38,14 +38,6 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-
-  const currentSection = useMemo(
-    () =>
-      navItems.find(
-        (item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-      )?.label ?? 'Overview',
-    [pathname]
-  );
 
   const handleCopy = async () => {
     const success = await copyToClipboard(COMPANY_WALLET);
