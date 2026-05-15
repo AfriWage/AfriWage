@@ -7,7 +7,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ApiError, fundTestnet, getAccount } from '@/lib/api';
+import { fundTestnet, getAccount } from '@/lib/api';
 import { dashboardMetrics, payoutQueues, recentTransactions } from '@/lib/dashboard-data';
 
 export default function DashboardPage() {
@@ -33,12 +33,12 @@ export default function DashboardPage() {
     () => [
       {
         asset: 'USDC Treasury',
-        value: accountQuery.data ? `${accountQuery.data.balances.usdc} USDC` : '--',
+        value: accountQuery.data ? `${accountQuery.data.usdcBalance} USDC` : '--',
         detail: 'Primary payroll pool',
       },
       {
         asset: 'XLM Gas Buffer',
-        value: accountQuery.data ? `${accountQuery.data.balances.xlm} XLM` : '--',
+        value: accountQuery.data ? `${accountQuery.data.xlmBalance} XLM` : '--',
         detail: 'Network fees and account ops',
       },
     ],
@@ -48,8 +48,9 @@ export default function DashboardPage() {
     address &&
     !accountQuery.isLoading &&
     !accountQuery.data &&
-    accountQuery.error instanceof ApiError &&
-    accountQuery.error.status === 404;
+    accountQuery.error !== null &&
+    accountQuery.error instanceof Error &&
+    accountQuery.error.message.includes('404');
 
   return (
     <DashboardShell
@@ -108,7 +109,7 @@ export default function DashboardPage() {
                 className="h-3 rounded-full bg-[linear-gradient(90deg,#1f8f55_0%,#8dca62_100%)]"
                 style={{
                   width:
-                    accountQuery.data && Number.parseFloat(accountQuery.data.balances.usdc) > 0
+                    accountQuery.data && Number.parseFloat(accountQuery.data.usdcBalance) > 0
                       ? '72%'
                       : '18%',
                 }}
@@ -120,18 +121,18 @@ export default function DashboardPage() {
                   <Skeleton className="h-5 w-full" />
                   <Skeleton className="h-5 w-4/5" />
                 </>
-              ) : accountQuery.data?.exists ? (
+              ) : accountQuery.data?.isActive ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span>USDC treasury available</span>
                     <span className="font-mono text-[#102033]">
-                      {accountQuery.data.balances.usdc} USDC
+                      {accountQuery.data.usdcBalance} USDC
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>XLM available</span>
                     <span className="font-medium text-[#102033]">
-                      {accountQuery.data.balances.xlm} XLM
+                      {accountQuery.data.xlmBalance} XLM
                     </span>
                   </div>
                 </>

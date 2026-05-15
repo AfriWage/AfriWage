@@ -33,3 +33,15 @@ export async function verifyPayment(hash: string) {
     explorerUrl: `https://stellar.expert/explorer/testnet/tx/${hash}`,
   };
 }
+
+export async function fundTestnet(address: string): Promise<void> {
+  const response = await fetch('/api/fund-testnet', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fund testnet account: ${response.statusText}`);
+  }
+}
