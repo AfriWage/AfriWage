@@ -1,111 +1,76 @@
 'use client';
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
+  ArrowDownLeft,
   ArrowUpRight,
+  CheckCircle2,
+  Copy,
+  ExternalLink,
   Home,
+  Loader2,
   RefreshCw,
   Send,
-  TrendingUp,
   Users,
-  Wallet,
+  Wallet2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import React from 'react';
-import { SendPaymentForm } from '@/components/SendPaymentForm';
-import { TransactionHistory } from '@/components/TransactionHistory';
+import { useCallback, useState } from 'react';
 import { WalletConnect } from '@/components/WalletConnect';
-import type { Balance } from '@/lib/stellar';
-import { formatAmount, getBalance } from '@/lib/stellar';
+import type { Balance, TransactionRecord } from '@/lib/stellar';
+import {
+  formatAmount,
+  fundTestnetAccount,
+  getBalance,
+  getTransactionHistory,
+  sendPayment,
+  truncatePublicKey,
+} from '@/lib/stellar';
+import { cn, formatDate, copyToClipboard } from '@/lib/utils';
 
-function BalanceCard({
-  label,
-  value,
-  subtext,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  subtext: string;
-  icon: React.ElementType;
-  color: string;
-}) {
+/* ─── SKELETON ─────────────────────────────────────────── */
+
+function Skeleton({ className }: { className?: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-400">{label}</p>
-        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
-          <Icon className="h-4 w-4 text-white" />
-        </div>
-      </div>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      <p className="mt-1 text-sm text-slate-500">{subtext}</p>
-    </div>
+    <div
+      className={cn(
+        'animate-pulse rounded-lg bg-white/10',
+        className
+      )}
+    />
   );
 }
 
+/* ─── PAGE ─────────────────────────────────────────────── */
+
 export default function DashboardPage() {
   const [publicKey, setPublicKey] = useState<string | null>(null);
-  const [balance, setBalance] = useState<Balance | null>(null);
-  const [balanceLoading, setBalanceLoading] = useState(false);
-  const [balanceError, setBalanceError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const loadBalance = useCallback(async (pk: string) => {
-    setBalanceLoading(true);
-    setBalanceError(null);
-    try {
-      const bal = await getBalance(pk);
-      setBalance(bal);
-    } catch (err) {
-      setBalanceError(err instanceof Error ? err.message : 'Failed to load balance');
-    } finally {
-      setBalanceLoading(false);
-    }
+  const handleConnect = useCallback((pk: string) => {
+    setPublicKey(pk);
   }, []);
-
-  const handleConnect = useCallback(
-    (pk: string) => {
-      setPublicKey(pk);
-      loadBalance(pk);
-    },
-    [loadBalance]
-  );
 
   const handleDisconnect = useCallback(() => {
     setPublicKey(null);
-    setBalance(null);
-    setBalanceError(null);
-  }, []);
-
-  // Auto-redirect to home if user navigates here without connecting
-  // (only after a brief delay to allow auto-connect)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // This is handled via WalletConnect's auto-connect logic
-    }, 2000);
-    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="min-h-screen bg-hero-gradient">
-      {/* Top nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-stellar-blue/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    <div className="min-h-screen bg-[#0A0A0A]">
+      {/* ── TOP NAVBAR ────────────────────────────── */}
+      <nav className="sticky top-0 z-50 h-16 border-b border-white/10 bg-[#0A0A0A]">
+        <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="flex items-center gap-2 text-slate-400 transition-colors hover:text-white"
-              aria-label="Back to home"
+              className="flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white"
             >
               <Home className="h-4 w-4" />
-              <span className="text-sm">Home</span>
+              Home
             </Link>
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-gradient">
-                <span className="text-xs font-bold text-white">RC</span>
-              </div>
+              <span className="h-2 w-2 rounded-full bg-[#14A800]" />
               <span className="font-semibold text-white">Dashboard</span>
             </div>
           </div>
@@ -113,7 +78,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/worker"
-              className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
+              className="hidden items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white sm:flex"
             >
               <Users className="h-4 w-4" />
               Worker Portal
@@ -123,121 +88,532 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      {/* ── MAIN CONTENT ──────────────────────────── */}
+      <main className="mx-auto max-w-6xl px-6 py-10">
         {!publicKey ? (
-          /* Not connected — prompt */
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <Wallet className="h-10 w-10 text-brand-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Connect Your Wallet</h1>
-              <p className="mt-2 max-w-sm text-slate-400">
-                Connect your Freighter wallet to view your balance and send USDC payments to your
-                workers.
-              </p>
-            </div>
-            <WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />
-            <p className="text-xs text-slate-600">
-              Don't have Freighter?{' '}
-              <a
-                href="https://freighter.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-500 hover:text-brand-400"
-              >
-                Download it here
-              </a>
-            </p>
-          </div>
+          <DisconnectedState
+            onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
+          />
         ) : (
-          <div className="animate-fade-in space-y-8">
-            {/* Page header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-white">Employer Dashboard</h1>
-                <p className="mt-1 text-sm text-slate-400">
-                  Manage payroll and send USDC to your workers
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => loadBalance(publicKey)}
-                disabled={balanceLoading}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
-                aria-label="Refresh balances"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${balanceLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-            </div>
-
-            {/* Balance cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {balanceLoading ? (
-                [...Array(2)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-36 animate-pulse rounded-2xl border border-white/10 bg-white/5"
-                  />
-                ))
-              ) : balanceError ? (
-                <div className="col-span-full flex items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-                  <AlertCircle className="h-5 w-5 shrink-0" />
-                  {balanceError}
-                </div>
-              ) : balance ? (
-                <>
-                  <BalanceCard
-                    label="USDC Balance"
-                    value={formatAmount(balance.usdc, 'USDC')}
-                    subtext="Available to send"
-                    icon={TrendingUp}
-                    color="bg-brand-gradient"
-                  />
-                  <BalanceCard
-                    label="XLM Balance"
-                    value={formatAmount(balance.xlm, 'XLM')}
-                    subtext="For transaction fees"
-                    icon={ArrowUpRight}
-                    color="bg-blue-500/50"
-                  />
-                  <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 sm:col-span-2 lg:col-span-1">
-                    <p className="mb-2 text-sm font-medium text-brand-400">Quick Actions</p>
-                    <div className="space-y-2">
-                      <Link
-                        href="/send"
-                        className="flex items-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90"
-                      >
-                        <Send className="h-4 w-4" />
-                        Send Payment
-                      </Link>
-                      <Link
-                        href="/worker"
-                        className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-300 transition-all hover:bg-white/10"
-                      >
-                        <Users className="h-4 w-4" />
-                        View Worker Portal
-                      </Link>
-                    </div>
-                  </div>
-                </>
-              ) : null}
-            </div>
-
-            {/* Send payment + history grid */}
-            <div className="grid gap-8 lg:grid-cols-[1fr_1.5fr]">
-              <SendPaymentForm
-                senderPublicKey={publicKey}
-                // Note: In production, the secret key is never stored in state.
-                // Payments are signed via Freighter. This is a testnet demo.
-                senderSecret={undefined}
-              />
-              <TransactionHistory publicKey={publicKey} />
-            </div>
-          </div>
+          <ConnectedDashboard
+            publicKey={publicKey}
+            queryClient={queryClient}
+          />
         )}
       </main>
+    </div>
+  );
+}
+
+/* ─── DISCONNECTED STATE ───────────────────────────────── */
+
+function DisconnectedState({
+  onConnect,
+  onDisconnect,
+}: {
+  onConnect: (pk: string) => void;
+  onDisconnect: () => void;
+}) {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+      <Wallet2 className="mx-auto h-16 w-16 text-[#E5E7EB]" />
+
+      <h2 className="mt-6 text-2xl font-bold text-white">
+        Connect your wallet to get started
+      </h2>
+
+      <p className="mx-auto mt-3 max-w-sm text-[#6B7280]">
+        AfriWage uses Freighter, the official Stellar browser wallet. Connect to
+        view your real balances and send payments.
+      </p>
+
+      <div className="mt-8">
+        <WalletConnect onConnect={onConnect} onDisconnect={onDisconnect} />
+      </div>
+
+      <a
+        href="https://www.freighter.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 text-sm text-[#6B7280] underline transition-colors hover:text-white"
+      >
+        Don&apos;t have Freighter? Download it free →
+      </a>
+    </div>
+  );
+}
+
+/* ─── CONNECTED DASHBOARD ──────────────────────────────── */
+
+function ConnectedDashboard({
+  publicKey,
+  queryClient,
+}: {
+  publicKey: string;
+  queryClient: ReturnType<typeof useQueryClient>;
+}) {
+  /* ── Data fetching ── */
+  const {
+    data: balance,
+    isLoading: balanceLoading,
+    error: balanceError,
+  } = useQuery<Balance>({
+    queryKey: ['account', publicKey],
+    queryFn: () => getBalance(publicKey),
+    enabled: !!publicKey,
+    refetchInterval: 30000,
+  });
+
+  const {
+    data: transactions,
+    isLoading: txLoading,
+  } = useQuery<TransactionRecord[]>({
+    queryKey: ['transactions', publicKey],
+    queryFn: () => getTransactionHistory(publicKey),
+    enabled: !!publicKey,
+  });
+
+  /* ── Fund testnet account ── */
+  const fundMutation = useMutation({
+    mutationFn: () => fundTestnetAccount(publicKey),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['account', publicKey] });
+    },
+  });
+
+  const accountActive = balance && balance.xlm !== '0' && balance.xlm !== '0.0000000';
+
+  return (
+    <div className="space-y-8">
+      {/* Page header */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <p className="mt-1 text-sm text-[#6B7280]">
+          Your Stellar wallet overview
+        </p>
+      </div>
+
+      {/* ── STAT CARDS ────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {balanceLoading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : balanceError ? (
+          <div className="col-span-full rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              Failed to load account data. The account may not exist on testnet.
+            </div>
+          </div>
+        ) : balance ? (
+          <>
+            {/* XLM Balance */}
+            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
+                XLM Balance
+              </p>
+              <p className="mt-2 text-3xl font-bold text-white">
+                {formatAmount(balance.xlm, '')}
+              </p>
+              <p className="mt-1 text-sm text-[#6B7280]">Stellar Lumens</p>
+            </div>
+
+            {/* USDC Balance */}
+            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
+                USDC Balance
+              </p>
+              <p className="mt-2 text-3xl font-bold text-white">
+                {formatAmount(balance.usdc, '')}
+              </p>
+              <div className="mt-1">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14A800]/10 px-3 py-1 text-xs text-[#14A800]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#14A800]" />
+                  Live on testnet
+                </span>
+              </div>
+            </div>
+
+            {/* Account Status */}
+            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
+                Account
+              </p>
+              <p
+                className={cn(
+                  'mt-2 text-3xl font-bold',
+                  accountActive ? 'text-[#14A800]' : 'text-[#E24B4A]'
+                )}
+              >
+                {accountActive ? 'Active' : 'Not funded'}
+              </p>
+              <p className="mt-1 font-mono text-sm text-[#6B7280]">
+                {truncatePublicKey(publicKey, 6)}
+              </p>
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      {/* ── UNFUNDED WARNING ──────────────────────── */}
+      {balance && !accountActive && (
+        <div className="flex items-center justify-between rounded-xl border border-[#FED7AA] bg-[#FFF7ED]/10 p-4">
+          <p className="text-sm text-[#FED7AA]">
+            ⚠️ Account not funded on testnet
+          </p>
+          <button
+            type="button"
+            onClick={() => fundMutation.mutate()}
+            disabled={fundMutation.isPending}
+            className="flex items-center gap-2 rounded-lg bg-[#14A800] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#108A00] disabled:opacity-50"
+          >
+            {fundMutation.isPending && (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            )}
+            Fund with Friendbot
+          </button>
+        </div>
+      )}
+
+      {fundMutation.isError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+          <AlertCircle className="mr-2 inline h-4 w-4" />
+          Funding failed: {fundMutation.error instanceof Error ? fundMutation.error.message : 'Unknown error'}
+        </div>
+      )}
+
+      {fundMutation.isSuccess && (
+        <div className="rounded-xl border border-[#BBF7D0]/30 bg-[#14A800]/10 p-4 text-sm text-[#14A800]">
+          <CheckCircle2 className="mr-2 inline h-4 w-4" />
+          Account funded successfully! Balances will refresh shortly.
+        </div>
+      )}
+
+      {/* ── SEND PAYMENT ──────────────────────────── */}
+      <SendPaymentCard publicKey={publicKey} />
+
+      {/* ── RECENT TRANSACTIONS ───────────────────── */}
+      <RecentTransactions
+        publicKey={publicKey}
+        transactions={transactions ?? []}
+        isLoading={txLoading}
+      />
+    </div>
+  );
+}
+
+/* ─── SEND PAYMENT CARD ────────────────────────────────── */
+
+function SendPaymentCard({ publicKey }: { publicKey: string }) {
+  const queryClient = useQueryClient();
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
+  const [memo, setMemo] = useState('');
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const isValidAddress = recipient.startsWith('G') && recipient.length === 56;
+
+  const handleSend = async () => {
+    if (!isValidAddress || !amount || parseFloat(amount) <= 0) return;
+
+    setSending(true);
+    setSendError(null);
+    setTxHash(null);
+
+    try {
+      // Note: On testnet demo, sendPayment requires a secret key.
+      // In production, this would use Freighter signTransaction.
+      // For now, show a clear message about Freighter signing.
+      throw new Error(
+        'Freighter wallet signing is required. Use the dedicated Send Payment page for full transaction signing support.'
+      );
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : 'Payment failed');
+      setSending(false);
+    }
+  };
+
+  const handleReset = () => {
+    setRecipient('');
+    setAmount('');
+    setMemo('');
+    setTxHash(null);
+    setSendError(null);
+  };
+
+  if (txHash) {
+    return (
+      <div className="rounded-xl border border-[#BBF7D0] bg-[#F0FDF4]/5 p-6">
+        <CheckCircle2 className="mx-auto h-10 w-10 text-[#14A800]" />
+        <p className="mt-4 text-center text-lg font-semibold text-white">
+          Payment sent successfully!
+        </p>
+        <div className="mx-auto mt-4 flex max-w-md items-center gap-2 rounded-lg bg-white/5 p-3">
+          <p className="flex-1 truncate font-mono text-xs text-[#6B7280]">
+            {txHash}
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              await copyToClipboard(txHash);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="shrink-0 text-[#6B7280] hover:text-white"
+          >
+            {copied ? (
+              <CheckCircle2 className="h-4 w-4 text-[#14A800]" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        <div className="mt-4 flex items-center justify-center gap-4">
+          <a
+            href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-[#14A800] hover:underline"
+          >
+            View on Stellar Explorer →
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </div>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="mx-auto mt-4 block rounded-lg border border-white/10 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/5"
+        >
+          Send another
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+      <h3 className="mb-6 text-lg font-semibold text-white">Send Payment</h3>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Recipient */}
+        <div>
+          <label
+            htmlFor="dash-recipient"
+            className="mb-1.5 block text-sm font-medium text-[#6B7280]"
+          >
+            Recipient Stellar Address
+          </label>
+          <div className="relative">
+            <input
+              id="dash-recipient"
+              type="text"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              placeholder="G... Stellar address"
+              className="h-12 w-full rounded-lg border border-white/10 bg-white/5 px-4 pr-10 font-mono text-sm text-white placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50"
+            />
+            {isValidAddress && (
+              <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#14A800]" />
+            )}
+          </div>
+        </div>
+
+        {/* Amount */}
+        <div>
+          <label
+            htmlFor="dash-amount"
+            className="mb-1.5 block text-sm font-medium text-[#6B7280]"
+          >
+            Amount (USDC)
+          </label>
+          <div className="relative">
+            <input
+              id="dash-amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              className="h-12 w-full rounded-lg border border-white/10 bg-white/5 px-4 pr-16 text-sm text-white placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#6B7280]">
+              USDC
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Memo */}
+      <div className="mt-4">
+        <label
+          htmlFor="dash-memo"
+          className="mb-1.5 block text-sm font-medium text-[#6B7280]"
+        >
+          Memo (optional)
+        </label>
+        <input
+          id="dash-memo"
+          type="text"
+          maxLength={28}
+          value={memo}
+          onChange={(e) => setMemo(e.target.value)}
+          placeholder="Payment for design work"
+          className="h-12 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50"
+        />
+      </div>
+
+      {/* Fee row */}
+      <p className="mt-3 text-xs text-[#6B7280]">
+        Network fee: ~0.00001 XLM · Settlement: &lt; 5s
+      </p>
+
+      {/* Error */}
+      {sendError && (
+        <div className="mt-4 rounded-xl border border-[#FECDD3]/30 bg-[#FFF1F2]/10 p-4 text-sm text-[#E24B4A]">
+          Payment failed: {sendError}
+        </div>
+      )}
+
+      {/* Submit */}
+      <Link
+        href="/send"
+        className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#14A800] font-semibold text-white transition-colors hover:bg-[#108A00]"
+      >
+        <Send className="h-4 w-4" />
+        Send Payment →
+      </Link>
+    </div>
+  );
+}
+
+/* ─── RECENT TRANSACTIONS ──────────────────────────────── */
+
+function RecentTransactions({
+  publicKey,
+  transactions,
+  isLoading,
+}: {
+  publicKey: string;
+  transactions: TransactionRecord[];
+  isLoading: boolean;
+}) {
+  const recent = transactions.slice(0, 5);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">
+          Recent Transactions
+        </h3>
+        <Link
+          href="/transactions"
+          className="text-sm text-[#14A800] transition-colors hover:underline"
+        >
+          View all →
+        </Link>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 py-4">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+              <div className="space-y-2 text-right">
+                <Skeleton className="ml-auto h-3 w-20" />
+                <Skeleton className="ml-auto h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : recent.length === 0 ? (
+        <div className="flex h-32 items-center justify-center rounded-xl bg-white/5">
+          <p className="text-center text-sm text-[#6B7280]">
+            No transactions yet. Send your first payment above.
+          </p>
+        </div>
+      ) : (
+        <div>
+          {recent.map((tx, idx) => {
+            const incoming = tx.to === publicKey;
+            return (
+              <div
+                key={tx.id}
+                className={cn(
+                  'flex items-center justify-between py-4',
+                  idx < recent.length - 1 && 'border-b border-white/10'
+                )}
+              >
+                {/* Left */}
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded-full bg-white/5',
+                    )}
+                  >
+                    {incoming ? (
+                      <ArrowDownLeft className="h-4 w-4 text-[#14A800]" />
+                    ) : (
+                      <ArrowUpRight className="h-4 w-4 text-[#E24B4A]" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      {tx.memo || 'Payment'}
+                    </p>
+                    <p className="text-xs text-[#6B7280]">
+                      {new Date(tx.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right */}
+                <div className="text-right">
+                  <p
+                    className={cn(
+                      'text-sm font-semibold',
+                      incoming ? 'text-[#14A800]' : 'text-[#E24B4A]'
+                    )}
+                  >
+                    {incoming ? '+' : '-'}
+                    {tx.amount} {tx.asset}
+                  </p>
+                  <p className="font-mono text-xs text-[#6B7280]">
+                    {truncatePublicKey(incoming ? tx.from : tx.to, 6)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── STAT CARD SKELETON ───────────────────────────────── */
+
+function StatCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+      <Skeleton className="h-3 w-20" />
+      <Skeleton className="mt-3 h-8 w-24" />
+      <Skeleton className="mt-2 h-3 w-16" />
     </div>
   );
 }
