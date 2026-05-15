@@ -38,7 +38,7 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
   });
 
   const onSubmit = useCallback(
-    async (_data: FormValues) => {
+    async () => {
       if (!senderPublicKey) {
         setErrorMessage('Please connect your wallet before sending a payment.');
         setStatus('error');

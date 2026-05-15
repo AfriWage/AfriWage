@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
   AlertCircle,
   ArrowDownLeft,
   ArrowUpRight,
@@ -17,6 +18,7 @@ import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { WalletConnect } from '@/components/WalletConnect';
 import type { Balance, TransactionRecord } from '@/lib/stellar';
+import {
   formatAmount,
   fundTestnetAccount,
   getBalance,
@@ -290,7 +292,7 @@ function ConnectedDashboard({
       )}
 
       {/* ── SEND PAYMENT ──────────────────────────── */}
-      <SendPaymentCard publicKey={publicKey} />
+      <SendPaymentCard />
 
       {/* ── RECENT TRANSACTIONS ───────────────────── */}
       <RecentTransactions
@@ -304,7 +306,7 @@ function ConnectedDashboard({
 
 /* ─── SEND PAYMENT CARD ────────────────────────────────── */
 
-function SendPaymentCard({ publicKey: _publicKey }: { publicKey: string }) {
+function SendPaymentCard() {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
