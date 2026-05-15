@@ -1,10 +1,11 @@
 'use client';
 
-import { ArrowUpRight, LayoutDashboard, Settings, Wallet, Waves } from 'lucide-react';
+import { ArrowUpRight, Copy, LayoutDashboard, Settings, Wallet, Waves } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { type ReactNode, useState } from 'react';
+import { COMPANY_WALLET } from '@/lib/dashboard-data';
+import { copyToClipboard, cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -22,6 +23,14 @@ interface DashboardShellProps {
 
 export function DashboardShell({ title, description, children, actions }: DashboardShellProps) {
   const pathname = usePathname();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const success = await copyToClipboard(COMPANY_WALLET);
+    if (!success) return;
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
     <div className="min-h-screen bg-[#f6efe6] text-[#102033]">
@@ -85,19 +94,21 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
           </Link>
 
           <div className="rounded-[24px] border border-[#eadfce] bg-white p-4 shadow-[0_18px_36px_rgba(16,32,51,0.06)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Need help?</p>
-            <p className="mt-3 text-sm leading-6 text-[#637085]">
-              Connect your Freighter wallet to get started with sending payments on Stellar testnet.
+            <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Treasury wallet</p>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="font-mono text-sm text-[#102033]">{COMPANY_WALLET}</p>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f6efe6] text-[#415065] transition-colors hover:bg-[#efe3d0]"
+                aria-label="Copy treasury wallet"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-[#637085]">
+              {copied ? 'Wallet copied' : 'Use this account to fund payroll batches.'}
             </p>
-            <Link
-              href="https://www.freighter.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#1f8f55] hover:text-[#14A800]"
-            >
-              Get Freighter
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
           </div>
         </div>
       </aside>
