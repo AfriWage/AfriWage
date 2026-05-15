@@ -54,8 +54,8 @@ Over 70 million gig workers across Africa are paid through legacy wire transfers
 - ✅ **Freighter wallet connect** — one-click connection, address copy, explorer link
 - ✅ **Live balance display** — XLM and USDC balances fetched from Horizon API
 - ✅ **Transaction history** — last 20 on-chain transactions with direction indicators
-- ✅ **Worker payment passport** — public proof-of-payment page for any Stellar address
-- ✅ **Employer dashboard** — send payments, view balance, manage payroll
+- ✅ **Payment Receipts** — public proof-of-payment receipt page for any transaction hash
+- ✅ **Employer dashboard** — send payments, view balance, manage payroll, modify security settings
 - ✅ **8+ African countries** — off-ramp support for NGN, GHS, KES, ZAR, TZS, UGX, XOF, XAF
 - ✅ **@AfriWage/sdk** — standalone Stellar helper package for the community
 
@@ -87,14 +87,19 @@ Afriwage/
 │       └── src/
 │           ├── app/
 │           │   ├── page.tsx          ← landing page
-│           │   ├── dashboard/        ← employer dashboard
-│           │   ├── worker/           ← worker payment passport
-│           │   └── send/             ← send payment page
+│           │   ├── api/              ← backend API routes
+│           │   ├── dashboard/        ← employer dashboard overview
+│           │   ├── receipt/          ← public payment receipt pages
+│           │   ├── send/             ← send payment flow
+│           │   ├── settings/         ← profile and security settings
+│           │   ├── transactions/     ← transaction history
+│           │   └── wallet/           ← wallet connection and balances
 │           ├── components/
+│           │   ├── dashboard-shell.tsx ← main layout wrapper
 │           │   ├── WalletConnect.tsx
 │           │   ├── SendPaymentForm.tsx
 │           │   ├── TransactionHistory.tsx
-│           │   └── WorkerCard.tsx
+│           │   └── ui/               ← reusable UI components (shadcn/ui)
 │           └── lib/
 │               ├── stellar.ts        ← Stellar SDK helpers
 │               └── freighter.ts      ← Freighter wallet integration
@@ -187,12 +192,6 @@ Look for issues labelled [`good-first-issue`](https://github.com/AfriWage/AfriWa
 ## Documentation
 
 📖 **Full Docs:** https://k1ngd4vid.gitbook.io/afriwage-docs
-
----
-
-## Contributors
-
-[![Contributors](https://contrib.rocks/image?repo=Afriwage/Afriwage)](https://github.com/Afriwage/Afriwage/graphs/contributors)
 
 ---
 
