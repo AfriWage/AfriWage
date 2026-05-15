@@ -40,22 +40,28 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
   }, [onConnect]);
 
   const handleConnect = useCallback(async () => {
+    console.log('[WalletConnect] Connect button clicked');
+
     // Check if Freighter is installed
     if (!isFreighterInstalled()) {
+      console.log('[WalletConnect] Freighter not installed');
       setError('Freighter wallet not detected. Please install Freighter to continue.');
       setStatus('error');
       return;
     }
 
+    console.log('[WalletConnect] Freighter detected, requesting access...');
     setStatus('connecting');
     setError(null);
 
     try {
       const key = await getPublicKey();
+      console.log('[WalletConnect] Got public key:', key);
       setPublicKey(key);
       setStatus('connected');
       onConnect?.(key);
     } catch (err) {
+      console.error('[WalletConnect] Connection error:', err);
       const message = err instanceof Error ? err.message : 'Failed to connect wallet';
       setError(message);
       setStatus('error');

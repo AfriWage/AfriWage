@@ -32,22 +32,32 @@ export function isFreighterInstalled(): boolean {
  * @throws Error if Freighter is not installed or user rejects
  */
 export async function getPublicKey(): Promise<string> {
+  console.log('[freighter] getPublicKey called');
+
   // First check if Freighter extension is installed
   if (!isFreighterInstalled()) {
+    console.log('[freighter] Freighter not installed');
     throw new Error(
       'Freighter wallet is not installed. Please install it from https://freighter.app'
     );
   }
 
+  console.log('[freighter] Calling freighterRequestAccess...');
   // Request access prompts the user to connect and returns the address
-  const { address, error } = await freighterRequestAccess();
-  if (error) {
-    throw new Error(error.toString());
+  const result = await freighterRequestAccess();
+  console.log('[freighter] Request access result:', result);
+
+  if (result.error) {
+    console.error('[freighter] Request access error:', result.error);
+    throw new Error(result.error.toString());
   }
-  if (!address) {
+  if (!result.address) {
+    console.error('[freighter] No address returned');
     throw new Error('No account found in Freighter. Please create or import a Stellar account.');
   }
-  return address;
+
+  console.log('[freighter] Successfully got address:', result.address);
+  return result.address;
 }
 
 /**
