@@ -115,32 +115,31 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
 
       <main className="pb-24 lg:ml-80 lg:pb-10">
         <div className="sticky top-0 z-20 border-b border-[#e7dccb] bg-white">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760] lg:hidden">
-                AfriWage dashboard
-              </p>
-              <h1 className="font-display text-[1.9rem] font-semibold leading-tight text-[#102033]">
+              <h1 className="font-display text-xl sm:text-[1.9rem] font-semibold leading-tight text-[#102033]">
                 {title}
               </h1>
-              <p className="mt-1 max-w-2xl text-sm text-[#637085]">{description}</p>
+              <p className="mt-1 max-w-2xl text-xs sm:text-sm text-[#637085] hidden sm:block">{description}</p>
             </div>
 
-            <div className="hidden shrink-0 items-center gap-3 lg:flex">{actions}</div>
-            <Link
-              href="/send"
-              className="shrink-0 rounded-full border border-[#d8cebe] bg-white px-4 py-2.5 text-sm font-semibold text-[#102033] shadow-[0_8px_24px_rgba(16,32,51,0.06)] lg:hidden"
-            >
-              Send
-            </Link>
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              {actions}
+              <Link
+                href="/send"
+                className="shrink-0 rounded-full border border-[#d8cebe] bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#102033] shadow-[0_8px_24px_rgba(16,32,51,0.06)] lg:hidden"
+              >
+                Send
+              </Link>
+            </div>
           </div>
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</div>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e7dccb] bg-[#fffaf2] px-2 py-2 lg:hidden">
-        <div className="grid grid-cols-4 gap-1">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e7dccb] bg-[#fffaf2] pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="flex items-center justify-around px-2 py-1.5">
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
@@ -152,11 +151,13 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-medium',
-                  isActive ? 'bg-[#102033] text-white' : 'text-[#637085]'
+                  'flex flex-col items-center gap-1 rounded-xl min-w-[4rem] py-1.5 text-[10px] font-medium transition-colors',
+                  isActive ? 'text-[#102033]' : 'text-[#637085]'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <div className={cn("p-1.5 rounded-xl transition-colors", isActive ? "bg-[#102033] text-white" : "text-[#637085] bg-transparent")}>
+                  <Icon className="h-5 w-5" />
+                </div>
                 <span>{item.label}</span>
               </Link>
             );

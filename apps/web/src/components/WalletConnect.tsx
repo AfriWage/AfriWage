@@ -76,15 +76,16 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         <button
           type="button"
           onClick={() => setShowDropdown((p) => !p)}
-          className="flex items-center gap-2 rounded-lg border border-[#1f8f55]/40 bg-[#1f8f55]/10 px-4 py-2 text-sm font-semibold text-[#1f8f55] transition-colors hover:bg-[#1f8f55]/20"
+          className="flex items-center gap-2 rounded-lg border border-[#1f8f55]/40 bg-[#1f8f55]/10 px-3 sm:px-4 py-2 text-sm font-semibold text-[#1f8f55] transition-colors hover:bg-[#1f8f55]/20"
           aria-expanded={showDropdown}
         >
-          <span className="h-2 w-2 rounded-full bg-[#1f8f55]" />
-          {truncatePublicKey(publicKey, 6)}
+          <span className="hidden sm:inline-block h-2 w-2 rounded-full bg-[#1f8f55]" />
+          <span className="hidden sm:inline">{truncatePublicKey(publicKey, 6)}</span>
+          <Wallet className="h-4 w-4 sm:hidden" />
         </button>
 
         {showDropdown && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-[#d8cebe] bg-white p-4 shadow-xl">
+          <div className="absolute right-0 top-full z-[100] mt-2 w-[calc(100vw-2rem)] max-w-[20rem] sm:w-72 rounded-xl border border-[#d8cebe] bg-white p-4 shadow-xl origin-top-right">
             <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8c7760]">
               Connected Wallet
             </p>
@@ -144,14 +145,14 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         onClick={handleConnect}
         disabled={status === 'connecting'}
         className={cn(
-          'inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all',
+          'inline-flex items-center justify-center gap-2 rounded-lg px-3 sm:px-5 py-2.5 text-sm font-semibold transition-all',
           status === 'connecting'
             ? 'cursor-wait bg-[#1f8f55]/70 text-white'
             : 'bg-[#1f8f55] text-white hover:bg-[#14A800]'
         )}
       >
         <Wallet className="h-4 w-4" />
-        {status === 'connecting' ? 'Connecting…' : 'Connect Wallet'}
+        <span className="hidden sm:inline">{status === 'connecting' ? 'Connecting…' : 'Connect Wallet'}</span>
       </button>
 
       {/* Error banner — always clearly visible */}

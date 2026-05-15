@@ -66,7 +66,7 @@ export default function DashboardPage() {
                 <p className="text-xs uppercase tracking-[0.18em] text-white/60">
                   Today&apos;s command view
                 </p>
-                <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+                <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl lg:text-4xl">
                   Keep every payout lane visible, funded, and trusted.
                 </h2>
                 <p className="mt-4 max-w-xl text-sm leading-6 text-white/74">

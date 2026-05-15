@@ -67,8 +67,8 @@ export default function SettingsPage() {
                 className={`relative h-8 w-14 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${twoFa ? 'bg-[#1f8f55]' : 'bg-[#d8cebe]'}`}
               >
                 <span
-                  className="absolute top-1 h-6 w-6 rounded-full bg-white shadow-md transition-transform duration-200"
-                  style={{ transform: twoFa ? 'translateX(26px)' : 'translateX(4px)' }}
+                  className="absolute left-0 top-1 h-6 w-6 rounded-full bg-white shadow-md transition-transform duration-200"
+                  style={{ transform: twoFa ? 'translateX(28px)' : 'translateX(4px)' }}
                 />
               </button>
             </div>
