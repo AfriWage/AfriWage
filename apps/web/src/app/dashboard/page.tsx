@@ -8,12 +8,7 @@ import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, fundTestnet, getAccount } from '@/lib/api';
-import {
-  dashboardMetrics,
-  payoutQueues,
-  recentTransactions,
-  workerHighlights,
-} from '@/lib/dashboard-data';
+import { dashboardMetrics, payoutQueues, recentTransactions } from '@/lib/dashboard-data';
 
 export default function DashboardPage() {
   const [address, setAddress] = useState<string | null>(null);
@@ -67,13 +62,15 @@ export default function DashboardPage() {
           <SurfaceCard className="overflow-hidden bg-[linear-gradient(135deg,#102033_0%,#18324c_54%,#1f8f55_160%)] text-white">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/60">Today&apos;s command view</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-white/60">
+                  Today&apos;s command view
+                </p>
                 <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
                   Keep every payout lane visible, funded, and trusted.
                 </h2>
                 <p className="mt-4 max-w-xl text-sm leading-6 text-white/74">
-                  The redesigned AfriWage dashboard centers the actual operator workflow:
-                  fund treasury, review workers, send payroll, and confirm delivery.
+                  The redesigned AfriWage dashboard centers the actual operator workflow: fund
+                  treasury, review workers, send payroll, and confirm delivery.
                 </p>
               </div>
 
@@ -208,7 +205,9 @@ export default function DashboardPage() {
                 <SurfaceCard key={metric.asset} className="bg-white/95">
                   <p className="text-sm text-[#637085]">{metric.asset}</p>
                   <div className="mt-4 flex items-end justify-between gap-4">
-                    <p className="font-display text-3xl font-semibold text-[#102033]">{metric.value}</p>
+                    <p className="font-display text-3xl font-semibold text-[#102033]">
+                      {metric.value}
+                    </p>
                     <span className="rounded-full bg-[#f3ecdf] px-3 py-1 text-xs font-semibold text-[#8c7760]">
                       Live
                     </span>
@@ -230,12 +229,14 @@ export default function DashboardPage() {
           ))}
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[1fr_1.1fr]">
+        <section>
           <SurfaceCard>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Queue status</p>
-                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">What needs attention next</h3>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
+                  What needs attention next
+                </h3>
               </div>
               <Clock3 className="h-5 w-5 text-[#8c7760]" />
             </div>
@@ -246,7 +247,9 @@ export default function DashboardPage() {
                   className="rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <p className="font-display text-lg font-semibold text-[#102033]">{queue.title}</p>
+                    <p className="font-display text-lg font-semibold text-[#102033]">
+                      {queue.title}
+                    </p>
                     <span className="font-mono text-sm text-[#1f8f55]">{queue.amount}</span>
                   </div>
                   <p className="mt-2 text-sm text-[#637085]">{queue.detail}</p>
@@ -254,56 +257,18 @@ export default function DashboardPage() {
               ))}
             </div>
           </SurfaceCard>
-
-          <SurfaceCard>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Worker readiness</p>
-                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">Who can be paid right now</h3>
-              </div>
-              <Link href="/worker" className="text-sm font-semibold text-[#1f8f55]">
-                Open worker view
-              </Link>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {workerHighlights.map((worker) => (
-                <div
-                  key={worker.name}
-                  className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#102033] text-sm font-semibold text-white">
-                      {worker.name
-                        .split(' ')
-                        .map((name) => name[0])
-                        .join('')
-                        .slice(0, 2)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#102033]">{worker.name}</p>
-                      <p className="text-sm text-[#637085]">{worker.country}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 sm:justify-end">
-                    <span className="font-mono text-sm text-[#102033]">{worker.amount}</span>
-                    <span className="rounded-full bg-[#dff3e8] px-3 py-1 text-xs font-semibold text-[#1f8f55]">
-                      {worker.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SurfaceCard>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section>
           <SurfaceCard>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Recent activity</p>
-                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">Payment confidence feed</h3>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
+                  Recent activity
+                </p>
+                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
+                  Payment confidence feed
+                </h3>
               </div>
               <Link
                 href="/transactions"
@@ -342,8 +307,6 @@ export default function DashboardPage() {
               ))}
             </div>
           </SurfaceCard>
-
-
         </section>
       </div>
     </DashboardShell>

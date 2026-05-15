@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  ArrowUpRight,
-  BriefcaseBusiness,
-  Copy,
-  LayoutDashboard,
-  Settings,
-  Wallet,
-  Waves,
-} from 'lucide-react';
+import { ArrowUpRight, Copy, LayoutDashboard, Settings, Wallet, Waves } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ReactNode, useState } from 'react';
@@ -18,7 +10,6 @@ import { copyToClipboard, cn } from '@/lib/utils';
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', icon: Waves },
-  { href: '/worker', label: 'Workers', icon: BriefcaseBusiness },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -30,12 +21,7 @@ interface DashboardShellProps {
   actions?: ReactNode;
 }
 
-export function DashboardShell({
-  title,
-  description,
-  children,
-  actions,
-}: DashboardShellProps) {
+export function DashboardShell({ title, description, children, actions }: DashboardShellProps) {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
 
@@ -55,7 +41,10 @@ export function DashboardShell({
       </div>
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-80 border-r border-[#d8cebe] bg-[#fffaf2] px-6 py-6 lg:flex lg:flex-col">
-        <Link href="/dashboard" className="rounded-[28px] border border-[#eadfce] bg-white px-5 py-5 shadow-[0_20px_50px_rgba(16,32,51,0.08)]">
+        <Link
+          href="/dashboard"
+          className="rounded-[28px] border border-[#eadfce] bg-white px-5 py-5 shadow-[0_20px_50px_rgba(16,32,51,0.08)]"
+        >
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#102033] text-white">
               <span className="font-display text-lg font-bold">A</span>
@@ -65,13 +54,13 @@ export function DashboardShell({
               <p className="text-sm text-[#637085]">Payroll operations cockpit</p>
             </div>
           </div>
-
         </Link>
 
         <nav className="mt-6 space-y-2">
           {navItems.map((item) => {
             const isActive =
-              pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              pathname === item.href ||
+              (item.href !== '/dashboard' && pathname.startsWith(item.href));
             const Icon = item.icon;
 
             return (
@@ -151,10 +140,11 @@ export function DashboardShell({
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e7dccb] bg-[#fffaf2] px-2 py-2 lg:hidden">
-        <div className="grid grid-cols-5 gap-1">
+        <div className="grid grid-cols-4 gap-1">
           {navItems.map((item) => {
             const isActive =
-              pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              pathname === item.href ||
+              (item.href !== '/dashboard' && pathname.startsWith(item.href));
             const Icon = item.icon;
 
             return (
@@ -177,13 +167,7 @@ export function DashboardShell({
   );
 }
 
-export function SurfaceCard({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function SurfaceCard({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div
       className={cn(

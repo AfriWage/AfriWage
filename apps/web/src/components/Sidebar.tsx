@@ -6,11 +6,10 @@ import React, { useState } from 'react';
 import { copyToClipboard } from '@/lib/utils';
 
 const navItems = [
-  { icon: 'dashboard', label: 'Overview',  href: '/dashboard' },
-  { icon: 'payments',  label: 'Payments',  href: '/transactions' },
-  { icon: 'group',     label: 'Workers',   href: '/worker' },
+  { icon: 'dashboard', label: 'Overview', href: '/dashboard' },
+  { icon: 'payments', label: 'Payments', href: '/transactions' },
   { icon: 'account_balance_wallet', label: 'Wallet', href: '/wallet' },
-  { icon: 'settings',  label: 'Settings',  href: '/settings' },
+  { icon: 'settings', label: 'Settings', href: '/settings' },
 ];
 
 export function Sidebar() {
@@ -45,7 +44,9 @@ export function Sidebar() {
 
       <ul className="flex-grow flex flex-col gap-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/dashboard' && pathname.startsWith(item.href));
           return (
             <li key={item.href}>
               <Link

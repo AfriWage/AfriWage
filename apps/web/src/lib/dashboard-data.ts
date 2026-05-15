@@ -2,28 +2,16 @@ export const COMPANY_WALLET = 'GA4FWQ7RZ6K2...H9X2';
 
 export const dashboardMetrics = [
   {
-    label: 'Payroll Float',
-    value: '$124,500',
-    change: '+8.2%',
-    detail: 'Ready for 3 upcoming payroll runs',
-  },
-  {
-    label: 'Workers Paid',
-    value: '184',
-    change: '+23',
-    detail: 'Across Nigeria, Ghana, Kenya, and South Africa',
-  },
-  {
     label: 'Avg Settlement',
-    value: '4.1s',
-    change: 'Stable',
-    detail: 'From treasury approval to Stellar confirmation',
+    value: '< 5s',
+    change: 'Stellar',
+    detail: 'From treasury approval to network confirmation',
   },
   {
     label: 'Success Rate',
     value: '99.2%',
-    change: '+0.4%',
-    detail: 'Last 30 days of payout attempts',
+    change: 'Testnet',
+    detail: 'Last 30 days of payout attempts on testnet',
   },
 ];
 
@@ -42,33 +30,6 @@ export const payoutQueues = [
     title: 'At Risk',
     amount: '3 issues',
     detail: 'Missing wallet mapping or offramp preference',
-  },
-];
-
-export const workerHighlights = [
-  {
-    name: 'Amina Yusuf',
-    country: 'Nigeria',
-    status: 'Ready',
-    amount: '$1,850',
-  },
-  {
-    name: 'Kwame Owusu',
-    country: 'Ghana',
-    status: 'Needs review',
-    amount: '$980',
-  },
-  {
-    name: 'Lerato Mbeki',
-    country: 'South Africa',
-    status: 'Ready',
-    amount: '$2,400',
-  },
-  {
-    name: 'Brian Kamau',
-    country: 'Kenya',
-    status: 'Offramp linked',
-    amount: '$1,320',
   },
 ];
 

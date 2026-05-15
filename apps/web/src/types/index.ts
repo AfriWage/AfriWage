@@ -1,16 +1,5 @@
 // Global type definitions for AfriWage web app
 
-export interface Worker {
-  id: string;
-  name: string;
-  publicKey: string;
-  country: string;
-  currency: string;
-  email?: string;
-  totalReceived: string;
-  lastPayment?: string;
-}
-
 export interface PaymentDraft {
   recipientPublicKey: string;
   amount: string;
