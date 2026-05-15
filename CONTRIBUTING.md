@@ -108,11 +108,10 @@ Before opening a PR, make sure:
 
 ## Finding Issues to Work On
 
-1. Browse [open issues](https://github.com/AfriWage/AfriWage/issues)
-2. Filter by [`good-first-issue`](https://github.com/AfriWage/AfriWage/labels/good-first-issue) for beginner-friendly tasks
-3. Filter by [`help wanted`](https://github.com/AfriWage/AfriWage/labels/help%20wanted) for higher-priority items
-4. Comment on an issue to claim it before starting work
-5. If you have a new idea, open a Feature Request issue first
+1. Comment on the issue saying you'd like to work on it
+2. Wait for a maintainer to assign it (usually within a day)
+3. Open a draft PR early so we can give feedback as you go
+4. Mark ready for review when CI is green   
 
 ---
 
@@ -122,6 +121,3 @@ For full branching strategy, PR rules, and commit signing guidance, see [GIT_GUI
 
 ---
 
-## Questions?
-
-Open a [Discussion](https://github.com/AfriWage/AfriWage/discussions) or drop a message in our [Telegram](https://t.me/AfriWage) (coming soon).
