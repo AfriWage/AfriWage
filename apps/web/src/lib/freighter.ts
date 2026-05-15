@@ -10,7 +10,7 @@ import {
 
 declare global {
   interface Window {
-    freighter?: any;
+    freighter?: unknown;
   }
 }
 

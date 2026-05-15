@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Send as SendIcon } from 'lucide-react';
+import { Home } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { SendPaymentForm } from '@/components/SendPaymentForm';

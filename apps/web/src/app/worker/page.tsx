@@ -1,24 +1,17 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import {
   AlertCircle,
   ArrowDownLeft,
   ArrowUpRight,
-  ChevronRight,
-  Copy,
-  CheckCircle2,
-  ExternalLink,
   Home,
   UserSearch,
-  Wallet2,
-  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { getAccount, getTransactions } from '@/lib/api';
-import { cn, copyToClipboard } from '@/lib/utils';
-import { isFreighterInstalled, getPublicKey as freighterGetPublicKey } from '@/lib/freighter';
+import { cn } from '@/lib/utils';
+import { getPublicKey as freighterGetPublicKey } from '@/lib/freighter';
 
 /* ─── SKELETON ─────────────────────────────────────────── */
 
@@ -313,7 +306,7 @@ function WorkerPassport({
           </div>
         ) : (
           <div>
-            {(transactions ?? []).map((tx, idx) => {
+            {(transactions ?? []).map((tx) => {
               const incoming = tx.to === searchAddress;
               const dateObj = new Date(tx.createdAt);
               const date = dateObj.toLocaleDateString('en-US', {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
   AlertCircle,
   ArrowDownLeft,
   ArrowUpRight,
@@ -10,7 +9,6 @@ import {
   ExternalLink,
   Home,
   Loader2,
-  RefreshCw,
   Send,
   Users,
   Wallet2,
@@ -19,15 +17,13 @@ import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { WalletConnect } from '@/components/WalletConnect';
 import type { Balance, TransactionRecord } from '@/lib/stellar';
-import {
   formatAmount,
   fundTestnetAccount,
   getBalance,
   getTransactionHistory,
-  sendPayment,
   truncatePublicKey,
 } from '@/lib/stellar';
-import { cn, formatDate, copyToClipboard } from '@/lib/utils';
+import { cn, copyToClipboard } from '@/lib/utils';
 
 /* ─── SKELETON ─────────────────────────────────────────── */
 
@@ -308,37 +304,15 @@ function ConnectedDashboard({
 
 /* ─── SEND PAYMENT CARD ────────────────────────────────── */
 
-function SendPaymentCard({ publicKey }: { publicKey: string }) {
-  const queryClient = useQueryClient();
+function SendPaymentCard({ publicKey: _publicKey }: { publicKey: string }) {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [txHash, setTxHash] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const isValidAddress = recipient.startsWith('G') && recipient.length === 56;
-
-  const handleSend = async () => {
-    if (!isValidAddress || !amount || parseFloat(amount) <= 0) return;
-
-    setSending(true);
-    setSendError(null);
-    setTxHash(null);
-
-    try {
-      // Note: On testnet demo, sendPayment requires a secret key.
-      // In production, this would use Freighter signTransaction.
-      // For now, show a clear message about Freighter signing.
-      throw new Error(
-        'Freighter wallet signing is required. Use the dedicated Send Payment page for full transaction signing support.'
-      );
-    } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Payment failed');
-      setSending(false);
-    }
-  };
 
   const handleReset = () => {
     setRecipient('');
