@@ -40,6 +40,13 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
   }, [onConnect]);
 
   const handleConnect = useCallback(async () => {
+    // Check if Freighter is installed
+    if (!isFreighterInstalled()) {
+      setError('Freighter wallet not detected. Please install Freighter to continue.');
+      setStatus('error');
+      return;
+    }
+
     setStatus('connecting');
     setError(null);
 
@@ -165,9 +172,22 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
       </button>
 
       {status === 'error' && error && (
-        <div className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400 max-w-xs">
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>{error}</span>
+        <div className="flex flex-col gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400 max-w-xs">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+          {error.includes('not detected') && (
+            <a
+              href="https://www.freighter.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-red-300 hover:text-red-200 underline"
+            >
+              Install Freighter
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
         </div>
       )}
     </div>

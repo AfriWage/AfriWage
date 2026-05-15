@@ -8,7 +8,7 @@ import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fundTestnet, getAccount } from '@/lib/api';
-import { dashboardMetrics, payoutQueues, recentTransactions } from '@/lib/dashboard-data';
+import { dashboardMetrics } from '@/lib/dashboard-data';
 
 export default function DashboardPage() {
   const [address, setAddress] = useState<string | null>(null);
@@ -234,78 +234,73 @@ export default function DashboardPage() {
           <SurfaceCard>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Queue status</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Quick Actions</p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
-                  What needs attention next
+                  Get started with AfriWage
                 </h3>
               </div>
-              <Clock3 className="h-5 w-5 text-[#8c7760]" />
             </div>
-            <div className="mt-6 space-y-4">
-              {payoutQueues.map((queue) => (
-                <div
-                  key={queue.title}
-                  className="rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="font-display text-lg font-semibold text-[#102033]">
-                      {queue.title}
-                    </p>
-                    <span className="font-mono text-sm text-[#1f8f55]">{queue.amount}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-[#637085]">{queue.detail}</p>
-                </div>
-              ))}
-            </div>
-          </SurfaceCard>
-        </section>
 
-        <section>
-          <SurfaceCard>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
-                  Recent activity
-                </p>
-                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
-                  Payment confidence feed
-                </h3>
-              </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <Link
+                href="/send"
+                className="group flex items-start gap-4 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-5 transition-all hover:border-[#1f8f55] hover:bg-[#dff3e8]"
+              >
+                <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55] transition-colors group-hover:bg-white">
+                  <MoveUpRight className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-[#102033]">Send Payment</p>
+                  <p className="mt-1 text-sm text-[#637085]">
+                    Send USDC to any Stellar address on testnet
+                  </p>
+                </div>
+              </Link>
+
               <Link
                 href="/transactions"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#1f8f55]"
+                className="group flex items-start gap-4 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-5 transition-all hover:border-[#1f8f55] hover:bg-[#dff3e8]"
               >
-                All transactions
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {recentTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55]">
-                      <MoveUpRight className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#102033]">{transaction.title}</p>
-                      <p className="mt-1 text-sm text-[#637085]">
-                        {transaction.counterparty} • {transaction.time}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 sm:justify-end">
-                    <p className="font-mono text-sm text-[#102033]">{transaction.amount}</p>
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#8c7760]">
-                      {transaction.status}
-                    </span>
-                  </div>
+                <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55] transition-colors group-hover:bg-white">
+                  <ArrowRight className="h-5 w-5" />
                 </div>
-              ))}
+                <div className="flex-1">
+                  <p className="font-semibold text-[#102033]">View Transactions</p>
+                  <p className="mt-1 text-sm text-[#637085]">
+                    Check your payment history and status
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                href="/wallet"
+                className="group flex items-start gap-4 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-5 transition-all hover:border-[#1f8f55] hover:bg-[#dff3e8]"
+              >
+                <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55] transition-colors group-hover:bg-white">
+                  <Wallet2 className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-[#102033]">Wallet Details</p>
+                  <p className="mt-1 text-sm text-[#637085]">
+                    View your wallet info and transaction receipts
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                href="/settings"
+                className="group flex items-start gap-4 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-5 transition-all hover:border-[#1f8f55] hover:bg-[#dff3e8]"
+              >
+                <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55] transition-colors group-hover:bg-white">
+                  <Clock3 className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-[#102033]">Settings</p>
+                  <p className="mt-1 text-sm text-[#637085]">
+                    Configure preferences and manage your account
+                  </p>
+                </div>
+              </Link>
             </div>
           </SurfaceCard>
         </section>
