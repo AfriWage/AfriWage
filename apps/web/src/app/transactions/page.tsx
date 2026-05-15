@@ -1,14 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  ArrowDownLeft,
-  ArrowLeftRight,
-  ArrowUpRight,
-  ChevronRight,
-  Home,
-  Users,
-} from 'lucide-react';
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';

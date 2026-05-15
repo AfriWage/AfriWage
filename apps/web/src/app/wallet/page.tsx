@@ -7,9 +7,7 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
-  Home,
   Loader2,
-  Users,
   Wallet2,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -18,7 +16,7 @@ import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import type { Balance } from '@/lib/stellar';
 import { fundTestnetAccount, getBalance } from '@/lib/stellar';
-import { formatAmount, truncatePublicKey } from '@/lib/stellar-format';
+import { formatAmount } from '@/lib/stellar-format';
 import { cn, copyToClipboard } from '@/lib/utils';
 
 /* ─── SKELETON ─────────────────────────────────────────── */
