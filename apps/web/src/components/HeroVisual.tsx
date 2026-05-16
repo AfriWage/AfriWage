@@ -3,7 +3,10 @@
 import dynamic from 'next/dynamic';
 import RotatingText from '@/components/ui/RotatingText';
 
-const MagicRings = dynamic(() => import('@/components/ui/MagicRings'), { ssr: false });
+const MagicRings = dynamic(() => import('@/components/ui/MagicRings'), {
+  ssr: false,
+  loading: () => <div style={{ width: '100%', height: '100%' }} />,
+});
 
 export default function HeroVisual() {
   return (
@@ -45,7 +48,7 @@ export default function HeroVisual() {
           initial={{ y: "100%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "-120%", opacity: 0 }}
-          animatePresenceInitial={true}
+          animatePresenceInitial={false}
           staggerDuration={0.025}
           splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
           transition={{ type: "spring", damping: 30, stiffness: 400 }}

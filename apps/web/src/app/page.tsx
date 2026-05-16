@@ -117,7 +117,7 @@ export default function HomePage() {
 
       <main>
         {/* ═══════════════ HERO ═══════════════ */}
-        <section className="landing-hero" id="hero">
+        <section className="landing-hero" id="hero" style={{ backgroundColor: '#060A06' }}>
           <div className="landing-hero-inner">
             {/* Badge */}
             <div className="landing-hero-badge">
@@ -126,7 +126,7 @@ export default function HomePage() {
             </div>
 
             {/* Hero visual: MagicRings + RotatingText */}
-            <div className="landing-hero-visual-wrap">
+            <div className="landing-hero-visual-wrap" style={{ backgroundColor: 'transparent' }}>
               <HeroVisual />
             </div>
 

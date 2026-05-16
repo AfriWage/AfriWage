@@ -25,7 +25,7 @@
   * { box-sizing: border-box; border-color: #e5e7eb; }
   html { scroll-behavior: smooth; }
   body {
-    background-color: #ffffff;
+    background-color: #F0FDF4;
     color: #111111;
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 16px;
@@ -41,7 +41,7 @@
 .icon-sm { width: 16px; height: 16px; }
 
 /* ══════════════ LANDING ROOT ══════════════ */
-.landing-root { min-height: 100vh; background: #ffffff; color: #111; overflow-x: hidden; }
+.landing-root { min-height: 100vh; background: #F0FDF4; color: #111; overflow-x: hidden; }
 
 /* ══════════════ NAV ══════════════ */
 .landing-nav {
@@ -172,7 +172,7 @@
 .landing-stat-label { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.4); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 .landing-hero-fade {
   position: absolute; bottom: 0; left: 0; right: 0;
-  height: 120px; background: linear-gradient(to bottom, transparent, #ffffff);
+  height: 120px; background: linear-gradient(to bottom, transparent, var(--dark-bg));
   z-index: 1;
 }
 
@@ -253,7 +253,7 @@
 @media(min-width:768px) { .landing-flow-grid { grid-template-columns: repeat(4,1fr); } }
 .landing-flow-card {
   position: relative; padding: 32px 24px; border-radius: 16px;
-  border: 1px solid #E5E7EB; background: white;
+  border: 1px solid #BBF7D0; background: #F0FDF4;
   transition: all 0.3s; text-align: center;
 }
 .landing-flow-card:hover { border-color: var(--green-primary); box-shadow: 0 0 24px var(--green-glow); transform: translateY(-4px); }
@@ -302,7 +302,7 @@
 @media(min-width:640px) { .landing-corridors-grid { grid-template-columns: repeat(4,1fr); } }
 .landing-corridor-card {
   text-align: center; padding: 28px 16px; border-radius: 16px;
-  border: 1px solid #E5E7EB; background: white;
+  border: 1px solid #BBF7D0; background: #F0FDF4;
   transition: all 0.3s;
 }
 .landing-corridor-card:hover { border-color: var(--green-primary); box-shadow: 0 0 20px var(--green-glow); transform: translateY(-3px); }
@@ -383,11 +383,11 @@
   gap: 12px;
   padding: 16px 24px;
   border-radius: 100px;
-  border: 1px solid #E5E7EB;
-  background: white;
+  border: 1px solid #BBF7D0;
+  background: #F0FDF4;
   font-weight: 600;
   font-size: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 12px rgba(20,168,0,0.06);
 }
 @keyframes marquee {
   0% { transform: translateX(0); }
