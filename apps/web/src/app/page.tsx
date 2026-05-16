@@ -5,7 +5,6 @@ import { SUPPORTED_COUNTRIES } from '@/types';
 import HeroVisual from '@/components/HeroVisual';
 import { InstantSettlementIcon, LocalDeliveryIcon } from '@/components/ui/Icons';
 import Reveal from '@/components/ui/Reveal';
-import HeroVideoBackground from '@/components/HeroVideoBackground';
 
 export const metadata: Metadata = {
   title: 'AfriWage - Borderless payroll for African teams',
@@ -119,7 +118,6 @@ export default function HomePage() {
       <main>
         {/* ═══════════════ HERO ═══════════════ */}
         <section className="landing-hero" id="hero">
-          <HeroVideoBackground />
           <div className="landing-hero-inner">
             {/* Badge */}
             <div className="landing-hero-badge">
