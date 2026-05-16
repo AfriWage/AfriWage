@@ -2,7 +2,7 @@
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { TargetAndTransition } from 'motion/react';
+import type { TargetAndTransition, Transition } from 'motion/react';
 
 import './RotatingText.css';
 
@@ -21,7 +21,7 @@ interface SegmentResult {
 
 interface RotatingTextProps {
   texts: string[];
-  transition?: TargetAndTransition;
+  transition?: Transition;
   initial?: TargetAndTransition | TargetAndTransition[];
   animate?: TargetAndTransition | TargetAndTransition[];
   exit?: TargetAndTransition | TargetAndTransition[];
@@ -198,13 +198,13 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>((props, ref)
                     initial={Array.isArray(initial) ? initial[wordIndex % initial.length] : initial}
                     animate={Array.isArray(animate) ? animate[wordIndex % animate.length] : animate}
                     exit={Array.isArray(exit) ? exit[wordIndex % exit.length] : exit}
-                    transition={{
+                    transition={typeof transition === 'object' ? {
                       ...transition,
                       delay: getStaggerDelay(
                         previousCharsCount + charIndex,
                         array.reduce((sum: number, word: WordObject) => sum + word.characters.length, 0)
                       )
-                    }}
+                    } : undefined}
                     className={cn('text-rotate-element', elementLevelClassName as string)}
                   >
                     {char}
