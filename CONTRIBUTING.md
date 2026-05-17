@@ -45,7 +45,7 @@ pnpm dev
 
 ## Branch Naming Convention
 
-All feature work must branch from `develop`, never from `main`.
+All feature work must branch from `main`.
 
 ```
 feat/issue-42-send-payment-form
@@ -83,7 +83,7 @@ Commit messages are validated by `commitlint` on every commit via Husky.
 
 Before opening a PR, make sure:
 
-- [ ] Your branch is based on `develop`
+- [ ] Your branch is based on `main`
 - [ ] Branch name follows the convention above
 - [ ] All commit messages follow Conventional Commits
 - [ ] `pnpm type-check` passes with zero errors

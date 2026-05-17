@@ -55,7 +55,7 @@ export default function DashboardPage() {
   return (
     <DashboardShell
       title="Operations Overview"
-      description="Monitor treasury health, move payroll faster, and catch payout blockers before workers feel them."
+      description="Get a high-level view of your African payroll operations. Fund your treasury in seconds, approve pending payouts, and review recent on-chain settlements all from one unified command center."
       actions={<WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />}
     >
       <div className="space-y-6">
@@ -75,16 +75,16 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col sm:flex-row gap-3 mt-6 lg:mt-0">
                 <Link
                   href="/send"
-                  className="rounded-[20px] bg-white px-5 py-4 text-center font-semibold text-[#102033] transition-transform hover:scale-[0.99] active:scale-[0.97]"
+                  className="rounded-[20px] bg-white px-6 py-4 text-center font-semibold text-[#102033] transition-transform hover:scale-[0.99] active:scale-[0.97]"
                 >
                   Send payroll
                 </Link>
                 <Link
                   href="/transactions"
-                  className="rounded-[20px] border border-white/15 px-5 py-4 text-center font-semibold text-white transition-colors hover:bg-white/8"
+                  className="rounded-[20px] border border-white/20 px-6 py-4 text-center font-semibold text-white transition-colors hover:bg-white/10"
                 >
                   Review activity
                 </Link>

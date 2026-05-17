@@ -15,7 +15,7 @@ export default function SettingsPage() {
   return (
     <DashboardShell
       title="Settings"
-      description="Profile, security, and payout preferences now live inside the same operator framework as the rest of the dashboard."
+      description="Manage your organization profile, configure two-factor authentication, and set your default payout routes."
       actions={<WalletConnect />}
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">

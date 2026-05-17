@@ -1,271 +1,376 @@
-import { ArrowRight, Globe2, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, ShieldCheck, ChevronRight, Clock, Wallet, Send, CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
-import { PaymentFlowPreview } from '@/components/PaymentFlowPreview';
 import { SUPPORTED_COUNTRIES } from '@/types';
+import HeroVisual from '@/components/HeroVisual';
+import { InstantSettlementIcon, LocalDeliveryIcon } from '@/components/ui/Icons';
+import Reveal from '@/components/ui/Reveal';
 
 export const metadata: Metadata = {
   title: 'AfriWage - Borderless payroll for African teams',
   description:
-    'Send payroll over Stellar and deliver to local African payout corridors with clear transaction visibility.',
+    'Send payroll over Stellar and deliver to local African payout corridors with clear transaction visibility. Instant USDC payments for gig workers across 8+ African countries.',
 };
 
 const navLinks = [
+  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Features', href: '#features' },
   { label: 'Corridors', href: '#corridors' },
-  { label: 'Flow', href: '#flow' },
 ];
 
 const features = [
   {
-    icon: Zap,
-    title: 'Instant settlement',
+    icon: InstantSettlementIcon,
+    title: 'Instant Settlement',
     description:
-      'Payouts settle in seconds on Stellar instead of waiting on multi-day wire cycles.',
+      'Payouts settle in seconds on Stellar instead of waiting on multi-day wire cycles. Your workers get paid the moment you hit send.',
+    stat: '~5s',
+    statLabel: 'settlement',
   },
   {
-    icon: Globe2,
-    title: 'Corridor-native delivery',
-    description: 'Route value into NGN, GHS, KES, ZAR, TZS, UGX, XOF, and XAF payout corridors.',
+    icon: LocalDeliveryIcon,
+    title: 'Corridor-Native Delivery',
+    description: 'Route value into NGN, GHS, KES, ZAR, TZS, UGX, XOF, and XAF payout corridors — covering 70M+ gig workers.',
+    stat: '8+',
+    statLabel: 'corridors',
   },
   {
     icon: ShieldCheck,
-    title: 'Proof for every transfer',
-    description: 'Every transfer has an on-chain receipt your team can verify anytime.',
+    title: 'On-Chain Proof',
+    description: 'Every transfer has a verifiable on-chain receipt your team can verify anytime. Full transparency, zero ambiguity.',
+    stat: '100%',
+    statLabel: 'verifiable',
   },
 ];
 
 const flowSteps = [
-  'Fund your payroll wallet.',
-  'Select recipients and amounts.',
-  'Sign and submit through Stellar.',
-  'Deliver through local payout rails with transaction proof.',
+  {
+    step: '01',
+    icon: Wallet,
+    title: 'Fund Your Wallet',
+    description: 'Connect any wallet and load USDC into your payroll treasury.',
+  },
+  {
+    step: '02',
+    icon: Send,
+    title: 'Send Payments',
+    description: 'Select recipients, enter amounts, and sign the transaction through Stellar.',
+  },
+  {
+    step: '03',
+    icon: Clock,
+    title: 'Instant Settlement',
+    description: 'Stellar settles the payment in 3-5 seconds — not days.',
+  },
+  {
+    step: '04',
+    icon: CheckCircle2,
+    title: 'Local Delivery',
+    description: 'Workers receive local currency through integrated African payout corridors.',
+  },
 ];
 
-const heroExplainers = [
-  'Treasury funds payroll once.',
-  'Stellar settles the movement in seconds.',
-  'Local corridors deliver value in familiar currencies.',
+const stats = [
+  { value: '<1¢', label: 'Transaction Fees' },
+  { value: '~5s', label: 'Settlement Time' },
+  { value: '8+', label: 'African Countries' },
+  { value: '0%', label: 'Hidden Charges' },
 ];
-
-function Surface({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-xl border border-[#E5E7EB] bg-white p-6 ${className}`}>{children}</div>
-  );
-}
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-[#111111]">
-      <nav className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-white">
-        <div className="mx-auto flex h-16 w-full max-w-[1080px] items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#14A800] text-white">
-              <span className="text-sm font-semibold">A</span>
+    <div className="landing-root">
+      {/* ═══════════════ NAVBAR ═══════════════ */}
+      <nav className="landing-nav" id="landing-nav">
+        <div className="landing-nav-inner">
+          <Link href="/" className="landing-logo-link" id="logo-link">
+            <div className="landing-logo-icon">
+              <span>A</span>
             </div>
-            <p className="text-base font-semibold text-[#111111]">AfriWage</p>
+            <p className="landing-logo-text">AfriWage</p>
           </Link>
 
-          <div className="hidden items-center gap-8 md:flex">
+          <div className="landing-nav-links">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-[#6B7280] transition-colors hover:text-[#111111]"
+                className="landing-nav-link"
               >
                 {link.label}
               </a>
             ))}
           </div>
 
-          <Link
-            href="/dashboard"
-            className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#14A800] px-5 text-sm font-semibold text-white"
-          >
-            Open dashboard
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="landing-nav-actions">
+            <Link
+              href="/dashboard"
+              className="landing-btn-primary"
+              id="nav-cta"
+            >
+              Launch App
+              <ArrowRight className="icon-sm" />
+            </Link>
+          </div>
         </div>
       </nav>
 
       <main>
-        <section className="bg-[#0A0A0A] px-4">
-          <div className="mx-auto w-full max-w-[1080px] pb-24 pt-[120px]">
-            <div className="inline-flex items-center rounded-[100px] bg-[#F0FDF4] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#14A800]">
-              Live on Stellar testnet
-            </div>
-            <h1 className="mt-6 max-w-4xl text-[52px] font-bold leading-[1.06] tracking-[-0.03em] text-white">
-              Cross-border payroll that is clear, fast, and accountable.
-            </h1>
-            <p className="mt-6 max-w-2xl text-base font-normal leading-[1.7] text-[#9CA3AF]">
-              Send payroll over Stellar and deliver through local payout corridors across Africa.
-              Every transfer comes with a verifiable on-chain record.
-            </p>
-            <div className="mt-8">
-              <Link
-                href="/dashboard"
-                className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#14A800] px-5 text-sm font-semibold text-white"
-              >
-                Open dashboard
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+        {/* ═══════════════ HERO ═══════════════ */}
+        <section className="landing-hero" id="hero" style={{ backgroundColor: '#060A06' }}>
+          <div className="landing-hero-inner">
+            {/* Badge */}
+            <div className="landing-hero-badge">
+              <span className="landing-badge-dot" />
+              Live on Stellar network
             </div>
 
-            <div className="mt-8 grid gap-3 md:max-w-3xl md:grid-cols-3">
-              {heroExplainers.map((item, index) => (
-                <div
-                  key={item}
-                  className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/35">
-                    0{index + 1}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-white/75">{item}</p>
+            {/* Hero visual: MagicRings + RotatingText */}
+            <div className="landing-hero-visual-wrap" style={{ backgroundColor: 'transparent' }}>
+              <HeroVisual />
+            </div>
+
+            {/* Headline + Sub */}
+            <h1 className="landing-hero-h1" id="hero-heading">
+              Borderless Payroll for
+              <br />
+              <span className="landing-hero-gradient">African Gig Workers</span>
+            </h1>
+            <p className="landing-hero-sub">
+              Send USDC over Stellar. It settles in 5 seconds. Workers automatically
+              receive local currency. No intermediaries. No 5-15% corridor fees.
+              Just instant, transparent payroll.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="landing-hero-ctas">
+              <Link href="/dashboard" className="landing-btn-primary landing-btn-lg" id="hero-cta-primary">
+                Open Dashboard
+                <ArrowRight className="icon-sm" />
+              </Link>
+              <a
+                href="#how-it-works"
+                className="landing-btn-secondary landing-btn-lg"
+                id="hero-cta-secondary"
+              >
+                See How It Works
+                <ChevronRight className="icon-sm" />
+              </a>
+            </div>
+
+            {/* Stats Bar */}
+            <div className="landing-stats-bar" id="stats-bar">
+              {stats.map((stat) => (
+                <div key={stat.label} className="landing-stat-item">
+                  <p className="landing-stat-value">{stat.value}</p>
+                  <p className="landing-stat-label">{stat.label}</p>
                 </div>
               ))}
             </div>
+          </div>
 
-            <div className="mt-10">
-              <PaymentFlowPreview />
-            </div>
+          {/* Hero bottom gradient */}
+          <div className="landing-hero-fade" />
+        </section>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
-              <div className="rounded-xl border border-white/20 bg-white/5 p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/70">
-                  Settlement
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-white">Seconds, not days</p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/5 p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/70">
-                  Coverage
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-white">8 payout corridors</p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/5 p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/70">
-                  Proof
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-white">On-chain receipts</p>
-              </div>
+        {/* ═══════════════ PROBLEM / SOLUTION ═══════════════ */}
+        <section className="landing-section landing-section-dark" id="problem-solution">
+          <div className="landing-container">
+            <div className="landing-ps-grid">
+              {/* Problem */}
+              <Reveal delay={0.1} className="landing-ps-card landing-ps-problem" id="problem-card">
+                <div className="landing-ps-content">
+                  <div className="landing-ps-icon-wrap landing-ps-icon-red">
+                    <span className="landing-ps-icon-text">✕</span>
+                  </div>
+                  <h3 className="landing-ps-title">The Problem</h3>
+                  <p className="landing-ps-desc">
+                    Over <strong>70 million gig workers</strong> across Africa are paid through legacy wire transfers
+                    and mobile money corridors that charge <strong>5–15% fees</strong> and take <strong>1–5 business days</strong> to
+                    settle. A freelancer in Lagos waiting on a $200 invoice loses $30 and a week of waiting.
+                  </p>
+                </div>
+                <div className="landing-ps-highlight-red">
+                  <span className="landing-ps-highlight-value">$30</span>
+                  <span className="landing-ps-highlight-label">lost on every $200 payment</span>
+                </div>
+              </Reveal>
+
+              {/* Solution */}
+              <Reveal delay={0.2} className="landing-ps-card landing-ps-solution" id="solution-card">
+                <div className="landing-ps-content">
+                  <div className="landing-ps-icon-wrap landing-ps-icon-green">
+                    <span className="landing-ps-icon-text">✓</span>
+                  </div>
+                  <h3 className="landing-ps-title">AfriWage Fixes It</h3>
+                  <p className="landing-ps-desc">
+                    Employers send <strong>USDC via Stellar</strong>. It settles in 5 seconds. Workers automatically
+                    off-ramp to <strong>local currency</strong> through integrated Stellar anchors. The entire flow is
+                    transparent, on-chain, and costs <strong>fractions of a cent</strong>.
+                  </p>
+                </div>
+                <div className="landing-ps-highlight-green">
+                  <span className="landing-ps-highlight-value">&lt;1¢</span>
+                  <span className="landing-ps-highlight-label">per transaction with AfriWage</span>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
 
-        <section className="px-4 py-24" id="corridors">
-          <div className="mx-auto w-full max-w-[1080px]">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">
-                Corridors
-              </p>
-              <h2 className="mt-3 text-4xl font-bold text-[#111111]">
-                Payout coverage comes first
+        {/* ═══════════════ HOW IT WORKS ═══════════════ */}
+        <section className="landing-section" id="how-it-works">
+          <div className="landing-container">
+            <Reveal className="landing-section-header">
+              <p className="landing-section-eyebrow">How It Works</p>
+              <h2 className="landing-section-h2">
+                Four steps from treasury
+                <br />
+                to local payout
               </h2>
-              <p className="mt-4 text-base leading-[1.7] text-[#6B7280]">
-                Route payroll to supported local corridors without leaving your payout workflow.
+              <p className="landing-section-desc">
+                A streamlined flow designed for speed, transparency, and zero friction.
               </p>
-            </div>
+            </Reveal>
 
-            <div className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-4">
-              {SUPPORTED_COUNTRIES.map((country) => (
-                <Surface key={country.code} className="text-center">
-                  <div className="text-5xl leading-none">{country.flag}</div>
-                  <p className="mt-4 text-lg font-semibold text-[#111111]">{country.name}</p>
-                  <p className="mt-1 font-mono text-sm text-[#14A800]">{country.currency}</p>
-                </Surface>
+            <div className="landing-flow-grid" id="flow-steps">
+              {flowSteps.map((item, index) => (
+                <Reveal key={item.step} delay={0.1 * index} className="landing-flow-card" id={`flow-step-${index + 1}`}>
+                  <div className="landing-flow-step-number">{item.step}</div>
+                  <div className="landing-flow-icon-wrap">
+                    <item.icon className="landing-flow-icon" />
+                  </div>
+                  <h3 className="landing-flow-title">{item.title}</h3>
+                  <p className="landing-flow-desc">{item.description}</p>
+                  {index < flowSteps.length - 1 && (
+                    <div className="landing-flow-connector">
+                      <ChevronRight className="icon-sm" />
+                    </div>
+                  )}
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="px-4 py-24">
-          <div className="mx-auto w-full max-w-[1080px]">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">
-                Why AfriWage
-              </p>
-              <h2 className="mt-3 text-4xl font-bold text-[#111111]">
+        {/* ═══════════════ FEATURES ═══════════════ */}
+        <section className="landing-section landing-section-dark" id="features">
+          <div className="landing-container">
+            <Reveal className="landing-section-header">
+              <p className="landing-section-eyebrow">Why AfriWage</p>
+              <h2 className="landing-section-h2">
                 Built for clean payout execution
               </h2>
-            </div>
+              <p className="landing-section-desc">
+                Every feature designed around one goal — getting money to African workers faster, cheaper, and with full proof.
+              </p>
+            </Reveal>
 
-            <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {features.map((feature) => (
-                <Surface key={feature.title}>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F0FDF4] text-[#14A800]">
-                    <feature.icon className="h-6 w-6" />
+            <div className="landing-features-grid" id="features-grid">
+              {features.map((feature, i) => (
+                <Reveal key={feature.title} delay={0.1 * i} className="landing-feature-card" id={`feature-${feature.title.toLowerCase().replace(/\s/g, '-')}`}>
+                  <div className="landing-feature-top">
+                    <div className="landing-feature-icon-wrap">
+                      <feature.icon className="landing-feature-icon" />
+                    </div>
+                    <div className="landing-feature-stat-wrap">
+                      <span className="landing-feature-stat">{feature.stat}</span>
+                      <span className="landing-feature-stat-label">{feature.statLabel}</span>
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-[20px] font-semibold text-[#111111]">{feature.title}</h3>
-                  <p className="mt-3 text-base leading-[1.7] text-[#6B7280]">
-                    {feature.description}
-                  </p>
-                </Surface>
+                  <h3 className="landing-feature-title">{feature.title}</h3>
+                  <p className="landing-feature-desc">{feature.description}</p>
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="px-4 py-24" id="flow">
-          <div className="mx-auto grid w-full max-w-[1080px] gap-6 lg:grid-cols-[1fr_0.95fr]">
-            <Surface>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">
-                Flow
+        {/* ═══════════════ CORRIDORS ═══════════════ */}
+        <section className="landing-section" id="corridors">
+          <div className="landing-container">
+            <Reveal className="landing-section-header">
+              <p className="landing-section-eyebrow">Payout Coverage</p>
+              <h2 className="landing-section-h2">
+                8+ African corridors
+              </h2>
+              <p className="landing-section-desc">
+                Route payroll to supported local corridors. Workers receive value in their familiar currency.
               </p>
-              <h2 className="mt-3 text-4xl font-bold text-[#111111]">Simple payout path</h2>
-              <div className="mt-8 space-y-4">
-                {flowSteps.map((step, index) => (
-                  <div key={step} className="flex gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#111111] text-sm font-semibold text-white">
-                      0{index + 1}
+            </Reveal>
+
+            <Reveal className="marquee-container" delay={0.2}>
+              <div className="marquee-content">
+                {[...SUPPORTED_COUNTRIES, ...SUPPORTED_COUNTRIES, ...SUPPORTED_COUNTRIES].map((country, i) => (
+                  <div key={`${country.code}-${i}`} className="marquee-item">
+                    <span style={{ fontSize: '24px' }}>{country.flag}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '14px', lineHeight: 1 }}>{country.name}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--green-primary)', lineHeight: 1 }}>{country.currency}</span>
                     </div>
-                    <p className="pt-2 text-base leading-[1.7] text-[#6B7280]">{step}</p>
                   </div>
                 ))}
               </div>
-            </Surface>
+            </Reveal>
+          </div>
+        </section>
 
-            <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">
-                Product note
+        {/* ═══════════════ CTA SECTION ═══════════════ */}
+        <section className="landing-cta-section" id="final-cta">
+          <div className="landing-container">
+            <Reveal className="landing-cta-card">
+              <div className="landing-cta-glow" />
+              <h2 className="landing-cta-h2">
+                Start paying your African team
+                <br />
+                <span className="landing-hero-gradient">in seconds, not days</span>
+              </h2>
+              <p className="landing-cta-desc">
+                Connect any wallet, fund your treasury, and send your first borderless payroll today.
               </p>
-              <p className="mt-4 text-base leading-[1.7] text-[#6B7280]">
-                AfriWage is focused on one job: helping operators move payroll from treasury to
-                local payout corridors with fewer delays and clearer proof.
-              </p>
-              <div className="mt-6">
-                <Link
-                  href="/dashboard"
-                  className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#14A800] px-5 text-sm font-semibold text-white"
-                >
-                  Open dashboard
-                  <ArrowRight className="h-4 w-4" />
+              <div className="landing-cta-buttons">
+                <Link href="/dashboard" className="landing-btn-primary landing-btn-lg" id="final-cta-btn">
+                  Launch Dashboard
+                  <ArrowRight className="icon-sm" />
                 </Link>
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-[#E5E7EB] px-4 py-10">
-        <div className="mx-auto flex w-full max-w-[1080px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-[20px] font-semibold text-[#111111]">AfriWage</p>
-            <p className="mt-2 text-base leading-[1.7] text-[#6B7280]">
-              Borderless payroll for African teams on Stellar testnet.
-            </p>
+      {/* ═══════════════ FOOTER ═══════════════ */}
+      <footer className="landing-footer" id="footer">
+        <div className="landing-container">
+          <div className="landing-footer-inner">
+            <div className="landing-footer-brand">
+              <div className="landing-footer-logo">
+                <div className="landing-logo-icon">
+                  <span>A</span>
+                </div>
+                <p className="landing-logo-text" style={{ color: 'white' }}>AfriWage</p>
+              </div>
+              <p className="landing-footer-tagline">
+                Instant, borderless payroll for African gig workers — powered by Stellar &amp; USDC.
+              </p>
+            </div>
+            <div className="landing-footer-links">
+              <div className="landing-footer-col">
+                <p className="landing-footer-col-title">Product</p>
+                <Link href="/dashboard" className="landing-footer-link">Dashboard</Link>
+                <Link href="/send" className="landing-footer-link">Send Payment</Link>
+                <Link href="/transactions" className="landing-footer-link">Transactions</Link>
+              </div>
+              <div className="landing-footer-col">
+                <p className="landing-footer-col-title">Resources</p>
+                <a href="https://k1ngd4vid.gitbook.io/afriwage-docs" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Documentation</a>
+                <a href="https://stellar.org" target="_blank" rel="noopener noreferrer" className="landing-footer-link">Stellar Network</a>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-5 text-sm font-medium text-[#6B7280]">
-            <Link href="/dashboard" className="hover:text-[#111111]">
-              Dashboard
-            </Link>
-            <a
-              href="https://github.com/AfriWage/AfriWage"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#111111]"
-            >
-              GitHub
-            </a>
+          <div className="landing-footer-bottom">
+            <p className="landing-footer-copy">© 2024 AfriWage.</p>
+            <p className="landing-footer-copy">Built with ❤️ for African gig workers</p>
           </div>
         </div>
       </footer>
