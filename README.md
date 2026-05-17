@@ -185,10 +185,6 @@ Look for issues labelled [`good-first-issue`](https://github.com/AfriWage/AfriWa
 
 ---
 
-## Community
-
-💬 **Join our Telegram:** [coming soon]
-
 ## Documentation
 
 📖 **Full Docs:** https://k1ngd4vid.gitbook.io/afriwage-docs
