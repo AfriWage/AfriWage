@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertCircle, CheckCircle, Copy, ExternalLink, LogOut, Wallet } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { getConnectedAddress, getPublicKey } from '@/lib/freighter';
 import { truncatePublicKey } from '@/lib/stellar-format';
@@ -14,13 +15,14 @@ interface WalletConnectProps {
 }
 
 export function WalletConnect({ onConnect, onDisconnect, className }: WalletConnectProps) {
+  const t = useTranslations('walletConnect');
+  const tCommon = useTranslations('common');
   const [status, setStatus] = useState<WalletStatus>('disconnected');
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Silently restore an existing approved session on mount
   useEffect(() => {
     getConnectedAddress().then((address) => {
       if (address) {
@@ -46,11 +48,11 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
       if (err instanceof Error && err.message === 'NOT_INSTALLED') {
         setError('NOT_INSTALLED');
       } else {
-        const msg = err instanceof Error ? err.message : 'Connection failed';
+        const msg = err instanceof Error ? err.message : t('connectionFailed');
         setError(msg);
       }
     }
-  }, [onConnect]);
+  }, [onConnect, t]);
 
   const handleDisconnect = useCallback(() => {
     setPublicKey(null);
@@ -69,7 +71,6 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
     }
   }, [publicKey]);
 
-  // ── Connected state ───────────────────────────────────────────────────────
   if (status === 'connected' && publicKey) {
     return (
       <div className={cn('relative', className)}>
@@ -87,7 +88,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         {showDropdown && (
           <div className="absolute right-0 top-full z-[100] mt-2 w-[calc(100vw-2rem)] max-w-[20rem] sm:w-72 rounded-xl border border-[#d8cebe] bg-white p-4 shadow-xl origin-top-right">
             <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8c7760]">
-              Connected Wallet
+              {t('connectedWallet')}
             </p>
             <div className="mt-2 rounded-lg border border-[#efe3d0] bg-[#fffaf2] p-3">
               <p className="break-all font-mono text-xs text-[#102033]">{publicKey}</p>
@@ -103,7 +104,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
-                {copied ? 'Copied!' : 'Copy'}
+                {copied ? tCommon('copied') : tCommon('copy')}
               </button>
               <a
                 href={`https://stellar.expert/explorer/testnet/account/${publicKey}`}
@@ -112,7 +113,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#efe3d0] bg-[#fffaf2] px-3 py-2 text-xs font-medium text-[#637085] transition-colors hover:bg-[#f3ecdf]"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Explorer
+                {tCommon('explorer')}
               </a>
               <button
                 type="button"
@@ -120,7 +121,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-500 transition-colors hover:bg-red-100"
               >
                 <LogOut className="h-3.5 w-3.5" />
-                Disconnect
+                {tCommon('disconnect')}
               </button>
             </div>
           </div>
@@ -137,7 +138,6 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
     );
   }
 
-  // ── Disconnected / error state ────────────────────────────────────────────
   return (
     <div className={cn('flex flex-col items-end gap-3', className)}>
       <button
@@ -152,19 +152,18 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         )}
       >
         <Wallet className="h-4 w-4" />
-        <span className="hidden sm:inline">{status === 'connecting' ? 'Connecting…' : 'Connect Wallet'}</span>
+        <span className="hidden sm:inline">
+          {status === 'connecting' ? tCommon('connecting') : tCommon('connectWallet')}
+        </span>
       </button>
 
-      {/* Error banner — always clearly visible */}
       {status === 'error' && error === 'NOT_INSTALLED' && (
         <div className="flex w-72 flex-col gap-3 rounded-xl border border-[#efe3d0] bg-white p-4 shadow-lg">
           <div className="flex items-start gap-3">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#c45a43]" />
             <div>
-              <p className="text-sm font-semibold text-[#102033]">Freighter not found</p>
-              <p className="mt-1 text-xs text-[#637085]">
-                Install the Freighter browser extension to connect your Stellar wallet.
-              </p>
+              <p className="text-sm font-semibold text-[#102033]">{t('freighterNotFound')}</p>
+              <p className="mt-1 text-xs text-[#637085]">{t('installFreighter')}</p>
             </div>
           </div>
           <a
@@ -173,7 +172,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-lg bg-[#102033] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1a3048]"
           >
-            Install Freighter
+            {t('installButton')}
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
@@ -183,7 +182,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         <div className="flex w-72 items-start gap-3 rounded-xl border border-[#efe3d0] bg-white p-4 shadow-lg">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#c45a43]" />
           <div>
-            <p className="text-sm font-semibold text-[#102033]">Connection failed</p>
+            <p className="text-sm font-semibold text-[#102033]">{t('connectionFailed')}</p>
             <p className="mt-1 text-xs text-[#637085]">{error}</p>
           </div>
         </div>

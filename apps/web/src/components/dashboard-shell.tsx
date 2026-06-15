@@ -1,18 +1,12 @@
 'use client';
 
-import { ArrowUpRight, Copy, LayoutDashboard, Settings, Wallet, Waves } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { ArrowUpRight, Copy, LayoutDashboard, Settings, Upload, Wallet, Waves } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { type ReactNode, useState } from 'react';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Link, usePathname } from '@/i18n/navigation';
 import { COMPANY_WALLET } from '@/lib/dashboard-data';
 import { copyToClipboard, cn } from '@/lib/utils';
-
-const navItems = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/transactions', label: 'Transactions', icon: Waves },
-  { href: '/wallet', label: 'Wallet', icon: Wallet },
-  { href: '/settings', label: 'Settings', icon: Settings },
-];
 
 interface DashboardShellProps {
   title: string;
@@ -22,8 +16,18 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({ title, description, children, actions }: DashboardShellProps) {
+  const t = useTranslations('nav');
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
+
+  const navItems = [
+    { href: '/dashboard' as const, label: t('overview'), icon: LayoutDashboard },
+    { href: '/send' as const, label: t('sendPayment'), icon: ArrowUpRight },
+    { href: '/batch' as const, label: t('batchPayments'), icon: Upload },
+    { href: '/transactions' as const, label: t('transactions'), icon: Waves },
+    { href: '/wallet' as const, label: t('wallet'), icon: Wallet },
+    { href: '/settings' as const, label: t('settings'), icon: Settings },
+  ];
 
   const handleCopy = async () => {
     const success = await copyToClipboard(COMPANY_WALLET);
@@ -51,7 +55,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
             </div>
             <div>
               <p className="font-display text-lg font-semibold">AfriWage</p>
-              <p className="text-sm text-[#637085]">Payroll operations cockpit</p>
+              <p className="text-sm text-[#637085]">{t('payrollCockpit')}</p>
             </div>
           </div>
         </Link>
@@ -90,24 +94,24 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
             className="flex items-center justify-center gap-2 rounded-[20px] bg-[#1f8f55] px-4 py-4 font-semibold text-white shadow-[0_18px_36px_rgba(31,143,85,0.28)] transition-transform hover:scale-[0.99] active:scale-[0.97]"
           >
             <ArrowUpRight className="h-4 w-4" />
-            Send payout
+            {t('sendPayout')}
           </Link>
 
           <div className="rounded-[24px] border border-[#eadfce] bg-white p-4 shadow-[0_18px_36px_rgba(16,32,51,0.06)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Treasury wallet</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">{t('treasuryWallet')}</p>
             <div className="mt-3 flex items-center justify-between gap-3">
               <p className="font-mono text-sm text-[#102033]">{COMPANY_WALLET}</p>
               <button
                 type="button"
                 onClick={handleCopy}
                 className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f6efe6] text-[#415065] transition-colors hover:bg-[#efe3d0]"
-                aria-label="Copy treasury wallet"
+                aria-label={t('copyTreasuryWallet')}
               >
                 <Copy className="h-4 w-4" />
               </button>
             </div>
             <p className="mt-2 text-sm text-[#637085]">
-              {copied ? 'Wallet copied' : 'Use this account to fund payroll batches.'}
+              {copied ? t('walletCopied') : t('fundPayrollBatches')}
             </p>
           </div>
         </div>
@@ -124,12 +128,13 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
             </div>
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <LanguageSwitcher />
               {actions}
               <Link
                 href="/send"
                 className="shrink-0 rounded-full border border-[#d8cebe] bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#102033] shadow-[0_8px_24px_rgba(16,32,51,0.06)] lg:hidden"
               >
-                Send
+                {t('send')}
               </Link>
             </div>
           </div>
@@ -140,7 +145,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e7dccb] bg-[#fffaf2] pb-[env(safe-area-inset-bottom)] lg:hidden">
         <div className="flex items-center justify-around px-2 py-1.5">
-          {navItems.map((item) => {
+          {navItems.slice(0, 4).map((item) => {
             const isActive =
               pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));

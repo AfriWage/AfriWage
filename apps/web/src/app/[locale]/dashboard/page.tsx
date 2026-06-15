@@ -2,15 +2,18 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Clock3, MoveUpRight, Wallet2 } from 'lucide-react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useCallback, useMemo, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from '@/i18n/navigation';
 import { fundTestnet, getAccount } from '@/lib/api';
 import { dashboardMetrics, payoutQueues, recentTransactions } from '@/lib/dashboard-data';
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
   const [address, setAddress] = useState<string | null>(null);
   const [funding, setFunding] = useState(false);
 
@@ -32,17 +35,17 @@ export default function DashboardPage() {
   const balanceCards = useMemo(
     () => [
       {
-        asset: 'USDC Treasury',
+        asset: t('usdcTreasury'),
         value: accountQuery.data ? `${accountQuery.data.usdcBalance} USDC` : '--',
-        detail: 'Primary payroll pool',
+        detail: t('primaryPayrollPool'),
       },
       {
-        asset: 'XLM Gas Buffer',
+        asset: t('xlmGasBuffer'),
         value: accountQuery.data ? `${accountQuery.data.xlmBalance} XLM` : '--',
-        detail: 'Network fees and account ops',
+        detail: t('networkFees'),
       },
     ],
-    [accountQuery.data]
+    [accountQuery.data, t]
   );
   const accountNotFound =
     address &&
@@ -54,8 +57,8 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell
-      title="Operations Overview"
-      description="Get a high-level view of your African payroll operations. Fund your treasury in seconds, approve pending payouts, and review recent on-chain settlements all from one unified command center."
+      title={t('title')}
+      description={t('description')}
       actions={<WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />}
     >
       <div className="space-y-6">
@@ -64,14 +67,13 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
                 <p className="text-xs uppercase tracking-[0.18em] text-white/60">
-                  Today&apos;s command view
+                  {t('commandView')}
                 </p>
                 <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl lg:text-4xl">
-                  Keep every payout lane visible, funded, and trusted.
+                  {t('heroTitle')}
                 </h2>
                 <p className="mt-4 max-w-xl text-sm leading-6 text-white/74">
-                  The redesigned AfriWage dashboard centers the actual operator workflow: fund
-                  treasury, review workers, send payroll, and confirm delivery.
+                  {t('heroDescription')}
                 </p>
               </div>
 
@@ -80,13 +82,13 @@ export default function DashboardPage() {
                   href="/send"
                   className="rounded-[20px] bg-white px-6 py-4 text-center font-semibold text-[#102033] transition-transform hover:scale-[0.99] active:scale-[0.97]"
                 >
-                  Send payroll
+                  {t('sendPayroll')}
                 </Link>
                 <Link
                   href="/transactions"
                   className="rounded-[20px] border border-white/20 px-6 py-4 text-center font-semibold text-white transition-colors hover:bg-white/10"
                 >
-                  Review activity
+                  {t('reviewActivity')}
                 </Link>
               </div>
             </div>
@@ -95,9 +97,9 @@ export default function DashboardPage() {
           <SurfaceCard className="bg-[#fff8ef]">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Payroll runway</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">{t('payrollRunway')}</p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
-                  {address ? 'Connected treasury' : 'Connect treasury wallet'}
+                  {address ? t('connectedTreasury') : t('connectTreasury')}
                 </h3>
               </div>
               <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55]">
@@ -124,13 +126,13 @@ export default function DashboardPage() {
               ) : accountQuery.data?.isActive ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <span>USDC treasury available</span>
+                    <span>{t('usdcAvailable')}</span>
                     <span className="font-mono text-[#102033]">
                       {accountQuery.data.usdcBalance} USDC
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>XLM available</span>
+                    <span>{t('xlmAvailable')}</span>
                     <span className="font-medium text-[#102033]">
                       {accountQuery.data.xlmBalance} XLM
                     </span>
@@ -138,7 +140,7 @@ export default function DashboardPage() {
                 </>
               ) : accountNotFound ? (
                 <div className="space-y-4">
-                  <p className="font-medium text-[#102033]">Account not found on testnet</p>
+                  <p className="font-medium text-[#102033]">{t('accountNotFound')}</p>
                   <button
                     type="button"
                     disabled={funding}
@@ -154,18 +156,18 @@ export default function DashboardPage() {
                     }}
                     className="rounded-[18px] bg-[#1f8f55] px-4 py-3 font-semibold text-white disabled:opacity-60"
                   >
-                    {funding ? 'Funding...' : 'Fund Testnet Account'}
+                    {funding ? t('funding') : t('fundTestnet')}
                   </button>
                 </div>
               ) : accountQuery.isError ? (
                 <p className="font-medium text-[#c45a43]">
                   {accountQuery.error instanceof Error
                     ? accountQuery.error.message
-                    : 'Failed to load account balances'}
+                    : t('failedBalances')}
                 </p>
               ) : address ? (
                 <div className="space-y-4">
-                  <p className="font-medium text-[#102033]">Account not found on testnet</p>
+                  <p className="font-medium text-[#102033]">{t('accountNotFound')}</p>
                   <button
                     type="button"
                     disabled={funding}
@@ -181,12 +183,12 @@ export default function DashboardPage() {
                     }}
                     className="rounded-[18px] bg-[#1f8f55] px-4 py-3 font-semibold text-white disabled:opacity-60"
                   >
-                    {funding ? 'Funding...' : 'Fund Testnet Account'}
+                    {funding ? t('funding') : t('fundTestnet')}
                   </button>
                 </div>
               ) : (
                 <p className="font-medium text-[#102033]">
-                  Connect a wallet to load live balances.
+                  {t('connectToLoad')}
                 </p>
               )}
             </div>
@@ -210,7 +212,7 @@ export default function DashboardPage() {
                       {metric.value}
                     </p>
                     <span className="rounded-full bg-[#f3ecdf] px-3 py-1 text-xs font-semibold text-[#8c7760]">
-                      Live
+                      {tCommon('live')}
                     </span>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-[#637085]">{metric.detail}</p>
@@ -234,9 +236,9 @@ export default function DashboardPage() {
           <SurfaceCard>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Queue status</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">{t('queueStatus')}</p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
-                  What needs attention next
+                  {t('needsAttention')}
                 </h3>
               </div>
               <Clock3 className="h-5 w-5 text-[#8c7760]" />
@@ -265,17 +267,17 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
-                  Recent activity
+                  {t('recentActivity')}
                 </p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
-                  Payment confidence feed
+                  {t('confidenceFeed')}
                 </h3>
               </div>
               <Link
                 href="/transactions"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#1f8f55]"
               >
-                All transactions
+                {t('allTransactions')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

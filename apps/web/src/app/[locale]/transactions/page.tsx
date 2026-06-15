@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { useCallback, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
@@ -41,6 +42,7 @@ function RowSkeleton() {
 /* ─── PAGE ─────────────────────────────────────────────── */
 
 export default function TransactionsPage() {
+  const t = useTranslations('transactions');
   const [publicKey, setPublicKey] = useState<string | null>(null);
 
   const handleConnect = useCallback((pk: string) => {
@@ -53,8 +55,8 @@ export default function TransactionsPage() {
 
   return (
     <DashboardShell
-      title="Transactions"
-      description="View your Stellar payment history and activity."
+      title={t('title')}
+      description={t('description')}
       actions={<WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />}
     >
       <div className="space-y-6">

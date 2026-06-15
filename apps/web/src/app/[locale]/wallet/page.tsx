@@ -10,7 +10,8 @@ import {
   Loader2,
   Wallet2,
 } from 'lucide-react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { useCallback, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
@@ -28,6 +29,7 @@ function Skeleton({ className }: { className?: string }) {
 /* ─── PAGE ─────────────────────────────────────────────── */
 
 export default function WalletPage() {
+  const t = useTranslations('wallet');
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -41,8 +43,8 @@ export default function WalletPage() {
 
   return (
     <DashboardShell
-      title="Wallet"
-      description="Manage your Stellar wallet and view balances."
+      title={t('title')}
+      description={t('description')}
       actions={<WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />}
     >
       <div className="space-y-6">

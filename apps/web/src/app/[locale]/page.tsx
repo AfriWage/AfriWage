@@ -1,6 +1,6 @@
 import { ArrowRight, ShieldCheck, ChevronRight, Clock, Wallet, Send, CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { SUPPORTED_COUNTRIES } from '@/types';
 import HeroVisual from '@/components/HeroVisual';
 import { InstantSettlementIcon, LocalDeliveryIcon } from '@/components/ui/Icons';
@@ -369,7 +369,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="landing-footer-bottom">
-            <p className="landing-footer-copy">© 2024 AfriWage.</p>
+            <p className="landing-footer-copy">© {new Date().getFullYear()} AfriWage.</p>
             <p className="landing-footer-copy">Built with ❤️ for African gig workers</p>
           </div>
         </div>

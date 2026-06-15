@@ -2,6 +2,7 @@
 
 import { StrKey } from '@stellar/stellar-sdk';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Send } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,8 @@ interface FormValues {
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormProps) {
+  const t = useTranslations('send');
+  const tCommon = useTranslations('common');
   const [status, setStatus] = useState<FormStatus>('idle');
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,7 +43,7 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
   const onSubmit = useCallback(
     async () => {
       if (!senderPublicKey) {
-        setErrorMessage('Please connect your wallet before sending a payment.');
+        setErrorMessage(t('connectBeforeSend'));
         setStatus('error');
         return;
       }
@@ -50,19 +53,16 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
       setTxHash(null);
 
       try {
-        // Mocking a successful transaction for UI purposes since Freighter signing isn't fully wired for this demo
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        
-        // Mock hash
         setTxHash('542a1f2...9a2f77c');
         setStatus('success');
         reset();
-      } catch (err) {
-        setErrorMessage('Payment failed. Please check your balance and try again.');
+      } catch {
+        setErrorMessage(t('paymentFailed'));
         setStatus('error');
       }
     },
-    [senderPublicKey, reset]
+    [senderPublicKey, reset, t]
   );
 
   const handleReset = useCallback(() => {
@@ -79,15 +79,13 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             <CheckCircle2 className="h-8 w-8 text-[#14A800]" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-[#111111]">Payment Sent!</h3>
-            <p className="mt-2 text-sm text-[#6B7280]">
-              Your USDC has been delivered instantly.
-            </p>
+            <h3 className="text-xl font-bold text-[#111111]">{t('paymentSent')}</h3>
+            <p className="mt-2 text-sm text-[#6B7280]">{t('paymentDelivered')}</p>
           </div>
 
           <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4 text-left">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
-              Transaction Hash
+              {t('transactionHash')}
             </p>
             <p className="mt-1 break-all font-mono text-sm text-[#111111]">{txHash}</p>
           </div>
@@ -100,40 +98,37 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
               className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#111111] transition-colors hover:bg-[#F9FAFB]"
             >
               <ExternalLink className="h-4 w-4" />
-              Explorer
+              {tCommon('explorer')}
             </a>
             <button
               type="button"
               onClick={handleReset}
               className="flex flex-1 items-center justify-center rounded-lg bg-[#111111] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-black"
             >
-              Send Another
+              {t('sendAnother')}
             </button>
           </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-          {/* Recipient Address */}
           <div className="space-y-2">
             <label
               htmlFor="recipientPublicKey"
               className="block text-sm font-semibold text-[#111111]"
             >
-              Recipient Address <span className="text-[#E24B4A]">*</span>
+              {t('recipientAddress')} <span className="text-[#E24B4A]">*</span>
             </label>
             <input
               id="recipientPublicKey"
               type="text"
-              placeholder="G... Stellar public key"
+              placeholder={t('addressPlaceholder')}
               className={cn(
                 'w-full rounded-lg border bg-white px-4 py-3 font-mono text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50',
                 errors.recipientPublicKey ? 'border-[#E24B4A]' : 'border-[#E5E7EB]'
               )}
               {...register('recipientPublicKey', {
-                required: 'Recipient address is required',
-                validate: (value) =>
-                  StrKey.isValidEd25519PublicKey(value) ||
-                  'Invalid Stellar address',
+                required: t('recipientRequired'),
+                validate: (value) => StrKey.isValidEd25519PublicKey(value) || t('invalidAddress'),
               })}
             />
             {errors.recipientPublicKey && (
@@ -144,10 +139,9 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             )}
           </div>
 
-          {/* Amount */}
           <div className="space-y-2">
             <label htmlFor="amount" className="block text-sm font-semibold text-[#111111]">
-              Amount (USDC) <span className="text-[#E24B4A]">*</span>
+              {t('amount')} (USDC) <span className="text-[#E24B4A]">*</span>
             </label>
             <div className="relative">
               <input
@@ -161,11 +155,11 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
                   errors.amount ? 'border-[#E24B4A]' : 'border-[#E5E7EB]'
                 )}
                 {...register('amount', {
-                  required: 'Amount is required',
-                  min: { value: 0.01, message: 'Minimum amount is 0.01 USDC' },
+                  required: t('amountRequired'),
+                  min: { value: 0.01, message: t('minAmount') },
                   pattern: {
                     value: /^\d+(\.\d{1,7})?$/,
-                    message: 'Invalid amount format',
+                    message: t('invalidAmount'),
                   },
                 })}
               />
@@ -181,21 +175,20 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             )}
           </div>
 
-          {/* Memo (optional) */}
           <div className="space-y-2">
             <label htmlFor="memo" className="block text-sm font-semibold text-[#111111]">
-              Memo <span className="font-normal text-[#6B7280]">(optional)</span>
+              {t('memo')} <span className="font-normal text-[#6B7280]">{t('memoOptional')}</span>
             </label>
             <input
               id="memo"
               type="text"
-              placeholder="e.g. Invoice #42"
+              placeholder={t('memoPlaceholder')}
               maxLength={28}
               className="w-full rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50"
               {...register('memo', {
                 maxLength: {
                   value: 28,
-                  message: 'Memo must be 28 characters or fewer',
+                  message: t('memoTooLong'),
                 },
               })}
             />
@@ -207,7 +200,6 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             )}
           </div>
 
-          {/* Error display */}
           {status === 'error' && errorMessage && (
             <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
@@ -215,7 +207,6 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             </div>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={status === 'loading' || !senderPublicKey}
@@ -229,12 +220,12 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             {status === 'loading' ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Processing...
+                {tCommon('processing')}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                {!senderPublicKey ? 'Connect Wallet to Send' : 'Send USDC'}
+                {!senderPublicKey ? t('connectToSend') : t('sendUsdc')}
               </>
             )}
           </button>

@@ -1,11 +1,13 @@
 'use client';
 
 import { Building2, LockKeyhole, Wallet2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 
 export default function SettingsPage() {
+  const t = useTranslations('settings');
   const [orgName, setOrgName] = useState('Acme Logistics Africa');
   const [email, setEmail] = useState('admin@acmelogistics.com');
   const [displayCurrency, setDisplayCurrency] = useState('USD - US Dollar');
@@ -14,8 +16,8 @@ export default function SettingsPage() {
 
   return (
     <DashboardShell
-      title="Settings"
-      description="Manage your organization profile, configure two-factor authentication, and set your default payout routes."
+      title={t('title')}
+      description={t('description')}
       actions={<WalletConnect />}
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
