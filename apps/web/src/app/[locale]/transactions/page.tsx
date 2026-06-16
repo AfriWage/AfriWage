@@ -175,6 +175,8 @@ function ConnectedTransactions({ publicKey }: { publicKey: string }) {
               <RowSkeleton key={i} />
             ))}
           </div>
+        ) : transactions && transactions.length === 0 ? (
+          <EmptyTransactionsState />
         ) : filtered.length === 0 ? (
           <EmptyState hasTransactions={(transactions ?? []).length > 0} />
         ) : (
@@ -274,6 +276,28 @@ function EmptyState({ hasTransactions }: { hasTransactions: boolean }) {
           Send Payment →
         </Link>
       )}
+    </div>
+  );
+}
+
+/* ─── EMPTY TRANSACTIONS STATE ──────────────────────────── */
+
+function EmptyTransactionsState() {
+  return (
+    <div className="mt-6 rounded-xl bg-[#F9FAFB] p-12 text-center">
+      <ArrowLeftRight className="mx-auto h-12 w-12 text-[#E5E7EB]" />
+      <h2 className="mt-4 text-lg font-semibold text-[#111111]">
+        No transactions yet
+      </h2>
+      <p className="mt-2 text-sm text-[#6B7280]">
+        Your payment history will appear here once you send or receive USDC on Stellar.
+      </p>
+      <Link
+        href="/send"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#14A800] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#108A00]"
+      >
+        Send your first payment →
+      </Link>
     </div>
   );
 }
