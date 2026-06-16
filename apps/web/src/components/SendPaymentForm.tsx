@@ -31,6 +31,7 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -39,6 +40,16 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
       memo: '',
     },
   });
+
+  const memo = watch('memo');
+  const memoLength = memo.length;
+
+  const colorClass =
+    memoLength < 20
+      ? 'text-[#6B7280]'
+      : memoLength < 28
+        ? 'text-[#F5A623]'
+        : 'text-[#E24B4A]';
 
   const onSubmit = useCallback(
     async () => {
@@ -198,6 +209,14 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
                 {errors.memo.message}
               </p>
             )}
+            <p
+              aria-live="polite"
+              className={cn('text-right text-xs', colorClass)}
+            >
+              {memoLength}
+              {' '}
+              / 28
+            </p>
           </div>
 
           {status === 'error' && errorMessage && (
