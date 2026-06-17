@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronRight } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ExternalLink } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useCallback, useState } from 'react';
@@ -211,7 +211,8 @@ function TransactionRow({ tx, incoming }: { tx: TransactionRecord; incoming: boo
       href={`https://stellar.expert/explorer/testnet/tx/${tx.hash}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex cursor-pointer items-center justify-between rounded-lg border-b border-[#efe3d0] px-4 py-4 transition-colors last:border-0 hover:bg-[#fffaf2]"
+      title="View on Stellar Explorer"
+      className="group flex cursor-pointer items-center justify-between rounded-lg border-b border-[#efe3d0] px-4 py-4 transition-colors last:border-0 hover:bg-[#fffaf2]"
     >
       {/* Left */}
       <div className="flex items-center gap-4">
@@ -248,7 +249,7 @@ function TransactionRow({ tx, incoming }: { tx: TransactionRecord; incoming: boo
             {truncatePublicKey(incoming ? tx.from : tx.to, 4)}
           </p>
         </div>
-        <ChevronRight className="h-4 w-4 text-[#8c7760]/40" />
+        <ExternalLink className="h-4 w-4 text-[#6B7280] transition-colors group-hover:text-[#14A800]" />
       </div>
     </a>
   );
