@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation';
 import { SUPPORTED_COUNTRIES } from '@/types';
 import HeroVisual from '@/components/HeroVisual';
 import { InstantSettlementIcon, LocalDeliveryIcon } from '@/components/ui/Icons';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import Reveal from '@/components/ui/Reveal';
 
 export const metadata: Metadata = {
@@ -103,6 +104,7 @@ export default function HomePage() {
           </div>
 
           <div className="landing-nav-actions">
+            <ThemeToggle className="h-9 w-9 rounded-lg text-white/70 hover:text-white transition-colors" />
             <Link
               href="/dashboard"
               className="landing-btn-primary"
