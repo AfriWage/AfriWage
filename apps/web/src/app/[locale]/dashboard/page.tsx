@@ -158,6 +158,12 @@ export default function DashboardPage() {
                   >
                     {funding ? t('funding') : t('fundTestnet')}
                   </button>
+                  <p className="text-sm text-[#637085]">
+                    <Link href="/faucet" className="font-medium text-[#1f8f55] underline-offset-2 hover:underline">
+                      Public faucet
+                    </Link>{' '}
+                    &mdash; fund any address without connecting a wallet.
+                  </p>
                 </div>
               ) : accountQuery.isError ? (
                 <p className="font-medium text-[#c45a43]">
@@ -185,6 +191,12 @@ export default function DashboardPage() {
                   >
                     {funding ? t('funding') : t('fundTestnet')}
                   </button>
+                  <p className="text-sm text-[#637085]">
+                    <Link href="/faucet" className="font-medium text-[#1f8f55] underline-offset-2 hover:underline">
+                      Public faucet
+                    </Link>{' '}
+                    &mdash; fund any address without connecting a wallet.
+                  </p>
                 </div>
               ) : (
                 <p className="font-medium text-[#102033]">

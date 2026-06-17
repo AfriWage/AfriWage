@@ -152,6 +152,10 @@ pnpm dev
 pnpm build
 ```
 
+### Testnet Faucet
+
+Need testnet XLM to try the app? Use the **[public faucet](http://localhost:3000/faucet)** to fund any Stellar testnet address with 10,000 XLM &mdash; no wallet connection required.
+
 ---
 
 ## Environment Variables
