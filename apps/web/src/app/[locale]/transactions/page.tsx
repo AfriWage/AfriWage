@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ExternalLink } from 'lucide-react';
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Download, ExternalLink } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useCallback, useState } from 'react';
