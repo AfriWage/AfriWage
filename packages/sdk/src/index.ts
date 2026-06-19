@@ -9,6 +9,19 @@ export {
   getTransactionHistory,
   sendPayment,
 } from './payment';
+export {
+  getAnchorInfo,
+  getTransactionStatus,
+  initiateDeposit,
+  initiateWithdrawal,
+} from './anchors/yellowcard';
+export type {
+  AnchorDepositParams,
+  AnchorTomlInfo,
+  AnchorTransaction,
+  AnchorTransactionStatus,
+  AnchorWithdrawalParams,
+} from './anchors/yellowcard';
 export type {
   Balance,
   PaymentResult,
