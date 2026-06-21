@@ -17,16 +17,23 @@ const USDC_ASSET = new Asset(USDC_ASSET_CODE, USDC_ISSUER_TESTNET);
 /**
  * Sends a USDC payment on the Stellar testnet.
  *
- * The sender must have:
- * - A funded account (XLM for transaction fees)
- * - A USDC trustline established
- * - Sufficient USDC balance
+ * The sender must have a funded account (XLM for fees), a USDC trustline, and sufficient balance.
  *
  * @param senderSecret - The S... secret key of the sending account
  * @param recipientPublicKey - The G... public key of the recipient
  * @param amount - The amount of USDC to send (e.g. "10.00")
  * @param memo - Optional text memo (max 28 bytes)
- * @returns PaymentResult with transaction hash and ledger
+ * @returns {Promise<PaymentResult>} Transaction hash, ledger number, and success flag
+ * @example
+ * ```ts
+ * const result = await sendPayment(
+ *   'S...',
+ *   'G...',
+ *   '25.00',
+ *   'June payroll'
+ * );
+ * console.log(result.hash);
+ * ```
  */
 export async function sendPayment(
   senderSecret: string,
@@ -75,7 +82,12 @@ export async function sendPayment(
  * Retrieves the XLM and USDC balances for a Stellar account.
  *
  * @param publicKey - The G... public key of the account
- * @returns Balance object with xlm and usdc fields (as decimal strings)
+ * @returns {Promise<Balance>} XLM balance (7 decimal places) and USDC balance (2 decimal places)
+ * @example
+ * ```ts
+ * const balance = await getBalance('G...');
+ * console.log(balance.xlm, balance.usdc);
+ * ```
  */
 export async function getBalance(publicKey: string): Promise<Balance> {
   const account = await server.loadAccount(publicKey);

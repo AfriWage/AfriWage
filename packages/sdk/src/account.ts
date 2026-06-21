@@ -3,8 +3,14 @@ import type { StellarKeypair } from './types';
 import { FRIENDBOT_URL, HORIZON_TESTNET_URL } from './types';
 
 /**
- * Generates a new random Stellar keypair.
- * Returns both the public key (G... address) and secret key (S... seed).
+ * Generates a new random Stellar keypair for account creation or signing.
+ *
+ * @returns {StellarKeypair} Public key (G... address) and secret key (S... seed)
+ * @example
+ * ```ts
+ * const { publicKey, secretKey } = createKeypair();
+ * await fundTestnetAccount(publicKey);
+ * ```
  */
 export function createKeypair(): StellarKeypair {
   const keypair = Keypair.random();
