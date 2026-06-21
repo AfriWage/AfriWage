@@ -15,6 +15,7 @@ import { Link } from '@/i18n/navigation';
 import { useCallback, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
+import { WithdrawModal } from '@/components/WithdrawModal';
 import type { Balance } from '@/lib/stellar';
 import { fundTestnetAccount, getBalance } from '@/lib/stellar';
 import { formatAmount } from '@/lib/stellar-format';
@@ -108,6 +109,7 @@ function ConnectedWallet({
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
   const [addressCopied, setAddressCopied] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const {
     data: balance,
@@ -139,6 +141,12 @@ function ConnectedWallet({
 
   return (
     <div className="space-y-6">
+      <WithdrawModal
+        open={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+        publicKey={publicKey}
+        usdcBalance={balance?.usdc}
+      />
       {/* ── BALANCE CARDS ─────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {isLoading ? (
@@ -241,6 +249,14 @@ function ConnectedWallet({
             Send Payment
             <ArrowRight className="h-4 w-4" />
           </Link>
+          <button
+            type="button"
+            onClick={() => setWithdrawOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#1f8f55] bg-[#1f8f55]/10 px-6 py-3 text-sm font-semibold text-[#1f8f55] transition-colors hover:bg-[#1f8f55]/20"
+          >
+            Withdraw to Bank
+            <ArrowRight className="h-4 w-4" />
+          </button>
           <Link
             href="/transactions"
             className="inline-flex items-center gap-2 rounded-lg border border-[#d8cebe] bg-[#fffaf2] px-6 py-3 text-sm font-semibold text-[#415065] transition-colors hover:bg-[#f3ecdf]"

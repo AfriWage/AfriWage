@@ -9,6 +9,31 @@ export {
   getTransactionHistory,
   sendPayment,
 } from './payment';
+
+export {
+  ANCHOR_DOMAINS,
+  NETWORK_PASSPHRASES,
+  authenticateWithAnchor,
+  discoverAnchor,
+  discoverOffRampAnchor,
+  fetchStellarToml,
+  getAnchorDomain,
+  getSep24Info,
+  initiateWithdrawal,
+  parseTomlFields,
+  requestSep10Challenge,
+  submitSep10Challenge,
+} from './anchor';
+export type {
+  AnchorConfig,
+  FiatCurrency,
+  Sep24AssetInfo,
+  Sep24Info,
+  Sep24InteractiveResponse,
+  Sep24MethodInfo,
+  StellarNetwork,
+  WithdrawParams,
+} from './anchor';
 export type {
   Balance,
   PaymentResult,

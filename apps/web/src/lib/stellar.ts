@@ -1,8 +1,11 @@
 import { Networks } from '@stellar/stellar-sdk';
 
 export type {
+  AnchorConfig,
   Balance,
+  FiatCurrency,
   PaymentResult,
+  Sep24Info,
   StellarKeypair,
   TransactionRecord,
 } from '@AfriWage/sdk';
@@ -10,10 +13,12 @@ export type {
 export {
   accountExists,
   createKeypair,
+  discoverOffRampAnchor,
   establishUsdcTrustline,
   fundTestnetAccount,
   getBalance,
   getTransactionHistory,
+  initiateWithdrawal,
   sendPayment,
   USDC_ASSET_CODE,
   USDC_ISSUER_TESTNET,
