@@ -26,7 +26,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
     { href: '/send' as const, label: t('sendPayment'), icon: ArrowUpRight },
     { href: '/batch' as const, label: t('batchPayments'), icon: Upload },
     { href: '/transactions' as const, label: t('transactions'), icon: Waves },
-    { href: '/streams' as const, label: 'Streams', icon: Clock3 },
+    { href: '/scheduled' as const, label: 'Scheduled', icon: Clock3 },
     { href: '/wallet' as const, label: t('wallet'), icon: Wallet },
     { href: '/settings' as const, label: t('settings'), icon: Settings },
   ];
@@ -74,7 +74,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center justify-between rounded-2xl px-4 py-3.5 transition-all',
+                  'flex items-center justify-between rounded-2xl px-4 py-3.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f8f55]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf2] dark:focus-visible:ring-offset-[#0f0f24]',
                   isActive
                     ? 'bg-[#102033] text-white shadow-[0_18px_40px_rgba(16,32,51,0.16)] dark:bg-[#2a2a5a] dark:shadow-[0_18px_40px_rgba(0,0,0,0.3)]'
                     : 'text-[#415065] hover:bg-white hover:shadow-[0_12px_28px_rgba(16,32,51,0.07)] dark:text-[#8888aa] dark:hover:bg-[#16163a] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.2)]'
@@ -93,7 +93,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
         <div className="mt-auto space-y-4">
           <Link
             href="/send"
-            className="flex items-center justify-center gap-2 rounded-[20px] bg-[#1f8f55] px-4 py-4 font-semibold text-white shadow-[0_18px_36px_rgba(31,143,85,0.28)] transition-transform hover:scale-[0.99] active:scale-[0.97] dark:bg-[#1a6b40] dark:shadow-[0_18px_36px_rgba(0,0,0,0.3)]"
+            className="flex items-center justify-center gap-2 rounded-[20px] bg-[#1f8f55] px-4 py-4 font-semibold text-white shadow-[0_18px_36px_rgba(31,143,85,0.28)] transition-transform hover:scale-[0.99] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f8f55]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf2] dark:bg-[#1a6b40] dark:focus-visible:ring-offset-[#0f0f24] dark:shadow-[0_18px_36px_rgba(0,0,0,0.3)]"
           >
             <ArrowUpRight className="h-4 w-4" />
             {t('sendPayout')}
@@ -135,7 +135,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
               {actions}
               <Link
                 href="/send"
-                className="shrink-0 rounded-full border border-[#d8cebe] bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#102033] shadow-[0_8px_24px_rgba(16,32,51,0.06)] lg:hidden dark:border-[#1e1e3a] dark:bg-[#16163a] dark:text-[#e2e8f0] dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)]"
+                className="shrink-0 rounded-full border border-[#d8cebe] bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#102033] shadow-[0_8px_24px_rgba(16,32,51,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f8f55]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white lg:hidden dark:border-[#1e1e3a] dark:bg-[#16163a] dark:text-[#e2e8f0] dark:focus-visible:ring-offset-[#0f0f24] dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)]"
               >
                 {t('send')}
               </Link>
@@ -159,7 +159,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center gap-1 rounded-xl min-w-[4rem] py-1.5 text-[10px] font-medium transition-colors',
+                  'flex flex-col items-center gap-1 rounded-xl min-w-[4rem] py-1.5 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f8f55]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf2] dark:focus-visible:ring-offset-[#0f0f24]',
                   isActive ? 'text-[#102033] dark:text-white' : 'text-[#637085] dark:text-[#8888aa]'
                 )}
               >

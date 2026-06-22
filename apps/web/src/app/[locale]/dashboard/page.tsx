@@ -1,21 +1,27 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Clock3, MoveUpRight, Wallet2 } from 'lucide-react';
+import { ArrowRight, CalendarClock, Clock3, MoveUpRight, Wallet2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@/i18n/navigation';
 import { fundTestnet, getAccount } from '@/lib/api';
 import { dashboardMetrics, payoutQueues, recentTransactions } from '@/lib/dashboard-data';
+import { getDueSchedules } from '@/lib/schedule';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
   const [address, setAddress] = useState<string | null>(null);
   const [funding, setFunding] = useState(false);
+  const [dueCount, setDueCount] = useState(0);
+
+  const refreshDueCount = useCallback(() => {
+    setDueCount(getDueSchedules().length);
+  }, []);
 
   const accountQuery = useQuery({
     queryKey: ['dashboard-account', address],
@@ -23,6 +29,19 @@ export default function DashboardPage() {
     enabled: Boolean(address),
     refetchInterval: 30000,
   });
+
+  useEffect(() => {
+    refreshDueCount();
+
+    const handleUpdate = () => refreshDueCount();
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('afriwage:schedules-updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('afriwage:schedules-updated', handleUpdate);
+    };
+  }, [refreshDueCount]);
 
   const handleConnect = useCallback((publicKey: string) => {
     setAddress(publicKey);
@@ -62,6 +81,37 @@ export default function DashboardPage() {
       actions={<WalletConnect onConnect={handleConnect} onDisconnect={handleDisconnect} />}
     >
       <div className="space-y-6">
+        {dueCount > 0 ? (
+          <SurfaceCard className="border-[#f0d6a1] bg-[#fff6e7] shadow-[0_18px_40px_rgba(198,135,42,0.08)] dark:border-[#47351c] dark:bg-[#24190f]">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="rounded-2xl bg-white p-3 text-[#c27b18] dark:bg-[#3a2814]">
+                  <CalendarClock className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#a9751c] dark:text-[#d9b36f]">
+                    Scheduled payments
+                  </p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold text-[#102033] dark:text-[#f6efe6]">
+                    You have {dueCount} payment{dueCount === 1 ? '' : 's'} due today
+                  </h2>
+                  <p className="mt-1 text-sm text-[#7f6827] dark:text-[#d9c89a]">
+                    Review the queue before the next payout cycle runs.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/scheduled"
+                className="inline-flex items-center justify-center gap-2 rounded-[18px] bg-[#102033] px-4 py-3 text-sm font-semibold text-white transition-transform hover:scale-[0.99] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#102033]/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fff6e7] dark:bg-[#f6efe6] dark:text-[#102033] dark:focus-visible:ring-offset-[#24190f]"
+              >
+                Review
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </SurfaceCard>
+        ) : null}
+
         <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
           <SurfaceCard className="overflow-hidden bg-[linear-gradient(135deg,#102033_0%,#18324c_54%,#1f8f55_160%)] text-white">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
