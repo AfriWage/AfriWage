@@ -16,7 +16,8 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "type-check": "tsc --noEmit",
-    "lint": "biome check src/"
+    "lint": "biome check src/",
+    "test": "vitest run"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^12.3.0",
@@ -24,7 +25,8 @@
   },
   "devDependencies": {
     "tsup": "^8.1.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4"
   },
   "files": [
     "dist"
