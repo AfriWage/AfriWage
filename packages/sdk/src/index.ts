@@ -24,6 +24,15 @@ export {
   requestSep10Challenge,
   submitSep10Challenge,
 } from './anchor';
+export {
+  cancelStream,
+  claimableAmount,
+  createStream,
+  fromAtomicAmount,
+  STREAM_DECIMALS,
+  toAtomicAmount,
+  withdraw,
+} from './stream';
 export type {
   AnchorConfig,
   FiatCurrency,
@@ -34,6 +43,14 @@ export type {
   StellarNetwork,
   WithdrawParams,
 } from './anchor';
+export type {
+  CancelStreamParams,
+  CreateStreamParams,
+  StreamActionResult,
+  StreamSnapshot,
+  StreamStatus,
+  WithdrawStreamParams,
+} from './stream';
 export type {
   Balance,
   PaymentResult,

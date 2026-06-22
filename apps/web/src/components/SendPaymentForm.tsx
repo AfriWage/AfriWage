@@ -3,13 +3,22 @@
 import { StrKey } from '@stellar/stellar-sdk';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Send } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 
 interface SendPaymentFormProps {
   senderPublicKey?: string;
   className?: string;
+  initialRecipientPublicKey?: string;
+  initialAmount?: string;
+  initialMemo?: string;
+  onSuccess?: (payload: {
+    recipientPublicKey: string;
+    amount: string;
+    memo: string;
+    txHash: string;
+  }) => void;
 }
 
 interface FormValues {
@@ -20,7 +29,14 @@ interface FormValues {
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
 
-export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormProps) {
+export function SendPaymentForm({
+  senderPublicKey,
+  className,
+  initialRecipientPublicKey = '',
+  initialAmount = '',
+  initialMemo = '',
+  onSuccess,
+}: SendPaymentFormProps) {
   const t = useTranslations('send');
   const tCommon = useTranslations('common');
   const [status, setStatus] = useState<FormStatus>('idle');
@@ -35,11 +51,19 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      recipientPublicKey: '',
-      amount: '',
-      memo: '',
+      recipientPublicKey: initialRecipientPublicKey,
+      amount: initialAmount,
+      memo: initialMemo,
     },
   });
+
+  useEffect(() => {
+    reset({
+      recipientPublicKey: initialRecipientPublicKey,
+      amount: initialAmount,
+      memo: initialMemo,
+    });
+  }, [initialAmount, initialMemo, initialRecipientPublicKey, reset]);
 
   const memo = watch('memo');
   const memoLength = memo.length;
@@ -52,7 +76,7 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
         : 'text-[#E24B4A]';
 
   const onSubmit = useCallback(
-    async () => {
+    async (values: FormValues) => {
       if (!senderPublicKey) {
         setErrorMessage(t('connectBeforeSend'));
         setStatus('error');
@@ -65,15 +89,26 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
 
       try {
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        setTxHash('542a1f2...9a2f77c');
+        const simulatedHash = '542a1f2...9a2f77c';
+        setTxHash(simulatedHash);
         setStatus('success');
-        reset();
+        onSuccess?.({
+          recipientPublicKey: values.recipientPublicKey,
+          amount: values.amount,
+          memo: values.memo,
+          txHash: simulatedHash,
+        });
+        reset({
+          recipientPublicKey: initialRecipientPublicKey,
+          amount: initialAmount,
+          memo: initialMemo,
+        });
       } catch {
         setErrorMessage(t('paymentFailed'));
         setStatus('error');
       }
     },
-    [senderPublicKey, reset, t]
+    [initialAmount, initialMemo, initialRecipientPublicKey, onSuccess, senderPublicKey, reset, t]
   );
 
   const handleReset = useCallback(() => {
@@ -106,7 +141,7 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
               href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#111111] transition-colors hover:bg-[#F9FAFB]"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#111111] transition-colors hover:bg-[#F9FAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14A800]/30 focus-visible:ring-offset-2"
             >
               <ExternalLink className="h-4 w-4" />
               {tCommon('explorer')}
@@ -114,7 +149,7 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             <button
               type="button"
               onClick={handleReset}
-              className="flex flex-1 items-center justify-center rounded-lg bg-[#111111] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-black"
+              className="flex flex-1 items-center justify-center rounded-lg bg-[#111111] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14A800]/30 focus-visible:ring-offset-2"
             >
               {t('sendAnother')}
             </button>
@@ -129,19 +164,21 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             >
               {t('recipientAddress')} <span className="text-[#E24B4A]">*</span>
             </label>
-            <input
-              id="recipientPublicKey"
-              type="text"
-              placeholder={t('addressPlaceholder')}
-              className={cn(
-                'w-full rounded-lg border bg-white px-4 py-3 font-mono text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50',
-                errors.recipientPublicKey ? 'border-[#E24B4A]' : 'border-[#E5E7EB]'
-              )}
-              {...register('recipientPublicKey', {
-                required: t('recipientRequired'),
-                validate: (value) => StrKey.isValidEd25519PublicKey(value) || t('invalidAddress'),
-              })}
-            />
+              <input
+                id="recipientPublicKey"
+                type="text"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder={t('addressPlaceholder')}
+                className={cn(
+                  'w-full rounded-lg border bg-white px-4 py-3 font-mono text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#14A800]/30 focus-visible:ring-offset-2',
+                  errors.recipientPublicKey ? 'border-[#E24B4A]' : 'border-[#E5E7EB]'
+                )}
+                {...register('recipientPublicKey', {
+                  required: t('recipientRequired'),
+                  validate: (value) => StrKey.isValidEd25519PublicKey(value) || t('invalidAddress'),
+                })}
+              />
             {errors.recipientPublicKey && (
               <p className="flex items-center gap-1.5 text-xs text-[#E24B4A]">
                 <AlertCircle className="h-3.5 w-3.5" />
@@ -157,17 +194,15 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             <div className="relative">
               <input
                 id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
+                type="text"
+                inputMode="decimal"
                 placeholder="0.00"
                 className={cn(
-                  'w-full rounded-lg border bg-white py-3 pl-4 pr-16 text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50',
+                  'w-full rounded-lg border bg-white py-3 pl-4 pr-16 text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#14A800]/30 focus-visible:ring-offset-2',
                   errors.amount ? 'border-[#E24B4A]' : 'border-[#E5E7EB]'
                 )}
                 {...register('amount', {
                   required: t('amountRequired'),
-                  min: { value: 0.01, message: t('minAmount') },
                   pattern: {
                     value: /^\d+(\.\d{1,7})?$/,
                     message: t('invalidAmount'),
@@ -193,9 +228,11 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
             <input
               id="memo"
               type="text"
+              autoComplete="off"
+              spellCheck={false}
               placeholder={t('memoPlaceholder')}
               maxLength={28}
-              className="w-full rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus:border-[#14A800]/50"
+              className="w-full rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111111] placeholder-[#6B7280] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#14A800]/30 focus-visible:ring-offset-2"
               {...register('memo', {
                 maxLength: {
                   value: 28,
@@ -229,8 +266,9 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
           <button
             type="submit"
             disabled={status === 'loading' || !senderPublicKey}
+            aria-busy={status === 'loading'}
             className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-semibold text-white transition-colors',
+              'flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-semibold text-white transition-colors focus-visible:ring-2 focus-visible:ring-[#14A800]/30 focus-visible:ring-offset-2',
               status === 'loading' || !senderPublicKey
                 ? 'cursor-not-allowed bg-[#E5E7EB] text-[#6B7280]'
                 : 'bg-[#14A800] hover:bg-[#108A00]'

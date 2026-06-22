@@ -8,6 +8,7 @@ import { copyToClipboard } from '@/lib/utils';
 const navItems = [
   { icon: 'dashboard', label: 'Overview', href: '/dashboard' },
   { icon: 'payments', label: 'Payments', href: '/transactions' },
+  { icon: 'event_repeat', label: 'Scheduled', href: '/scheduled' },
   { icon: 'account_balance_wallet', label: 'Wallet', href: '/wallet' },
   { icon: 'settings', label: 'Settings', href: '/settings' },
 ];
@@ -51,7 +52,7 @@ export function Sidebar() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf2] dark:focus-visible:ring-offset-[#0f0f24] ${
                   isActive
                     ? 'bg-primary-container text-on-primary-container font-bold dark:bg-[#2a2a5a] dark:text-white'
                     : 'text-secondary hover:bg-surface-container-high hover:opacity-80 dark:text-[#8888aa] dark:hover:bg-[#16163a]'
@@ -75,12 +76,12 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => router.push('/send')}
-          className="bg-primary-container text-on-primary rounded-lg py-3 px-6 font-bold text-center w-full transition-transform hover:scale-[0.98] active:scale-95 dark:bg-[#1a6b40]"
+          className="bg-primary-container text-on-primary w-full rounded-lg px-6 py-3 text-center font-bold transition-transform hover:scale-[0.98] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf2] dark:bg-[#1a6b40] dark:focus-visible:ring-offset-[#0f0f24]"
         >
           Send Payment
         </button>
 
-        <div className="bg-surface-container-highest rounded-lg p-3 flex items-center justify-between dark:bg-[#16163a]">
+        <div className="bg-surface-container-highest flex items-center justify-between rounded-lg p-3 dark:bg-[#16163a]">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary-fixed-dim" />
             <span className="font-label-mono text-label-mono text-on-surface dark:text-[#c0c0e0]">GA4F...H9X2</span>
@@ -89,7 +90,7 @@ export function Sidebar() {
             type="button"
             title="Copy address"
             onClick={handleCopy}
-            className="text-secondary hover:text-primary transition-colors dark:text-[#8888aa]"
+            className="text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf2] dark:text-[#8888aa] dark:focus-visible:ring-offset-[#0f0f24]"
           >
             <span className="material-symbols-outlined text-[20px]">
               {copied ? 'check' : 'content_copy'}
