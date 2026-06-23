@@ -1,9 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Clock3, MoveUpRight, Wallet2 } from 'lucide-react';
+import { ArrowRight, Clock3, MoveUpRight, RefreshCw, Wallet2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +31,10 @@ export default function DashboardPage() {
   const handleDisconnect = useCallback(() => {
     setAddress(null);
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    void accountQuery.refetch();
+  }, [accountQuery.refetch]);
 
   const balanceCards = useMemo(
     () => [
@@ -207,6 +211,14 @@ export default function DashboardPage() {
           </SurfaceCard>
         </section>
 
+        <BalanceRefreshStatus
+          canRefresh={Boolean(address)}
+          dataUpdatedAt={accountQuery.dataUpdatedAt}
+          isFetching={accountQuery.isFetching}
+          isSuccess={accountQuery.isSuccess}
+          onRefresh={handleRefresh}
+        />
+
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {accountQuery.isLoading
             ? Array.from({ length: 2 }).map((_, index) => (
@@ -325,5 +337,90 @@ export default function DashboardPage() {
         </section>
       </div>
     </DashboardShell>
+  );
+}
+
+interface BalanceRefreshStatusProps {
+  canRefresh: boolean;
+  dataUpdatedAt: number;
+  isFetching: boolean;
+  isSuccess: boolean;
+  onRefresh: () => void;
+}
+
+function BalanceRefreshStatus({
+  canRefresh,
+  dataUpdatedAt,
+  isFetching,
+  isSuccess,
+  onRefresh,
+}: BalanceRefreshStatusProps) {
+  const t = useTranslations('dashboard');
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
+  const [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0);
+
+  useEffect(() => {
+    if (!canRefresh || !isSuccess || dataUpdatedAt <= 0) {
+      setLastUpdatedAt(null);
+      setSecondsSinceUpdate(0);
+      return;
+    }
+
+    setLastUpdatedAt(dataUpdatedAt);
+    setSecondsSinceUpdate(0);
+  }, [canRefresh, dataUpdatedAt, isSuccess]);
+
+  useEffect(() => {
+    if (lastUpdatedAt === null) {
+      return undefined;
+    }
+
+    const updateElapsedSeconds = () => {
+      const nextSeconds = Math.max(0, Math.floor((Date.now() - lastUpdatedAt) / 1000));
+      setSecondsSinceUpdate((currentSeconds) =>
+        currentSeconds === nextSeconds ? currentSeconds : nextSeconds
+      );
+    };
+
+    updateElapsedSeconds();
+    const intervalId = window.setInterval(updateElapsedSeconds, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [lastUpdatedAt]);
+
+  const refreshStatusText = isFetching
+    ? t('updating')
+    : lastUpdatedAt === null
+      ? t('connectToLoad')
+      : t('updatedSecondsAgo', { seconds: secondsSinceUpdate });
+
+  return (
+    <div
+      aria-live="polite"
+      className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-white/95 px-4 py-3 text-sm text-[#637085] sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${
+            isFetching ? 'bg-[#1f8f55] motion-safe:animate-pulse' : 'bg-[#8c7760]'
+          }`}
+          aria-hidden="true"
+        />
+        <span className="font-medium text-[#102033]">{refreshStatusText}</span>
+      </div>
+      <button
+        type="button"
+        disabled={!canRefresh || isFetching}
+        onClick={onRefresh}
+        aria-busy={isFetching}
+        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[18px] border border-[#efe3d0] bg-[#fffaf2] px-4 py-2 font-semibold text-[#102033] transition-colors motion-safe:duration-150 hover:bg-[#f3ecdf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f8f55] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <RefreshCw
+          className={`h-4 w-4 ${isFetching ? 'motion-safe:animate-spin' : ''}`}
+          aria-hidden="true"
+        />
+        {t('refreshBalances')}
+      </button>
+    </div>
   );
 }
