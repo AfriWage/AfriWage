@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   getAnchorInfo,
   getTransactionStatus,
-  initiateWithdrawal,
+  initiateYellowCardWithdrawal,
 } from '@AfriWage/sdk';
 
 function badRequest(message: string) {
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       return badRequest('amount, account, bankAccount, and bankName are required');
     }
 
-    const response = await initiateWithdrawal({
+    const response = await initiateYellowCardWithdrawal({
       amount: body.amount,
       account: body.account,
       bankAccount: body.bankAccount,
