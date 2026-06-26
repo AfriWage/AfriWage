@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Send } from 'lucide-r
 import { useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { OffRampSelector } from '@/components/OffRampSelector';
 import { cn } from '@/lib/utils';
 
 interface SendPaymentFormProps {
@@ -218,6 +219,8 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
               / 28
             </p>
           </div>
+
+          <OffRampSelector account={senderPublicKey} />
 
           {status === 'error' && errorMessage && (
             <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">

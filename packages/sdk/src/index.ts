@@ -10,9 +10,8 @@ export {
   sendPayment,
 } from './payment';
 
+// SEP-24 anchor integration — interactive off-ramp flow (client-side)
 export {
-  ANCHOR_DOMAINS,
-  NETWORK_PASSPHRASES,
   authenticateWithAnchor,
   discoverAnchor,
   discoverOffRampAnchor,
@@ -34,6 +33,22 @@ export type {
   StellarNetwork,
   WithdrawParams,
 } from './anchor';
+
+// Yellow Card direct API — server-side SEP-6 integration (keep credentials off client)
+export {
+  getAnchorInfo,
+  getTransactionStatus,
+  initiateDeposit,
+  initiateWithdrawal as initiateYellowCardWithdrawal,
+} from './anchors/yellowcard';
+export type {
+  AnchorDepositParams,
+  AnchorTomlInfo,
+  AnchorTransaction,
+  AnchorTransactionStatus,
+  AnchorWithdrawalParams,
+} from './anchors/yellowcard';
+
 export type {
   Balance,
   PaymentResult,
