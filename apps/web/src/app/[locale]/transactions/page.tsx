@@ -108,6 +108,8 @@ function DisconnectedState({
 function ConnectedTransactions({ publicKey }: { publicKey: string }) {
   const [dirFilter, setDirFilter] = useState<DirectionFilter>('all');
   const [assetFilter, setAssetFilter] = useState<AssetFilter>('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const { data: transactions, isLoading } = useQuery<TransactionRecord[]>({
     queryKey: ['transactions', publicKey],
@@ -118,13 +120,23 @@ function ConnectedTransactions({ publicKey }: { publicKey: string }) {
   /* ── Client-side filtering ── */
   const filtered = (transactions ?? []).filter((tx) => {
     const incoming = tx.to === publicKey;
+    const createdAt = new Date(tx.createdAt);
+    const fromBoundary = fromDate ? new Date(`${fromDate}T00:00:00`) : null;
+    const toBoundary = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
 
     if (dirFilter === 'sent' && incoming) return false;
     if (dirFilter === 'received' && !incoming) return false;
     if (assetFilter !== 'all' && tx.asset !== assetFilter) return false;
+    if (fromBoundary && createdAt < fromBoundary) return false;
+    if (toBoundary && createdAt > toBoundary) return false;
 
     return true;
   });
+
+  const clearDateFilters = () => {
+    setFromDate('');
+    setToDate('');
+  };
 
   const exportCSV = useCallback(() => {
     const headers = ['Date', 'Type', 'Amount', 'Asset', 'Counterparty', 'Memo', 'Hash', 'Explorer'];
@@ -182,6 +194,36 @@ function ConnectedTransactions({ publicKey }: { publicKey: string }) {
               {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* Date range */}
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[#637085]">
+            From
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="rounded-lg border border-[#d8cebe] bg-white px-3 py-2 text-sm font-medium normal-case tracking-normal text-[#102033] outline-none focus:border-[#1f8f55]"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-[#637085]">
+            To
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="rounded-lg border border-[#d8cebe] bg-white px-3 py-2 text-sm font-medium normal-case tracking-normal text-[#102033] outline-none focus:border-[#1f8f55]"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={clearDateFilters}
+            disabled={!fromDate && !toDate}
+            className="rounded-full border border-[#d8cebe] bg-white px-4 py-2 text-sm font-medium text-[#637085] transition-colors hover:border-[#1f8f55] hover:text-[#102033] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Clear
+          </button>
         </div>
 
         {/* Asset filter */}
