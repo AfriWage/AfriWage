@@ -15,24 +15,43 @@ const server = new Horizon.Server(HORIZON_TESTNET_URL);
 const USDC_ASSET = new Asset(USDC_ASSET_CODE, USDC_ISSUER_TESTNET);
 
 /**
- * Sends a USDC payment on the Stellar testnet.
+ * @description Sends a USDC payment on the Stellar testnet from one account to another.
+ * Loads the sender's account, builds a payment operation, optionally attaches a text memo,
+ * signs the transaction with the sender's secret key, and submits it to Horizon.
  *
- * The sender must have a funded account (XLM for fees), a USDC trustline, and sufficient balance.
+ * The sender must have:
+ * - A funded account with enough XLM to cover transaction fees (minimum ~1 XLM recommended)
+ * - An active USDC trustline (see {@link establishUsdcTrustline})
+ * - Sufficient USDC balance to cover the requested amount
  *
- * @param senderSecret - The S... secret key of the sending account
- * @param recipientPublicKey - The G... public key of the recipient
- * @param amount - The amount of USDC to send (e.g. "10.00")
- * @param memo - Optional text memo (max 28 bytes)
- * @returns {Promise<PaymentResult>} Transaction hash, ledger number, and success flag
+ * @param senderSecret - The Stellar secret key of the sending account (56-character string starting with `S`)
+ * @param recipientPublicKey - The Stellar public key of the recipient account (56-character string starting with `G`)
+ * @param amount - Payment amount in USDC as a decimal string, e.g. `"250.00"` (up to 7 decimal places)
+ * @param memo - Optional text memo attached to the transaction, maximum 28 bytes
+ *
+ * @returns A `Promise` resolving to a {@link PaymentResult} containing the transaction `hash`,
+ * the `ledger` sequence number it was included in, and a `successful` boolean flag
+ *
+ * @throws {Error} If `senderSecret` is not a valid Stellar secret key format
+ * @throws {Error} If `recipientPublicKey` is not a valid Stellar public key format
+ * @throws {Error} If the sender's account does not exist on the testnet
+ * @throws {Error} If the sender has insufficient USDC balance for the requested amount
+ * @throws {Error} If the recipient does not have a USDC trustline established
+ * @throws {Error} If the transaction submission fails or times out (Horizon error)
+ *
  * @example
  * ```ts
+ * import { sendPayment } from '@afriwage/sdk';
+ *
  * const result = await sendPayment(
- *   'S...',
- *   'G...',
- *   '25.00',
- *   'June payroll'
+ *   'SCZANGBA5AKIA5JKPKZTA53JLXQHXPFGTQWNV2TH7KXCOBOIFG7CVJJXR',
+ *   'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+ *   '250.00',
+ *   'Invoice #42'
  * );
- * console.log(result.hash);
+ * console.log('Transaction hash:', result.hash);
+ * console.log('Ledger:', result.ledger);
+ * console.log('Success:', result.successful);
  * ```
  */
 export async function sendPayment(
@@ -79,14 +98,27 @@ export async function sendPayment(
 }
 
 /**
- * Retrieves the XLM and USDC balances for a Stellar account.
+ * @description Retrieves the native XLM and USDC balances for a Stellar testnet account.
+ * Loads the account from Horizon and iterates over its balance entries to extract the
+ * relevant amounts. If the account has no USDC trustline, the USDC balance is returned as `"0.00"`.
  *
- * @param publicKey - The G... public key of the account
- * @returns {Promise<Balance>} XLM balance (7 decimal places) and USDC balance (2 decimal places)
+ * @param publicKey - The Stellar public key of the account to query (56-character string starting with `G`)
+ *
+ * @returns A `Promise` resolving to a {@link Balance} object with:
+ * - `xlm` — native XLM balance formatted to 7 decimal places (e.g. `"9999.9999900"`)
+ * - `usdc` — USDC balance formatted to 2 decimal places (e.g. `"250.00"`), or `"0.00"` if no trustline
+ *
+ * @throws {Error} If `publicKey` is not a valid Stellar public key format
+ * @throws {Error} If the account does not exist on the testnet (account not funded)
+ * @throws {Error} If the Horizon server is unreachable
+ *
  * @example
  * ```ts
- * const balance = await getBalance('G...');
- * console.log(balance.xlm, balance.usdc);
+ * import { getBalance } from '@afriwage/sdk';
+ *
+ * const balance = await getBalance('GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5');
+ * console.log('XLM balance:', balance.xlm);   // e.g. "9999.9999900"
+ * console.log('USDC balance:', balance.usdc); // e.g. "250.00"
  * ```
  */
 export async function getBalance(publicKey: string): Promise<Balance> {
@@ -111,11 +143,43 @@ export async function getBalance(publicKey: string): Promise<Balance> {
 }
 
 /**
- * Returns the last 20 transactions for a Stellar account,
- * parsed into a human-friendly TransactionRecord format.
+ * @description Retrieves the 20 most recent transactions for a Stellar testnet account,
+ * ordered newest-first. For each transaction, the associated operations are fetched to
+ * extract payment details (amount, asset, sender, recipient). Text memos are decoded and
+ * included when present.
  *
- * @param publicKey - The G... public key of the account
- * @returns Array of TransactionRecord objects, newest first
+ * Only `payment` and `create_account` operation types are parsed in detail; all other
+ * operation types are classified as `"other"` with a zero amount.
+ *
+ * @param publicKey - The Stellar public key of the account to query (56-character string starting with `G`)
+ *
+ * @returns A `Promise` resolving to an array of up to 20 {@link TransactionRecord} objects,
+ * ordered from most recent to oldest. Each record includes:
+ * - `id` — Horizon's internal transaction ID
+ * - `hash` — the transaction hash (used for receipts and block explorer links)
+ * - `type` — `"payment"`, `"create_account"`, or `"other"`
+ * - `amount` — formatted to 2 decimal places
+ * - `asset` — asset code string, e.g. `"USDC"` or `"XLM"`
+ * - `from` — sender's public key
+ * - `to` — recipient's public key
+ * - `memo` — decoded text memo, if present
+ * - `createdAt` — ISO 8601 timestamp string
+ * - `successful` — whether the transaction was successfully applied to the ledger
+ *
+ * @throws {Error} If `publicKey` is not a valid Stellar public key format
+ * @throws {Error} If the account does not exist on the testnet
+ * @throws {Error} If the Horizon server is unreachable
+ *
+ * @example
+ * ```ts
+ * import { getTransactionHistory } from '@afriwage/sdk';
+ *
+ * const history = await getTransactionHistory('GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5');
+ * for (const tx of history) {
+ *   console.log(`[${tx.createdAt}] ${tx.type} — ${tx.amount} ${tx.asset}`);
+ *   if (tx.memo) console.log('  Memo:', tx.memo);
+ * }
+ * ```
  */
 export async function getTransactionHistory(publicKey: string): Promise<TransactionRecord[]> {
   const transactions = await server
@@ -185,10 +249,38 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
 }
 
 /**
- * Establishes a USDC trustline for an account.
- * Required before the account can receive or hold USDC.
+ * @description Establishes a USDC trustline for a Stellar testnet account by submitting a
+ * `changeTrust` operation. A trustline must be created before an account can receive or hold
+ * USDC. This operation costs a small XLM fee and slightly increases the account's minimum
+ * balance reserve.
  *
- * @param accountSecret - The S... secret key of the account
+ * This only needs to be called once per account. If the trustline already exists, the
+ * operation is a no-op on the ledger (it succeeds without changing state).
+ *
+ * @param accountSecret - The Stellar secret key of the account to add the trustline to
+ * (56-character string starting with `S`)
+ *
+ * @returns A `Promise` resolving to a {@link PaymentResult} containing the transaction `hash`,
+ * the `ledger` sequence number, and a `successful` boolean flag
+ *
+ * @throws {Error} If `accountSecret` is not a valid Stellar secret key format
+ * @throws {Error} If the account does not exist on the testnet (not yet funded)
+ * @throws {Error} If the account has insufficient XLM to cover the transaction fee and reserve
+ * @throws {Error} If the transaction submission fails or times out (Horizon error)
+ *
+ * @example
+ * ```ts
+ * import { createKeypair, fundTestnetAccount, establishUsdcTrustline } from '@afriwage/sdk';
+ *
+ * // Create and fund a fresh testnet account
+ * const { publicKey, secretKey } = createKeypair();
+ * await fundTestnetAccount(publicKey);
+ *
+ * // Establish the USDC trustline so the account can receive USDC payments
+ * const result = await establishUsdcTrustline(secretKey);
+ * console.log('Trustline tx hash:', result.hash);
+ * console.log('Success:', result.successful);
+ * ```
  */
 export async function establishUsdcTrustline(accountSecret: string): Promise<PaymentResult> {
   const keypair = Keypair.fromSecret(accountSecret);
