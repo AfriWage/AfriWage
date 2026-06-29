@@ -176,6 +176,7 @@
     "confirmSendAll": "Confirm and Send All",
     "executingTitle": "Sending Payments",
     "progress": "{completed} of {total} payments completed",
+    "chunkProgress": "Processing chunk {current}/{total}...",
     "completeTitle": "Batch Complete",
     "successCount": "{count} successful",
     "failureCount": "{count} failed",

@@ -8,21 +8,21 @@ interface BuildPaymentRequest {
   memo?: string;
 }
 
-export async function sendPaymentViaFreighter(
-  senderPublicKey: string,
-  recipientPublicKey: string,
-  amount: string,
-  memo?: string
-): Promise<PaymentResult> {
+export interface BatchPaymentItem {
+  recipientPublicKey: string;
+  amount: string;
+}
+
+interface BuildBatchPaymentRequest {
+  senderPublicKey: string;
+  payments: BatchPaymentItem[];
+}
+
+async function signAndSubmitPayment(body: BuildPaymentRequest | BuildBatchPaymentRequest) {
   const buildResponse = await fetch('/api/build-payment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      senderPublicKey,
-      recipientPublicKey,
-      amount,
-      memo,
-    } satisfies BuildPaymentRequest),
+    body: JSON.stringify(body),
   });
 
   if (!buildResponse.ok) {
@@ -45,4 +45,28 @@ export async function sendPaymentViaFreighter(
   }
 
   return (await submitResponse.json()) as PaymentResult;
+}
+
+export async function sendPaymentViaFreighter(
+  senderPublicKey: string,
+  recipientPublicKey: string,
+  amount: string,
+  memo?: string
+): Promise<PaymentResult> {
+  return signAndSubmitPayment({
+    senderPublicKey,
+    recipientPublicKey,
+    amount,
+    memo,
+  } satisfies BuildPaymentRequest);
+}
+
+export async function sendBatchPaymentsViaFreighter(
+  senderPublicKey: string,
+  payments: BatchPaymentItem[]
+): Promise<PaymentResult> {
+  return signAndSubmitPayment({
+    senderPublicKey,
+    payments,
+  } satisfies BuildBatchPaymentRequest);
 }

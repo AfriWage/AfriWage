@@ -15,7 +15,7 @@ import Papa from 'papaparse';
 import { type DragEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
-import { sendPaymentViaFreighter } from '@/lib/payment-client';
+import { sendBatchPaymentsViaFreighter } from '@/lib/payment-client';
 import { cn } from '@/lib/utils';
 
 type RowStatus = 'pending' | 'sending' | 'sent' | 'failed';
@@ -40,6 +40,8 @@ interface CsvRow {
 const CSV_TEMPLATE = `address,amount,memo
 GBZXN7PIRZGNMHGA7MUUUF4GWTMWBXQKJBNV43IXRAJDYIPXZRPTXOJY,25.00,January payroll
 GCKFBEIYTKP6R7Q5E6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T,50.00,Contractor fee`;
+
+const PAYMENT_CHUNK_SIZE = 100;
 
 function validateRow(
   row: CsvRow,
@@ -80,13 +82,14 @@ export default function BatchPage() {
   const [rows, setRows] = useState<BatchRow[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [activeChunk, setActiveChunk] = useState<{ current: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleConnect = useCallback((pk: string) => setPublicKey(pk), []);
   const handleDisconnect = useCallback(() => setPublicKey(null), []);
 
-  const validRows = useMemo(() => rows.filter((r) => r.status !== 'failed' || !r.error), [rows]);
-  const hasInvalidRows = useMemo(() => rows.some((r) => r.error), [rows]);
+  const validRows = useMemo(() => rows.filter((r) => !(r.status === 'pending' && r.error)), [rows]);
+  const hasInvalidRows = useMemo(() => rows.some((r) => r.status === 'pending' && r.error), [rows]);
   const canConfirm = useMemo(
     () => rows.length > 0 && !hasInvalidRows && rows.every((r) => !r.error),
     [rows, hasInvalidRows]
@@ -107,7 +110,11 @@ export default function BatchPage() {
   );
 
   const successCount = useMemo(() => rows.filter((r) => r.status === 'sent').length, [rows]);
-  const failureCount = useMemo(() => rows.filter((r) => r.status === 'failed' && !r.error).length, [rows]);
+  const failureCount = useMemo(() => rows.filter((r) => r.status === 'failed').length, [rows]);
+  const progressPercent = useMemo(
+    () => (validRows.length > 0 ? Math.round((completedCount / validRows.length) * 100) : 0),
+    [completedCount, validRows.length]
+  );
   const sentTotal = useMemo(
     () =>
       rows
@@ -203,40 +210,51 @@ export default function BatchPage() {
     if (!publicKey) return;
 
     setStep('executing');
+    setActiveChunk(null);
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      if (row.error) continue;
+    const paymentRows = rows.filter((row) => !row.error);
+    const chunks = Array.from(
+      { length: Math.ceil(paymentRows.length / PAYMENT_CHUNK_SIZE) },
+      (_, index) => paymentRows.slice(index * PAYMENT_CHUNK_SIZE, (index + 1) * PAYMENT_CHUNK_SIZE)
+    );
+
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      const chunk = chunks[chunkIndex];
+      const chunkIds = new Set(chunk.map((row) => row.id));
+      setActiveChunk({ current: chunkIndex + 1, total: chunks.length });
 
       setRows((prev) =>
-        prev.map((r) => (r.id === row.id ? { ...r, status: 'sending' as const } : r))
+        prev.map((r) =>
+          chunkIds.has(r.id) ? { ...r, status: 'sending' as const, error: undefined } : r
+        )
       );
 
       try {
-        const result = await sendPaymentViaFreighter(
+        const result = await sendBatchPaymentsViaFreighter(
           publicKey,
-          row.address,
-          row.amount,
-          row.memo || undefined
+          chunk.map((row) => ({
+            recipientPublicKey: row.address,
+            amount: row.amount,
+          }))
         );
 
         setRows((prev) =>
           prev.map((r) =>
-            r.id === row.id
-              ? { ...r, status: 'sent' as const, txHash: result.hash }
-              : r
+            chunkIds.has(r.id) ? { ...r, status: 'sent' as const, txHash: result.hash } : r
           )
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : tCommon('error');
         setRows((prev) =>
           prev.map((r) =>
-            r.id === row.id ? { ...r, status: 'failed' as const, error: message } : r
+            chunkIds.has(r.id) ? { ...r, status: 'failed' as const, error: message } : r
           )
         );
+        break;
       }
     }
 
+    setActiveChunk(null);
     setStep('complete');
   };
 
@@ -244,10 +262,12 @@ export default function BatchPage() {
     setRows([]);
     setStep('upload');
     setFileError(null);
+    setActiveChunk(null);
   };
 
   const statusLabel = (status: RowStatus, error?: string) => {
     if (error && status === 'pending') return error;
+    if (error && status === 'failed') return `${t('failed')}: ${error}`;
     switch (status) {
       case 'pending':
         return t('pending');
@@ -270,7 +290,9 @@ export default function BatchPage() {
         {step === 'upload' && (
           <SurfaceCard>
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold text-[#102033]">{t('uploadTitle')}</h2>
+              <h2 className="font-display text-xl font-semibold text-[#102033]">
+                {t('uploadTitle')}
+              </h2>
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
@@ -321,19 +343,30 @@ export default function BatchPage() {
           <>
             <SurfaceCard>
               <h2 className="font-display text-xl font-semibold text-[#102033]">
-                {step === 'review' ? t('previewTitle') : step === 'executing' ? t('executingTitle') : t('completeTitle')}
+                {step === 'review'
+                  ? t('previewTitle')
+                  : step === 'executing'
+                    ? t('executingTitle')
+                    : t('completeTitle')}
               </h2>
 
               {step === 'executing' && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-sm text-[#637085]">
-                    <span>{t('progress', { completed: completedCount, total: validRows.length })}</span>
-                    <span>{Math.round((completedCount / validRows.length) * 100)}%</span>
+                    <span>
+                      {t('progress', { completed: completedCount, total: validRows.length })}
+                    </span>
+                    <span>{progressPercent}%</span>
                   </div>
+                  {activeChunk && (
+                    <p className="mt-2 text-sm font-medium text-[#102033]">
+                      {t('chunkProgress', activeChunk)}
+                    </p>
+                  )}
                   <div className="mt-2 h-3 overflow-hidden rounded-full bg-[#efe3d0]">
                     <div
                       className="h-full rounded-full bg-[#1f8f55] transition-all duration-300"
-                      style={{ width: `${(completedCount / validRows.length) * 100}%` }}
+                      style={{ width: `${progressPercent}%` }}
                     />
                   </div>
                 </div>
@@ -342,10 +375,14 @@ export default function BatchPage() {
               {step === 'complete' && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-[18px] border border-[#dff3e8] bg-[#f0fdf4] p-4">
-                    <p className="text-sm text-[#637085]">{t('successCount', { count: successCount })}</p>
+                    <p className="text-sm text-[#637085]">
+                      {t('successCount', { count: successCount })}
+                    </p>
                   </div>
                   <div className="rounded-[18px] border border-red-200 bg-red-50 p-4">
-                    <p className="text-sm text-red-700">{t('failureCount', { count: failureCount })}</p>
+                    <p className="text-sm text-red-700">
+                      {t('failureCount', { count: failureCount })}
+                    </p>
                   </div>
                   <div className="rounded-[18px] border border-[#efe3d0] bg-[#fffaf2] p-4">
                     <p className="text-sm text-[#102033]">{t('totalSent', { total: sentTotal })}</p>
@@ -410,7 +447,9 @@ export default function BatchPage() {
 
             {step === 'review' && (
               <SurfaceCard>
-                <h2 className="font-display text-xl font-semibold text-[#102033]">{t('reviewTitle')}</h2>
+                <h2 className="font-display text-xl font-semibold text-[#102033]">
+                  {t('reviewTitle')}
+                </h2>
                 <p className="mt-2 text-[#637085]">
                   {t('summary', { count: validRows.length, total: totalAmount })}
                 </p>

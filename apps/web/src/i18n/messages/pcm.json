@@ -176,6 +176,7 @@
     "confirmSendAll": "Confirm and Send All",
     "executingTitle": "Dey Send Payments",
     "progress": "{completed} of {total} payments don complete",
+    "chunkProgress": "Dey process chunk {current}/{total}...",
     "completeTitle": "Batch Don Finish",
     "successCount": "{count} successful",
     "failureCount": "{count} fail",
