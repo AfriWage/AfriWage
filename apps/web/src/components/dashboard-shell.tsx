@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUpRight, Copy, LayoutDashboard, Settings, Upload, Wallet, Waves } from 'lucide-react';
+import { ArrowUpRight, Clock3, Copy, LayoutDashboard, Settings, Upload, Wallet, Waves } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { type ReactNode, useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -26,6 +26,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
     { href: '/send' as const, label: t('sendPayment'), icon: ArrowUpRight },
     { href: '/batch' as const, label: t('batchPayments'), icon: Upload },
     { href: '/transactions' as const, label: t('transactions'), icon: Waves },
+    { href: '/streams' as const, label: 'Streams', icon: Clock3 },
     { href: '/wallet' as const, label: t('wallet'), icon: Wallet },
     { href: '/settings' as const, label: t('settings'), icon: Settings },
   ];
@@ -147,7 +148,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e7dccb] bg-[#fffaf2] pb-[env(safe-area-inset-bottom)] lg:hidden dark:border-[#1e1e3a] dark:bg-[#0f0f24]">
         <div className="flex items-center justify-around px-2 py-1.5">
-          {navItems.slice(0, 4).map((item) => {
+          {navItems.slice(0, 5).map((item) => {
             const isActive =
               pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
