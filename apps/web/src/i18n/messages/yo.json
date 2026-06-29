@@ -176,6 +176,7 @@
     "confirmSendAll": "Jẹri ki o Fi Gbogbo ranṣẹ",
     "executingTitle": "N fi Awọn Owo ranṣẹ",
     "progress": "{completed} ninu {total} awọn sisan ti pari",
+    "chunkProgress": "N ṣiṣẹ chunk {current}/{total}...",
     "completeTitle": "Pipọ Paripari",
     "successCount": "{count} aṣeyọri",
     "failureCount": "{count} kuna",
