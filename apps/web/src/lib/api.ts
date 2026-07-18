@@ -18,20 +18,33 @@ export async function getTransactions(address: string, options?: { limit?: numbe
   }
   return txs;
 }
-export async function verifyPayment(hash: string) {
-  // Placeholder implementation for type checking
-  // In a real implementation, we would fetch the transaction details from Stellar
-  return {
-    verified: true,
-    sender: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-    recipient: 'GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
-    amount: '0.00',
-    asset: 'USDC',
-    createdAt: new Date().toISOString(),
-    memo: 'AfriWage Payment',
-    hash,
-    explorerUrl: `https://stellar.expert/explorer/testnet/tx/${hash}`,
-  };
+export interface PaymentReceipt {
+  verified: boolean;
+  hash: string;
+  sender: string;
+  recipient: string;
+  amount: string;
+  asset: string;
+  memo?: string;
+  createdAt: string;
+  explorerUrl: string;
+}
+
+/**
+ * Verifies a payment against the Stellar network by looking up the transaction
+ * on Horizon via the /api/payment/verify route. Throws if the transaction
+ * cannot be found or the network request fails, so callers can surface an
+ * error state rather than a fabricated "verified" result.
+ */
+export async function verifyPayment(hash: string): Promise<PaymentReceipt> {
+  const response = await fetch(`/api/payment/verify?hash=${encodeURIComponent(hash)}`);
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(errorBody.message ?? 'Transaction not found');
+  }
+
+  return (await response.json()) as PaymentReceipt;
 }
 
 export async function fundTestnet(address: string): Promise<void> {
