@@ -20,8 +20,8 @@ export interface AppError {
   details?: string;
 }
 
-// Supported African countries for off-ramp
-export const SUPPORTED_COUNTRIES = [
+// African currencies shown for exchange-rate visibility
+export const AFRICAN_CURRENCIES = [
   { code: 'NG', name: 'Nigeria', currency: 'NGN', flag: '🇳🇬' },
   { code: 'GH', name: 'Ghana', currency: 'GHS', flag: '🇬🇭' },
   { code: 'KE', name: 'Kenya', currency: 'KES', flag: '🇰🇪' },
@@ -32,4 +32,4 @@ export const SUPPORTED_COUNTRIES = [
   { code: 'CM', name: 'Cameroon', currency: 'XAF', flag: '🇨🇲' },
 ] as const;
 
-export type CountryCode = (typeof SUPPORTED_COUNTRIES)[number]['code'];
+export type CountryCode = (typeof AFRICAN_CURRENCIES)[number]['code'];

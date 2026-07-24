@@ -1,4 +1,4 @@
-const payoutCorridors = ['NGN', 'GHS', 'KES', 'ZAR', 'TZS', 'UGX', 'XOF', 'XAF'];
+const payoutCorridors = ['NGN', 'GHS'];
 
 const flowCards = [
   {
@@ -17,7 +17,7 @@ const flowCards = [
     step: '03',
     title: 'Local payout corridors',
     label: 'Delivered in familiar currencies',
-    description: 'Teams receive payroll through supported African payout corridors with clear proof.',
+    description: 'NGN and GHS withdrawals use integrated anchors with clear proof.',
   },
 ];
 
@@ -60,11 +60,11 @@ export function PaymentFlowPreview() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/35">
-              Supported payout corridors
+              Supported off-ramp currencies
             </p>
             <p className="mt-2 text-sm leading-6 text-white/60">
-              Payroll can be routed into supported African currency corridors while retaining a
-              verifiable on-chain record.
+              NGN and GHS can be withdrawn through integrated anchors while retaining a verifiable
+              on-chain record.
             </p>
           </div>
           <div className="flex max-w-xl flex-wrap gap-2">

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: '%s | AfriWage',
   },
   description:
-    'Pay African gig workers instantly in USDC via Stellar with automatic local currency off-ramp. Borderless, transparent, and built on open-source infrastructure.',
+    'Pay African gig workers instantly in USDC via Stellar, with NGN and GHS off-ramp support. Borderless, transparent, and built on open-source infrastructure.',
   keywords: ['payroll', 'USDC', 'Stellar', 'Africa', 'gig workers', 'blockchain', 'crypto'],
   authors: [{ name: 'Adesanya Fuhad', url: 'https://github.com/K1NGD4VID' }],
   openGraph: {
