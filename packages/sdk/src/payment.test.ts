@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { USDC_ASSET_CODE, USDC_ISSUER_TESTNET } from './types';
 
-const { mockLoadAccount } = vi.hoisted(() => ({
-  mockLoadAccount: vi.fn(),
-}));
+const { mockLoadAccount, mockOperations, mockSubmitTransaction, mockTransactions } = vi.hoisted(
+  () => ({
+    mockLoadAccount: vi.fn(),
+    mockOperations: vi.fn(),
+    mockSubmitTransaction: vi.fn(),
+    mockTransactions: vi.fn(),
+  })
+);
 
 vi.mock('@stellar/stellar-sdk', async () => {
   const actual =
@@ -15,18 +20,22 @@ vi.mock('@stellar/stellar-sdk', async () => {
       ...actual.Horizon,
       Server: vi.fn().mockImplementation(() => ({
         loadAccount: mockLoadAccount,
+        operations: mockOperations,
+        submitTransaction: mockSubmitTransaction,
+        transactions: mockTransactions,
       })),
     },
   };
 });
 
-import { getBalance } from './payment';
+import { Account, Keypair } from '@stellar/stellar-sdk';
+import { getBalance, getTransactionHistory, sendPayment } from './payment';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('getBalance', () => {
-  beforeEach(() => {
-    mockLoadAccount.mockReset();
-  });
-
   it('returns formatted XLM and USDC balances from Horizon account data', async () => {
     mockLoadAccount.mockResolvedValue({
       balances: [
@@ -72,5 +81,117 @@ describe('getBalance', () => {
     const balance = await getBalance('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
 
     expect(balance).toEqual({ xlm: '25.0000000', usdc: '0' });
+  });
+});
+
+describe('sendPayment', () => {
+  let sender: Keypair;
+  const submission = { hash: 'transaction-hash', ledger: 123, successful: true };
+
+  beforeEach(() => {
+    sender = Keypair.random();
+    mockLoadAccount.mockResolvedValue(new Account(sender.publicKey(), '1'));
+    mockSubmitTransaction.mockResolvedValue(submission);
+  });
+
+  it('submits the requested USDC payment and returns the Horizon result', async () => {
+    const recipient = Keypair.random().publicKey();
+    const result = await sendPayment(sender.secret(), recipient, '25.50', 'Invoice 42');
+    const transaction = mockSubmitTransaction.mock.calls[0][0];
+    const operation = transaction.operations[0];
+
+    expect(operation).toMatchObject({
+      type: 'payment',
+      destination: recipient,
+    });
+    expect(Number(operation.amount)).toBe(25.5);
+    expect(operation.asset.getCode()).toBe(USDC_ASSET_CODE);
+    expect(operation.asset.getIssuer()).toBe(USDC_ISSUER_TESTNET);
+    expect(transaction.memo).toMatchObject({ type: 'text', value: 'Invoice 42' });
+    expect(result).toEqual(submission);
+  });
+
+  it('does not add a memo when one is not provided', async () => {
+    await sendPayment(sender.secret(), Keypair.random().publicKey(), '10.00');
+
+    expect(mockSubmitTransaction.mock.calls[0][0].memo.type).toBe('none');
+  });
+});
+
+describe('getTransactionHistory', () => {
+  it('maps payment and account creation transactions in newest-first order', async () => {
+    const transaction = {
+      id: 'id',
+      source_account: 'GSENDER',
+      memo: 'ignored',
+      created_at: '2025-01-01T00:00:00Z',
+      successful: true,
+    };
+    const request = {
+      call: vi.fn().mockResolvedValue({
+        records: [
+          {
+            ...transaction,
+            hash: 'payment-hash',
+            memo_type: 'text',
+            memo: 'Payroll',
+          },
+          { ...transaction, hash: 'create-hash', source_account: 'GCREATOR', memo_type: 'hash' },
+        ],
+      }),
+      forAccount: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+    };
+    const operationRecords = {
+      'payment-hash': [
+        {
+          type: 'payment',
+          amount: '42.567',
+          asset_type: 'credit_alphanum4',
+          asset_code: 'USDC',
+          from: 'GSENDER',
+          to: 'GRECIPIENT',
+        },
+      ],
+      'create-hash': [
+        {
+          type: 'create_account',
+          starting_balance: '10',
+          account: 'GNEWACCOUNT',
+        },
+      ],
+    };
+    const forTransaction = vi.fn((hash: keyof typeof operationRecords) => ({
+      call: vi.fn().mockResolvedValue({ records: operationRecords[hash] }),
+    }));
+    mockTransactions.mockReturnValue(request);
+    mockOperations.mockReturnValue({ forTransaction });
+
+    const history = await getTransactionHistory('GACCOUNT');
+
+    expect(request.forAccount).toHaveBeenCalledWith('GACCOUNT');
+    expect(request.order).toHaveBeenCalledWith('desc');
+    expect(request.limit).toHaveBeenCalledWith(20);
+    expect(history).toMatchObject([
+      {
+        hash: 'payment-hash',
+        type: 'payment',
+        amount: '42.57',
+        asset: 'USDC',
+        from: 'GSENDER',
+        to: 'GRECIPIENT',
+        memo: 'Payroll',
+      },
+      {
+        hash: 'create-hash',
+        type: 'create_account',
+        amount: '10.00',
+        asset: 'XLM',
+        from: 'GCREATOR',
+        to: 'GNEWACCOUNT',
+      },
+    ]);
+    expect(history[1].memo).toBeUndefined();
   });
 });
