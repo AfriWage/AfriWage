@@ -24,7 +24,7 @@
 
 Over 70 million gig workers across Africa are paid through legacy wire transfers and mobile money corridors that charge 5–15% fees and take 1–5 business days to settle. For a freelancer in Lagos waiting on a $200 invoice, that's a $30 loss and a week of waiting. This is broken.
 
-**AfriWage fixes it.** Employers send USDC via Stellar. It settles in 5 seconds. Workers automatically off-ramp to local currency through integrated Stellar anchors. The entire flow is transparent, on-chain, and costs fractions of a cent.
+**AfriWage fixes it.** Employers send USDC via Stellar. It settles in 5 seconds. Workers can off-ramp to NGN or GHS through integrated Stellar anchors. The entire flow is transparent, on-chain, and costs fractions of a cent.
 
 ---
 
@@ -37,11 +37,11 @@ Over 70 million gig workers across Africa are paid through legacy wire transfers
        ▼
 [Stellar Network]   ◄─── 3–5 second settlement
        │
-       │  Automatic anchor off-ramp
+       │  SEP-24 anchor off-ramp (NGN / GHS)
        ▼
-   [Anchor]          e.g. Flutterwave, Bitget
+   [Anchor]          Yellow Card / SDF test anchor
        │
-       │  Local currency (NGN / GHS / KES / ZAR / ...)
+       │  Local currency (NGN / GHS)
        ▼
 [Worker Bank Account / Mobile Money]
 ```
@@ -56,7 +56,7 @@ Over 70 million gig workers across Africa are paid through legacy wire transfers
 - ✅ **Transaction history** — last 20 on-chain transactions with direction indicators
 - ✅ **Payment Receipts** — public proof-of-payment receipt page for any transaction hash
 - ✅ **Employer dashboard** — send payments, view balance, manage payroll, modify security settings
-- ✅ **8+ African countries** — off-ramp support for NGN, GHS, KES, ZAR, TZS, UGX, XOF, XAF
+- ✅ **2 live off-ramp currencies** — NGN and GHS; KES, ZAR, TZS, UGX, XOF, and XAF are exchange-rate estimates only, with withdrawals coming soon
 - ✅ **@AfriWage/sdk** — standalone Stellar helper package for the community
 
 ---

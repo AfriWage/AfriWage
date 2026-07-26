@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 
+const OFF_RAMP_SCOPE = {
+  supported: ['NGN', 'GHS'],
+  estimateOnly: ['KES', 'ZAR', 'TZS', 'UGX', 'XOF', 'XAF'],
+} as const;
+
 interface ExchangeRates {
   NGN: number;
   GHS: number;
@@ -11,6 +16,7 @@ interface ExchangeRates {
   XAF: number;
   updatedAt: string;
   base: string;
+  offRamp: typeof OFF_RAMP_SCOPE;
 }
 
 const FALLBACK_RATES = {
@@ -54,6 +60,7 @@ export async function GET() {
       XAF: rates.xaf,
       updatedAt: new Date().toISOString(),
       base: 'USDC',
+      offRamp: OFF_RAMP_SCOPE,
     };
 
     return NextResponse.json(result, {
@@ -65,7 +72,7 @@ export async function GET() {
     console.error('Error fetching rates, using fallback:', error);
     
     return NextResponse.json(
-      { ...FALLBACK_RATES, updatedAt: new Date().toISOString(), base: 'USDC' },
+      { ...FALLBACK_RATES, updatedAt: new Date().toISOString(), base: 'USDC', offRamp: OFF_RAMP_SCOPE },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',

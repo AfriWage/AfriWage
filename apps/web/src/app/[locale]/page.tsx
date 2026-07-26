@@ -1,7 +1,7 @@
 import { ArrowRight, ShieldCheck, ChevronRight, Clock, Wallet, Send, CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
-import { SUPPORTED_COUNTRIES } from '@/types';
+import { AFRICAN_CURRENCIES } from '@/types';
 import HeroVisual from '@/components/HeroVisual';
 import { InstantSettlementIcon, LocalDeliveryIcon } from '@/components/ui/Icons';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -10,7 +10,7 @@ import Reveal from '@/components/ui/Reveal';
 export const metadata: Metadata = {
   title: 'AfriWage - Borderless payroll for African teams',
   description:
-    'Send payroll over Stellar and deliver to local African payout corridors with clear transaction visibility. Instant USDC payments for gig workers across 8+ African countries.',
+    'Send USDC payroll over Stellar with NGN and GHS off-ramp support and exchange-rate estimates for six additional African currencies.',
 };
 
 const navLinks = [
@@ -30,10 +30,10 @@ const features = [
   },
   {
     icon: LocalDeliveryIcon,
-    title: 'Corridor-Native Delivery',
-    description: 'Route value into NGN, GHS, KES, ZAR, TZS, UGX, XOF, and XAF payout corridors — covering 70M+ gig workers.',
-    stat: '8+',
-    statLabel: 'corridors',
+    title: 'Local Currency Access',
+    description: 'Off-ramp to NGN or GHS today. KES, ZAR, TZS, UGX, XOF, and XAF are exchange-rate estimates while withdrawal support is coming soon.',
+    stat: '2',
+    statLabel: 'live currencies',
   },
   {
     icon: ShieldCheck,
@@ -67,14 +67,14 @@ const flowSteps = [
     step: '04',
     icon: CheckCircle2,
     title: 'Local Delivery',
-    description: 'Workers receive local currency through integrated African payout corridors.',
+    description: 'NGN and GHS withdrawals use integrated anchors; additional currencies remain display-only estimates.',
   },
 ];
 
 const stats = [
   { value: '<1¢', label: 'Transaction Fees' },
   { value: '~5s', label: 'Settlement Time' },
-  { value: '8+', label: 'African Countries' },
+  { value: '2', label: 'Live Off-ramp Currencies' },
   { value: '0%', label: 'Hidden Charges' },
 ];
 
@@ -139,8 +139,8 @@ export default function HomePage() {
               <span className="landing-hero-gradient">African Gig Workers</span>
             </h1>
             <p className="landing-hero-sub">
-              Send USDC over Stellar. It settles in 5 seconds. Workers automatically
-              receive local currency. No intermediaries. No 5-15% corridor fees.
+              Send USDC over Stellar. It settles in 5 seconds. Workers can off-ramp
+              to NGN or GHS. No intermediaries. No 5-15% corridor fees.
               Just instant, transparent payroll.
             </p>
 
@@ -206,8 +206,8 @@ export default function HomePage() {
                   </div>
                   <h3 className="landing-ps-title">AfriWage Fixes It</h3>
                   <p className="landing-ps-desc">
-                    Employers send <strong>USDC via Stellar</strong>. It settles in 5 seconds. Workers automatically
-                    off-ramp to <strong>local currency</strong> through integrated Stellar anchors. The entire flow is
+                    Employers send <strong>USDC via Stellar</strong>. It settles in 5 seconds. Workers can
+                    off-ramp to <strong>NGN or GHS</strong> through integrated Stellar anchors. The entire flow is
                     transparent, on-chain, and costs <strong>fractions of a cent</strong>.
                   </p>
                 </div>
@@ -292,18 +292,18 @@ export default function HomePage() {
         <section className="landing-section" id="corridors">
           <div className="landing-container">
             <Reveal className="landing-section-header">
-              <p className="landing-section-eyebrow">Payout Coverage</p>
+              <p className="landing-section-eyebrow">Currency Coverage</p>
               <h2 className="landing-section-h2">
-                8+ African corridors
+                2 live off-ramp currencies
               </h2>
               <p className="landing-section-desc">
-                Route payroll to supported local corridors. Workers receive value in their familiar currency.
+                NGN and GHS support anchor withdrawals today. KES, ZAR, TZS, UGX, XOF, and XAF are exchange-rate estimates only; withdrawals are coming soon.
               </p>
             </Reveal>
 
             <Reveal className="marquee-container" delay={0.2}>
               <div className="marquee-content">
-                {[...SUPPORTED_COUNTRIES, ...SUPPORTED_COUNTRIES, ...SUPPORTED_COUNTRIES].map((country, i) => (
+                {[...AFRICAN_CURRENCIES, ...AFRICAN_CURRENCIES, ...AFRICAN_CURRENCIES].map((country, i) => (
                   <div key={`${country.code}-${i}`} className="marquee-item">
                     <span style={{ fontSize: '24px' }}>{country.flag}</span>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
