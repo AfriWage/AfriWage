@@ -2,6 +2,7 @@ import { Account, Keypair, Networks, TransactionBuilder } from '@stellar/stellar
 import { describe, expect, it } from 'vitest';
 import {
   buildPaymentTransactionXdr,
+  BuildPaymentRequestError,
   MAX_PAYMENT_OPERATIONS,
   parseBuildPaymentRequest,
 } from './build-payment';
@@ -60,5 +61,140 @@ describe('build payment transactions', () => {
     expect(() => parseBuildPaymentRequest({ senderPublicKey, payments })).toThrow(
       `at most ${MAX_PAYMENT_OPERATIONS} payments`
     );
+  });
+
+  describe('amount validation', () => {
+    it('accepts valid amounts with up to 7 decimal places', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      // Valid test cases
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '25.00' })
+      ).toBeTruthy();
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.0000001' })
+      ).toBeTruthy();
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '1000000' })
+      ).toBeTruthy();
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '99.9999999' })
+      ).toBeTruthy();
+    });
+
+    it('rejects negative amounts', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '-10.00' })
+      ).toThrow(BuildPaymentRequestError);
+    });
+
+    it('rejects zero amounts', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0' })
+      ).toThrow('must be greater than zero');
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.00' })
+      ).toThrow('must be greater than zero');
+    });
+
+    it('rejects non-numeric strings', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: 'abc' })
+      ).toThrow(BuildPaymentRequestError);
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '10.5x' })
+      ).toThrow(BuildPaymentRequestError);
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '' })
+      ).toThrow(BuildPaymentRequestError);
+    });
+
+    it('rejects amounts with more than 7 decimal places', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '1.00000001' })
+      ).toThrow('up to 7 decimal places');
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.123456789' })
+      ).toThrow('up to 7 decimal places');
+    });
+  });
+
+  describe('public key validation', () => {
+    it('accepts valid ed25519 public keys for sender and recipient', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '10.00' })
+      ).toMatchObject({ senderPublicKey, payments: [{ recipientPublicKey }] });
+    });
+
+    it('rejects a malformed senderPublicKey', () => {
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey: 'not-a-key', recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey: 'GBADKEY', recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey: '', recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects a malformed recipientPublicKey', () => {
+      const senderPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: 'not-a-key', amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: 'GBADKEY', amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: '', amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects a malformed recipientPublicKey inside the payments array', () => {
+      const senderPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          payments: [{ recipientPublicKey: 'not-a-key', amount: '10.00' }],
+        })
+      ).toThrow('payments[0].recipientPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects missing public keys', () => {
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey: publicKey(), amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+    });
   });
 });

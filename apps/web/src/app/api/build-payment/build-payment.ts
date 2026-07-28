@@ -7,6 +7,7 @@ import {
   StrKey,
   TransactionBuilder,
 } from '@stellar/stellar-sdk';
+import { SendPaymentParamsSchema } from '@AfriWage/sdk';
 
 export const MAX_PAYMENT_OPERATIONS = 100;
 const USDC_ASSET_CODE = 'USDC';
@@ -30,7 +31,9 @@ interface BuildPaymentTransactionParams {
 }
 
 const USDC_ASSET = new Asset(USDC_ASSET_CODE, USDC_ISSUER_TESTNET);
-const AMOUNT_PATTERN = /^\d+(\.\d{1,7})?$/;
+
+// Reuse the amount schema from @AfriWage/sdk to avoid duplicating the regex
+const AmountSchema = SendPaymentParamsSchema.shape.amount;
 
 export class BuildPaymentRequestError extends Error {}
 
@@ -47,11 +50,21 @@ function requirePublicKey(value: unknown, fieldName: string) {
 }
 
 function requireAmount(value: unknown, fieldName: string) {
-  if (typeof value !== 'string' || !AMOUNT_PATTERN.test(value) || Number.parseFloat(value) <= 0) {
-    throw new BuildPaymentRequestError(`${fieldName} must be a positive decimal amount`);
+  // First validate format with Zod schema
+  const formatResult = AmountSchema.safeParse(value);
+  if (!formatResult.success) {
+    throw new BuildPaymentRequestError(
+      `${fieldName} must be a positive number with up to 7 decimal places`
+    );
   }
 
-  return value;
+  // Then validate it's positive (> 0)
+  const numericValue = Number.parseFloat(formatResult.data);
+  if (numericValue <= 0) {
+    throw new BuildPaymentRequestError(`${fieldName} must be greater than zero`);
+  }
+
+  return formatResult.data;
 }
 
 function parsePaymentItem(value: unknown, index: number): BuildPaymentItem {
