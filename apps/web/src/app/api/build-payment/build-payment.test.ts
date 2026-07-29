@@ -145,11 +145,19 @@ describe('build payment transactions', () => {
       const recipientPublicKey = publicKey();
 
       expect(() =>
-        parseBuildPaymentRequest({ senderPublicKey: 'not-a-key', recipientPublicKey, amount: '10.00' })
+        parseBuildPaymentRequest({
+          senderPublicKey: 'not-a-key',
+          recipientPublicKey,
+          amount: '10.00',
+        })
       ).toThrow('senderPublicKey must be a valid Stellar public key');
 
       expect(() =>
-        parseBuildPaymentRequest({ senderPublicKey: 'GBADKEY', recipientPublicKey, amount: '10.00' })
+        parseBuildPaymentRequest({
+          senderPublicKey: 'GBADKEY',
+          recipientPublicKey,
+          amount: '10.00',
+        })
       ).toThrow('senderPublicKey must be a valid Stellar public key');
 
       expect(() =>
@@ -161,11 +169,19 @@ describe('build payment transactions', () => {
       const senderPublicKey = publicKey();
 
       expect(() =>
-        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: 'not-a-key', amount: '10.00' })
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          recipientPublicKey: 'not-a-key',
+          amount: '10.00',
+        })
       ).toThrow('recipientPublicKey must be a valid Stellar public key');
 
       expect(() =>
-        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: 'GBADKEY', amount: '10.00' })
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          recipientPublicKey: 'GBADKEY',
+          amount: '10.00',
+        })
       ).toThrow('recipientPublicKey must be a valid Stellar public key');
 
       expect(() =>
