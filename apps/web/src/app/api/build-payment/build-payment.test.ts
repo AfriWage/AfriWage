@@ -130,4 +130,86 @@ describe('build payment transactions', () => {
       ).toThrow('up to 7 decimal places');
     });
   });
+
+  describe('public key validation', () => {
+    it('accepts valid ed25519 public keys for sender and recipient', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '10.00' })
+      ).toMatchObject({ senderPublicKey, payments: [{ recipientPublicKey }] });
+    });
+
+    it('rejects a malformed senderPublicKey', () => {
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({
+          senderPublicKey: 'not-a-key',
+          recipientPublicKey,
+          amount: '10.00',
+        })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({
+          senderPublicKey: 'GBADKEY',
+          recipientPublicKey,
+          amount: '10.00',
+        })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey: '', recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects a malformed recipientPublicKey', () => {
+      const senderPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          recipientPublicKey: 'not-a-key',
+          amount: '10.00',
+        })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          recipientPublicKey: 'GBADKEY',
+          amount: '10.00',
+        })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: '', amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects a malformed recipientPublicKey inside the payments array', () => {
+      const senderPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          payments: [{ recipientPublicKey: 'not-a-key', amount: '10.00' }],
+        })
+      ).toThrow('payments[0].recipientPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects missing public keys', () => {
+      const recipientPublicKey = publicKey();
+
+      expect(() =>
+        parseBuildPaymentRequest({ recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(() =>
+        parseBuildPaymentRequest({ senderPublicKey: publicKey(), amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+    });
+  });
 });
