@@ -1,62 +1,65 @@
 import { Decimal } from 'decimal.js';
 
 /**
- * Parse an amount string to a Decimal, ensuring proper precision handling
+ * Parse an amount string to a Decimal.
  */
 export function parseAmount(amount: string): Decimal {
-  // Handle empty or whitespace-only strings
   if (!amount || amount.trim() === '') {
     return new Decimal('0');
   }
-  
-  // Use Decimal constructor which safely handles decimal strings
+
   return new Decimal(amount);
 }
 
 /**
- * Format a Decimal to the exact number of decimal places for a given asset
+ * Parse a Horizon-reported balance or operation amount without rejecting
+ * valid fractional precision (e.g. USDC balances with more than 2 decimals).
  */
-export function formatAmountForDisplay(amount: Decimal, asset: string): string {
-  // XLM needs 7 decimal places, USDC needs 2 decimal places
-  const decimalPlaces = asset === 'XLM' ? 7 : 2;
-  return amount.toFixed(decimalPlaces);
-}
+export function parseHorizonAmount(amount: string, fieldName: string): Decimal {
+  let decimalAmount: Decimal;
 
-/**
- * Parse an amount for Stellar SDK operations
- * Returns a string with the exact representation needed for the SDK
- */
-export function prepareAmountForStellar(amount: Decimal, asset: string): string {
-  // For Stellar SDK, we need to ensure the exact representation
-  // Based on the code I've seen, amounts are passed as strings directly
-  // but we need to ensure precision is maintained
-  
-  // Format to the appropriate number of decimal places for the asset
-  const decimalPlaces = asset === 'XLM' ? 7 : 2;
-  return amount.toFixed(decimalPlaces);
-}
-
-/**
- * Validate that an amount is valid for the given asset
- */
-export function validateAmount(amount: Decimal, asset: string): boolean {
-  if (!amount.isFinite()) {
-    return false;
+  try {
+    decimalAmount = parseAmount(amount);
+  } catch {
+    throw new Error(`${fieldName} must be a valid positive number`);
   }
 
-  // Check if amount is negative (negative amounts should not be allowed)
-  if (amount.isNegative()) {
+  if (!decimalAmount.isFinite() || decimalAmount.isNegative()) {
+    throw new Error(`${fieldName} must be a valid positive number`);
+  }
+
+  return decimalAmount;
+}
+
+/**
+ * Format a Decimal to the display precision for a given asset.
+ */
+export function formatAmountForDisplay(amount: Decimal, asset: string): string {
+  const decimalPlaces = asset === 'XLM' ? 7 : 2;
+  return amount.toFixed(decimalPlaces);
+}
+
+/**
+ * Prepare an amount string for Stellar SDK operations or balance responses.
+ */
+export function prepareAmountForStellar(amount: Decimal, asset: string): string {
+  return formatAmountForDisplay(amount, asset);
+}
+
+/**
+ * Validate that a user-supplied amount is valid for the given asset.
+ */
+export function validateAmount(amount: Decimal, asset: string): boolean {
+  if (!amount.isFinite() || amount.isNegative()) {
     return false;
   }
 
   const decimalPlaces = amount.decimalPlaces();
 
-  // For USDC, check that we do not exceed 2 decimal places.
   if (asset === 'USDC') {
     return decimalPlaces <= 2;
   }
 
-  // For XLM, check that we do not exceed 7 decimal places.
   if (asset === 'XLM') {
     return decimalPlaces <= 7;
   }
@@ -64,9 +67,6 @@ export function validateAmount(amount: Decimal, asset: string): boolean {
   return true;
 }
 
-/**
- * Perform safe arithmetic operations on decimal amounts
- */
 export function addAmounts(a: Decimal, b: Decimal): Decimal {
   return a.plus(b);
 }
@@ -76,31 +76,28 @@ export function subtractAmounts(a: Decimal, b: Decimal): Decimal {
 }
 
 /**
- * Parse and validate an amount string, returning a Decimal
- * @throws {Error} if the amount is invalid
+ * Parse and validate a user-supplied amount string.
+ * @throws {Error} if the amount is invalid for the asset
  */
 export function parseAndValidateAmount(amount: string, asset: string, fieldName: string): Decimal {
-  // First parse as Decimal
-  const decimalAmount = parseAmount(amount);
-  
-  // Validate
+  const decimalAmount = parseHorizonAmount(amount, fieldName);
+
   if (!validateAmount(decimalAmount, asset)) {
-    throw new Error(`${fieldName} must be a valid positive number`);
-  }
-  
-  // Additional validation for USDC decimal places
-  if (asset === 'USDC') {
-    if (decimalAmount.decimalPlaces() > 2) {
+    if (asset === 'USDC') {
       throw new Error(`${fieldName} must have at most 2 decimal places for USDC`);
     }
-  }
-
-  // For XLM, check that we have at most 7 decimal places
-  if (asset === 'XLM') {
-    if (decimalAmount.decimalPlaces() > 7) {
+    if (asset === 'XLM') {
       throw new Error(`${fieldName} must have at most 7 decimal places for XLM`);
     }
+    throw new Error(`${fieldName} must be a valid positive number`);
   }
-  
+
   return decimalAmount;
+}
+
+/**
+ * Format a Horizon amount for transaction history display (2 decimal places).
+ */
+export function formatTransactionHistoryAmount(amount: string): string {
+  return parseHorizonAmount(amount, 'amount').toFixed(2);
 }

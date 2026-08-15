@@ -15,6 +15,7 @@ import Papa from 'papaparse';
 import { type DragEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
+import { isValidPositiveAmount, sumUsdcAmounts } from '@/lib/batch-amounts';
 import { sendBatchPaymentsViaFreighter } from '@/lib/payment-client';
 import { cn } from '@/lib/utils';
 
@@ -63,8 +64,7 @@ function validateRow(
     return { valid: false, error: t('invalidAddress') };
   }
 
-  const parsedAmount = Number.parseFloat(amount);
-  if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+  if (!isValidPositiveAmount(amount)) {
     return { valid: false, error: t('invalidAmount') };
   }
 
@@ -96,11 +96,7 @@ export default function BatchPage() {
   );
 
   const totalAmount = useMemo(
-    () =>
-      rows
-        .filter((r) => !r.error)
-        .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0)
-        .toFixed(2),
+    () => sumUsdcAmounts(rows.filter((r) => !r.error).map((r) => r.amount)),
     [rows]
   );
 
@@ -116,11 +112,7 @@ export default function BatchPage() {
     [completedCount, validRows.length]
   );
   const sentTotal = useMemo(
-    () =>
-      rows
-        .filter((r) => r.status === 'sent')
-        .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0)
-        .toFixed(2),
+    () => sumUsdcAmounts(rows.filter((r) => r.status === 'sent').map((r) => r.amount)),
     [rows]
   );
 

@@ -7,9 +7,13 @@ import {
   Operation,
   TransactionBuilder,
 } from '@stellar/stellar-sdk';
+import {
+  formatTransactionHistoryAmount,
+  parseHorizonAmount,
+  prepareAmountForStellar,
+} from './amount-utils';
 import type { Balance, PaymentResult, TransactionRecord } from './types';
 import { HORIZON_TESTNET_URL, USDC_ASSET_CODE, USDC_ISSUER_TESTNET } from './types';
-import { parseAndValidateAmount, prepareAmountForStellar } from './amount-utils';
 
 const server = new Horizon.Server(HORIZON_TESTNET_URL);
 
@@ -65,14 +69,14 @@ export async function getBalance(publicKey: string): Promise<Balance> {
 
   for (const balance of account.balances) {
     if (balance.asset_type === 'native') {
-      const amount = parseAndValidateAmount(balance.balance, 'XLM', 'XLM balance');
+      const amount = parseHorizonAmount(balance.balance, 'XLM balance');
       xlm = prepareAmountForStellar(amount, 'XLM');
     } else if (
       balance.asset_type === 'credit_alphanum4' &&
       balance.asset_code === USDC_ASSET_CODE &&
       balance.asset_issuer === USDC_ISSUER_TESTNET
     ) {
-      const amount = parseAndValidateAmount(balance.balance, 'USDC', 'USDC balance');
+      const amount = parseHorizonAmount(balance.balance, 'USDC balance');
       usdc = prepareAmountForStellar(amount, 'USDC');
     }
   }
@@ -104,12 +108,11 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
       if (op.type === 'payment') {
         type = 'payment';
         const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
-        const amountDecimal = parseAndValidateAmount(payOp.amount, 'USDC', 'payment amount');
-        amount = prepareAmountForStellar(amountDecimal, 'USDC');
         asset =
           payOp.asset_type === 'native'
             ? 'XLM'
             : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
+        amount = formatTransactionHistoryAmount(payOp.amount);
         from = payOp.from;
         to = payOp.to;
         break;
@@ -117,9 +120,8 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
       if (op.type === 'create_account') {
         type = 'create_account';
         const createOp = op as Horizon.HorizonApi.CreateAccountOperationResponse;
-        const amountDecimal = parseAndValidateAmount(createOp.starting_balance, 'XLM', 'create account amount');
-        amount = prepareAmountForStellar(amountDecimal, 'XLM');
         asset = 'XLM';
+        amount = formatTransactionHistoryAmount(createOp.starting_balance);
         to = createOp.account;
         break;
       }

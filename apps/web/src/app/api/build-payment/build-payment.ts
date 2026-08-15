@@ -8,6 +8,7 @@ import {
   TransactionBuilder,
 } from '@stellar/stellar-sdk';
 import { SendPaymentParamsSchema } from '@AfriWage/sdk';
+import { Decimal } from 'decimal.js';
 
 export const MAX_PAYMENT_OPERATIONS = 100;
 const USDC_ASSET_CODE = 'USDC';
@@ -58,9 +59,8 @@ function requireAmount(value: unknown, fieldName: string) {
     );
   }
 
-  // Then validate it's positive (> 0)
-  const numericValue = Number.parseFloat(formatResult.data);
-  if (numericValue <= 0) {
+  const decimalValue = new Decimal(formatResult.data);
+  if (!decimalValue.isFinite() || decimalValue.lte(0)) {
     throw new BuildPaymentRequestError(`${fieldName} must be greater than zero`);
   }
 
