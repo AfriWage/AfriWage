@@ -23,11 +23,7 @@ import {
 import { useTranslations } from 'next-intl';
 import Papa from 'papaparse';
 import { type DragEvent, useCallback, useMemo, useRef, useState } from 'react';
-import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
-import { WalletConnect } from '@/components/WalletConnect';
-import { isValidPositiveAmount, sumUsdcAmounts } from '@/lib/batch-amounts';
-import { sendBatchPaymentsViaFreighter } from '@/lib/payment-client';
-import { cn } from '@/lib/utils';
+import { sumUsdcAmounts } from '@/lib/batch-amounts';
 
 type RowStatus = 'pending' | 'sending' | 'sent' | 'failed';
 type Step = 'upload' | 'review' | 'executing' | 'complete';
@@ -47,36 +43,6 @@ GBZXN7PIRZGNMHGA7MUUUF4GWTMWBXQKJBNV43IXRAJDYIPXZRPTXOJY,25.00,January payroll
 GCKFBEIYTKP6R7Q5E6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T,50.00,Contractor fee`;
 
 const PAYMENT_CHUNK_SIZE = 100;
-
-function validateRow(
-  row: CsvRow,
-  t: ReturnType<typeof useTranslations<'batch'>>
-): { valid: boolean; error?: string; data?: { address: string; amount: string; memo: string } } {
-  const address = row.address?.trim() ?? '';
-  const amount = row.amount?.trim() ?? '';
-  const memo = row.memo?.trim() ?? '';
-
-  if (!address && !amount && !memo) {
-    return { valid: false, error: t('emptyRow') };
-  }
-
-  if (!address || !amount) {
-    return { valid: false, error: t('missingFields') };
-  }
-
-  if (!StrKey.isValidEd25519PublicKey(address)) {
-    return { valid: false, error: t('invalidAddress') };
-  }
-
-  if (!isValidPositiveAmount(amount)) {
-    return { valid: false, error: t('invalidAmount') };
-  }
-
-  return {
-    valid: true,
-    data: { address, amount, memo },
-  };
-}
 
 export default function BatchPage() {
   const t = useTranslations('batch');
