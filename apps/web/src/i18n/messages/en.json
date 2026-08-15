@@ -153,7 +153,9 @@
     "freighterNotFound": "Freighter not found",
     "installFreighter": "Install the Freighter browser extension to connect your Stellar wallet.",
     "installButton": "Install Freighter",
-    "connectionFailed": "Connection failed"
+    "connectionFailed": "Connection failed",
+    "networkMismatchTitle": "Wrong network",
+    "networkMismatchDescription": "Your Freighter wallet is on {actualNetwork}, but AfriWage expects {expectedNetwork}. Switch your Freighter network to {expectedNetwork} before sending a payment."
   },
   "batch": {
     "title": "Batch Payments",
