@@ -187,6 +187,8 @@
     "startOver": "Bẹrẹ Lẹkan",
     "invalidFile": "Jọwọ gbe faili .csv to tọ sori ẹrọ",
     "noValidRows": "Ko si awọn ila sisan to tọ",
+    "tooManyRows": "Faili isanran ti kọja opin {max} sisan fun faili",
+    "fileTooLarge": "Faili ti tobi ju. Iwọn to pọ julọ jẹ 1 MB.",
     "invalidAddress": "Adirẹsi Stellar ko tọ",
     "invalidAmount": "Iye gbọdọ jẹ nọmba to dara",
     "missingFields": "Awọn aaye dandan sonu (adirẹsi, iye)",
