@@ -153,7 +153,9 @@
     "freighterNotFound": "A ko ri Freighter",
     "installFreighter": "Fi igbimọ aṣawakiri Freighter sori ẹrọ lati so apamọwọ Stellar rẹ.",
     "installButton": "Fi Freighter sori ẹrọ",
-    "connectionFailed": "Asopọ kuna"
+    "connectionFailed": "Asopọ kuna",
+    "networkMismatchTitle": "Nẹtiwọọki ti kò tọ",
+    "networkMismatchDescription": "Apamọwọ Freighter rẹ wà lori {actualNetwork}, ṣugbọn AfriWage reti {expectedNetwork}. Yipada nẹtiwọọki Freighter rẹ si {expectedNetwork} ṣaaju fifiranṣẹ owo."
   },
   "batch": {
     "title": "Awọn Owo Pipọ",
@@ -185,6 +187,8 @@
     "startOver": "Bẹrẹ Lẹkan",
     "invalidFile": "Jọwọ gbe faili .csv to tọ sori ẹrọ",
     "noValidRows": "Ko si awọn ila sisan to tọ",
+    "tooManyRows": "Faili isanran ti kọja opin {max} sisan fun faili",
+    "fileTooLarge": "Faili ti tobi ju. Iwọn to pọ julọ jẹ 1 MB.",
     "invalidAddress": "Adirẹsi Stellar ko tọ",
     "invalidAmount": "Iye gbọdọ jẹ nọmba to dara",
     "missingFields": "Awọn aaye dandan sonu (adirẹsi, iye)",

@@ -1,6 +1,16 @@
 'use client';
 
-import { StrKey } from '@stellar/stellar-sdk';
+import { WalletConnect } from '@/components/WalletConnect';
+import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
+import {
+  type BatchRowErrorCode,
+  MAX_BATCH_PAYMENTS,
+  isBatchFileTooLarge,
+  parseBatchCsv,
+  validateBatchFile,
+} from '@/lib/batch-payment-csv';
+import { sendBatchPaymentsViaFreighter } from '@/lib/payment-client';
+import { cn } from '@/lib/utils';
 import {
   AlertCircle,
   CheckCircle2,
@@ -30,12 +40,6 @@ interface BatchRow {
   status: RowStatus;
   error?: string;
   txHash?: string;
-}
-
-interface CsvRow {
-  address?: string;
-  amount?: string;
-  memo?: string;
 }
 
 const CSV_TEMPLATE = `address,amount,memo
@@ -85,6 +89,16 @@ export default function BatchPage() {
   const [activeChunk, setActiveChunk] = useState<{ current: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const rowErrorMessages = useMemo<Record<BatchRowErrorCode, string>>(
+    () => ({
+      emptyRow: t('emptyRow'),
+      missingFields: t('missingFields'),
+      invalidAddress: t('invalidAddress'),
+      invalidAmount: t('invalidAmount'),
+    }),
+    [t]
+  );
+
   const handleConnect = useCallback((pk: string) => setPublicKey(pk), []);
   const handleDisconnect = useCallback(() => setPublicKey(null), []);
 
@@ -123,38 +137,47 @@ export default function BatchPage() {
         return;
       }
 
+      if (isBatchFileTooLarge(file.size)) {
+        setFileError(t('fileTooLarge'));
+        return;
+      }
+
       setFileError(null);
 
-      Papa.parse<CsvRow>(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const parsed: BatchRow[] = results.data.map((row, index) => {
-            const validation = validateRow(row, t);
-            return {
-              id: `row-${index}`,
-              address: row.address?.trim() ?? '',
-              amount: row.amount?.trim() ?? '',
-              memo: row.memo?.trim() ?? '',
-              status: 'pending' as const,
-              error: validation.valid ? undefined : validation.error,
-            };
-          });
+      file
+        .text()
+        .then((text) => {
+          const parsed = parseBatchCsv(text);
+          const fileCheck = validateBatchFile(parsed);
 
-          if (parsed.length === 0) {
-            setFileError(t('noValidRows'));
+          if (!fileCheck.valid) {
+            if (fileCheck.reason === 'tooManyPayments') {
+              setFileError(t('tooManyRows', { max: MAX_BATCH_PAYMENTS }));
+            } else if (fileCheck.reason === 'parseError') {
+              setFileError(t('invalidFile'));
+            } else {
+              setFileError(t('noValidRows'));
+            }
             return;
           }
 
-          setRows(parsed);
+          const batchRows: BatchRow[] = parsed.rows.map((row, index) => ({
+            id: `row-${index}`,
+            address: row.address,
+            amount: row.amount,
+            memo: row.memo,
+            status: 'pending' as const,
+            error: row.error ? rowErrorMessages[row.error] : undefined,
+          }));
+
+          setRows(batchRows);
           setStep('review');
-        },
-        error: () => {
+        })
+        .catch(() => {
           setFileError(t('invalidFile'));
-        },
-      });
+        });
     },
-    [t]
+    [t, rowErrorMessages]
   );
 
   const handleFileSelect = (file: File | undefined) => {

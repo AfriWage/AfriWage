@@ -153,7 +153,9 @@
     "freighterNotFound": "Freighter no dey",
     "installFreighter": "Install Freighter browser extension to connect your Stellar wallet.",
     "installButton": "Install Freighter",
-    "connectionFailed": "Connection fail"
+    "connectionFailed": "Connection fail",
+    "networkMismatchTitle": "Wrong network",
+    "networkMismatchDescription": "Your Freighter wallet dey on {actualNetwork}, but AfriWage dey expect {expectedNetwork}. Switch your Freighter network to {expectedNetwork} before you send payment."
   },
   "batch": {
     "title": "Batch Payments",
@@ -185,6 +187,8 @@
     "startOver": "Start Over",
     "invalidFile": "Abeg upload correct .csv file",
     "noValidRows": "No valid payment rows dey",
+    "tooManyRows": "Batch file pass di limit of {max} payments per file",
+    "fileTooLarge": "File too big. Maximum size na 1 MB.",
     "invalidAddress": "Stellar address no correct",
     "invalidAmount": "Amount must be positive number",
     "missingFields": "Required fields dey miss (address, amount)",
