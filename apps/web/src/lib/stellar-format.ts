@@ -1,3 +1,5 @@
+import { Decimal } from 'decimal.js';
+
 /**
  * Truncates a Stellar public key for display.
  * Example: GABCD...WXYZ
@@ -11,10 +13,9 @@ export function truncatePublicKey(publicKey: string, chars = 4): string {
  * Formats a Stellar amount to a human-readable string.
  */
 export function formatAmount(amount: string, asset: string): string {
-  const num = Number.parseFloat(amount);
-  if (Number.isNaN(num)) return `0 ${asset}`;
-  return `${num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })} ${asset}`;
+  const num = new Decimal(amount);
+  if (!num.isFinite() || num.isNaN()) return `0 ${asset}`;
+  // XLM needs 7 decimal places, USDC needs 2 decimal places
+  const decimalPlaces = asset === 'XLM' ? 7 : 2;
+  return `${num.toFixed(decimalPlaces)} ${asset}`;
 }

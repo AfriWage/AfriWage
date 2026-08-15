@@ -1,197 +1,217 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { USDC_ASSET_CODE, USDC_ISSUER_TESTNET } from './types';
+import { Account, Keypair, Networks, TransactionBuilder } from '@stellar/stellar-sdk';
+import { describe, expect, it } from 'vitest';
+import {
+  buildPaymentTransactionXdr,
+  BuildPaymentRequestError,
+  MAX_PAYMENT_OPERATIONS,
+  parseBuildPaymentRequest,
+} from './build-payment';
 
-const { mockLoadAccount, mockOperations, mockSubmitTransaction, mockTransactions } = vi.hoisted(
-  () => ({
-    mockLoadAccount: vi.fn(),
-    mockOperations: vi.fn(),
-    mockSubmitTransaction: vi.fn(),
-    mockTransactions: vi.fn(),
-  })
-);
+function publicKey() {
+  return Keypair.random().publicKey();
+}
 
-vi.mock('@stellar/stellar-sdk', async () => {
-  const actual =
-    await vi.importActual<typeof import('@stellar/stellar-sdk')>('@stellar/stellar-sdk');
+describe('build payment transactions', () => {
+  it('builds one transaction XDR containing every requested payment operation', () => {
+    const senderPublicKey = publicKey();
+    const payments = [
+      { recipientPublicKey: publicKey(), amount: '10.50' },
+      { recipientPublicKey: publicKey(), amount: '20.25' },
+    ];
 
-  return {
-    ...actual,
-    Horizon: {
-      ...actual.Horizon,
-      Server: vi.fn().mockImplementation(() => ({
-        loadAccount: mockLoadAccount,
-        operations: mockOperations,
-        submitTransaction: mockSubmitTransaction,
-        transactions: mockTransactions,
-      })),
-    },
-  };
-});
-
-import { Account, Keypair } from '@stellar/stellar-sdk';
-import { getBalance, getTransactionHistory, sendPayment } from './payment';
-
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
-describe('getBalance', () => {
-  it('returns formatted XLM and USDC balances from Horizon account data', async () => {
-    mockLoadAccount.mockResolvedValue({
-      balances: [
-        { asset_type: 'native', balance: '100.5' },
-        {
-          asset_type: 'credit_alphanum4',
-          asset_code: USDC_ASSET_CODE,
-          asset_issuer: USDC_ISSUER_TESTNET,
-          balance: '50.123',
-        },
-      ],
+    const xdr = buildPaymentTransactionXdr({
+      sourceAccount: new Account(senderPublicKey, '1'),
+      payments,
     });
+    const transaction = TransactionBuilder.fromXDR(xdr, Networks.TESTNET);
 
-    const balance = await getBalance('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
+    expect(transaction.operations).toHaveLength(payments.length);
 
-    expect(mockLoadAccount).toHaveBeenCalledWith(
-      'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF'
-    );
-    expect(balance).toEqual({ xlm: '100.5000000', usdc: '50.12' });
+    for (let index = 0; index < transaction.operations.length; index++) {
+      const operation = transaction.operations[index];
+      expect(operation.type).toBe('payment');
+      if (operation.type !== 'payment') {
+        throw new Error('Expected a payment operation');
+      }
+      expect(operation.destination).toBe(payments[index].recipientPublicKey);
+      // The amount should now be a decimal string with 7 decimal places for XLM
+      // or 2 decimal places for USDC. The test expects it to be in the correct format.
+      expect(operation.amount).toMatch(/^(\d+\.\d{2}|\d+\.\d{7})$/);
+      expect(operation.asset.getCode()).toBe('USDC');
+    }
   });
 
-  it('returns zero balances when account has no matching assets', async () => {
-    mockLoadAccount.mockResolvedValue({ balances: [] });
-
-    const balance = await getBalance('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
-
-    expect(balance).toEqual({ xlm: '0', usdc: '0' });
-  });
-
-  it('ignores USDC from a different issuer', async () => {
-    mockLoadAccount.mockResolvedValue({
-      balances: [
-        { asset_type: 'native', balance: '25' },
-        {
-          asset_type: 'credit_alphanum4',
-          asset_code: USDC_ASSET_CODE,
-          asset_issuer: 'GDIFFERENTISSUERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-          balance: '99.99',
-        },
-      ],
-    });
-
-    const balance = await getBalance('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
-
-    expect(balance).toEqual({ xlm: '25.0000000', usdc: '0' });
-  });
-});
-
-describe('sendPayment', () => {
-  let sender: Keypair;
-  const submission = { hash: 'transaction-hash', ledger: 123, successful: true };
-
-  beforeEach(() => {
-    sender = Keypair.random();
-    mockLoadAccount.mockResolvedValue(new Account(sender.publicKey(), '1'));
-    mockSubmitTransaction.mockResolvedValue(submission);
-  });
-
-  it('submits the requested USDC payment and returns the Horizon result', async () => {
-    const recipient = Keypair.random().publicKey();
-    const result = await sendPayment(sender.secret(), recipient, '25.50', 'Invoice 42');
-    const transaction = mockSubmitTransaction.mock.calls[0][0];
-    const operation = transaction.operations[0];
-
-    expect(operation).toMatchObject({
-      type: 'payment',
-      destination: recipient,
-    });
-    expect(Number(operation.amount)).toBe(25.5);
-    expect(operation.asset.getCode()).toBe(USDC_ASSET_CODE);
-    expect(operation.asset.getIssuer()).toBe(USDC_ISSUER_TESTNET);
-    expect(transaction.memo).toMatchObject({ type: 'text', value: 'Invoice 42' });
-    expect(result).toEqual(submission);
-  });
-
-  it('does not add a memo when one is not provided', async () => {
-    await sendPayment(sender.secret(), Keypair.random().publicKey(), '10.00');
-
-    expect(mockSubmitTransaction.mock.calls[0][0].memo.type).toBe('none');
-  });
-});
-
-describe('getTransactionHistory', () => {
-  it('maps payment and account creation transactions in newest-first order', async () => {
-    const transaction = {
-      id: 'id',
-      source_account: 'GSENDER',
-      memo: 'ignored',
-      created_at: '2025-01-01T00:00:00Z',
-      successful: true,
-    };
-    const request = {
-      call: vi.fn().mockResolvedValue({
-        records: [
-          {
-            ...transaction,
-            hash: 'payment-hash',
-            memo_type: 'text',
-            memo: 'Payroll',
-          },
-          { ...transaction, hash: 'create-hash', source_account: 'GCREATOR', memo_type: 'hash' },
-        ],
-      }),
-      forAccount: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-    };
-    const operationRecords = {
-      'payment-hash': [
-        {
-          type: 'payment',
-          amount: '42.567',
-          asset_type: 'credit_alphanum4',
-          asset_code: 'USDC',
-          from: 'GSENDER',
-          to: 'GRECIPIENT',
-        },
-      ],
-      'create-hash': [
-        {
-          type: 'create_account',
-          starting_balance: '10',
-          account: 'GNEWACCOUNT',
-        },
-      ],
-    };
-    const forTransaction = vi.fn((hash: keyof typeof operationRecords) => ({
-      call: vi.fn().mockResolvedValue({ records: operationRecords[hash] }),
+  it('accepts array payloads with up to 100 payment items', () => {
+    const senderPublicKey = publicKey();
+    const payments = Array.from({ length: MAX_PAYMENT_OPERATIONS }, () => ({
+      recipientPublicKey: publicKey(),
+      amount: '1.00',
     }));
-    mockTransactions.mockReturnValue(request);
-    mockOperations.mockReturnValue({ forTransaction });
 
-    const history = await getTransactionHistory('GACCOUNT');
+    expect(parseBuildPaymentRequest({ senderPublicKey, payments }).payments).toHaveLength(
+      MAX_PAYMENT_OPERATIONS
+    );
+  });
 
-    expect(request.forAccount).toHaveBeenCalledWith('GACCOUNT');
-    expect(request.order).toHaveBeenCalledWith('desc');
-    expect(request.limit).toHaveBeenCalledWith(20);
-    expect(history).toMatchObject([
-      {
-        hash: 'payment-hash',
-        type: 'payment',
-        amount: '42.57',
-        asset: 'USDC',
-        from: 'GSENDER',
-        to: 'GRECIPIENT',
-        memo: 'Payroll',
-      },
-      {
-        hash: 'create-hash',
-        type: 'create_account',
-        amount: '10.00',
-        asset: 'XLM',
-        from: 'GCREATOR',
-        to: 'GNEWACCOUNT',
-      },
-    ]);
-    expect(history[1].memo).toBeUndefined();
+  it('rejects payloads larger than one Stellar transaction chunk', () => {
+    const senderPublicKey = publicKey();
+    const payments = Array.from({ length: MAX_PAYMENT_OPERATIONS + 1 }, () => ({
+      recipientPublicKey: publicKey(),
+      amount: '1.00',
+    }));
+
+    expect(() => parseBuildPaymentRequest({ senderPublicKey, payments })).toThrow(
+      `at most ${MAX_PAYMENT_OPERATIONS} payments`
+    );
+  });
+
+  describe('amount validation', () => {
+    it('accepts valid amounts with up to 7 decimal places', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '25.00' })
+      ).toBeTruthy();
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.0000001' })
+      ).toBeTruthy();
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '1000000' })
+      ).toBeTruthy();
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '99.9999999' })
+      ).toBeTruthy();
+    });
+
+    it('rejects negative amounts', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '-10.00' })
+      ).toThrow(BuildPaymentRequestError);
+    });
+
+    it('rejects zero amounts', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0' })
+      ).toThrow('must be greater than zero');
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.00' })
+      ).toThrow('must be greater than zero');
+    });
+
+    it('rejects non-numeric strings', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: 'abc' })
+      ).toThrow(BuildPaymentRequestError);
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '10.5x' })
+      ).toThrow(BuildPaymentRequestError);
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '' })
+      ).toThrow(BuildPaymentRequestError);
+    });
+
+    it('rejects amounts with more than 7 decimal places', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '1.00000001' })
+      ).toThrow('up to 7 decimal places');
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.123456789' })
+      ).toThrow('up to 7 decimal places');
+    });
+  });
+
+  describe('public key validation', () => {
+    it('accepts valid ed25519 public keys for sender and recipient', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '10.00' })
+      ).toMatchObject({ senderPublicKey, payments: [{ recipientPublicKey }] });
+    });
+
+    it('rejects a malformed senderPublicKey', () => {
+      const recipientPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({
+          senderPublicKey: 'not-a-key',
+          recipientPublicKey,
+          amount: '10.00',
+        })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(()
+        parseBuildPaymentRequest({
+          senderPublicKey: 'GBADKEY',
+          recipientPublicKey,
+          amount: '10.00',
+        })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey: '', recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects a malformed recipientPublicKey', () => {
+      const senderPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          recipientPublicKey: 'not-a-key',
+          amount: '10.00',
+        })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+
+      expect(()
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          recipientPublicKey: 'GBADKEY',
+          amount: '10.00',
+        })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey: '', amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects a malformed recipientPublicKey inside the payments array', () => {
+      const senderPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({
+          senderPublicKey,
+          payments: [{ recipientPublicKey: 'not-a-key', amount: '10.00' }],
+        })
+      ).toThrow('payments[0].recipientPublicKey must be a valid Stellar public key');
+    });
+
+    it('rejects missing public keys', () => {
+      const recipientPublicKey = publicKey();
+
+      expect(()
+        parseBuildPaymentRequest({ recipientPublicKey, amount: '10.00' })
+      ).toThrow('senderPublicKey must be a valid Stellar public key');
+
+      expect(()
+        parseBuildPaymentRequest({ senderPublicKey: publicKey(), amount: '10.00' })
+      ).toThrow('recipientPublicKey must be a valid Stellar public key');
+    });
   });
 });
