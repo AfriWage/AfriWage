@@ -1,3 +1,4 @@
+import { SendPaymentParamsSchema } from '@AfriWage/sdk';
 import { StrKey } from '@stellar/stellar-sdk';
 import Papa from 'papaparse';
 import { MAX_PAYMENT_OPERATIONS } from '../app/api/build-payment/build-payment';
@@ -23,9 +24,19 @@ export interface BatchRowValidation {
   data?: { address: string; amount: string; memo: string };
 }
 
-export type BatchFileError = 'emptyFile' | 'tooManyPayments';
+export type BatchFileError = 'emptyFile' | 'tooManyPayments' | 'parseError';
+
+export interface ParsedBatchCsv {
+  rows: ParsedBatchRow[];
+  parseErrors: Papa.ParseError[];
+}
 
 export const MAX_BATCH_PAYMENTS = MAX_PAYMENT_OPERATIONS;
+export const MAX_BATCH_FILE_BYTES = 1_000_000;
+
+// Reuse the SDK amount rule (same schema the payment API validates against) so
+// the UI never marks a batch valid that the API would reject.
+const BATCH_AMOUNT_SCHEMA = SendPaymentParamsSchema.shape.amount;
 
 export function validateBatchRow(row: BatchCsvRow): BatchRowValidation {
   const address = row.address?.trim() ?? '';
@@ -44,8 +55,8 @@ export function validateBatchRow(row: BatchCsvRow): BatchRowValidation {
     return { valid: false, error: 'invalidAddress' };
   }
 
-  const parsedAmount = Number.parseFloat(amount);
-  if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+  const amountCheck = BATCH_AMOUNT_SCHEMA.safeParse(amount);
+  if (!amountCheck.success || Number.parseFloat(amountCheck.data) <= 0) {
     return { valid: false, error: 'invalidAmount' };
   }
 
@@ -55,32 +66,56 @@ export function validateBatchRow(row: BatchCsvRow): BatchRowValidation {
   };
 }
 
-export function parseBatchCsv(text: string): ParsedBatchRow[] {
-  const result = Papa.parse<BatchCsvRow>(text, {
+export function parseBatchCsv(text: string): ParsedBatchCsv {
+  const rows: ParsedBatchRow[] = [];
+  const parseErrors: Papa.ParseError[] = [];
+
+  Papa.parse<BatchCsvRow>(text, {
     header: true,
     skipEmptyLines: true,
+    step: (stepResult, parser) => {
+      if (stepResult.errors.length > 0) {
+        parseErrors.push(...stepResult.errors);
+        parser.abort();
+        return;
+      }
+
+      const row = stepResult.data;
+      const validation = validateBatchRow(row);
+      rows.push({
+        address: row.address?.trim() ?? '',
+        amount: row.amount?.trim() ?? '',
+        memo: row.memo?.trim() ?? '',
+        error: validation.valid ? undefined : validation.error,
+      });
+
+      // Stream-abort once the cap is exceeded so an oversized CSV cannot
+      // accumulate unbounded rows in memory or freeze the review page.
+      if (rows.length > MAX_BATCH_PAYMENTS) {
+        parser.abort();
+      }
+    },
   });
 
-  return result.data.map((row) => {
-    const validation = validateBatchRow(row);
-    return {
-      address: row.address?.trim() ?? '',
-      amount: row.amount?.trim() ?? '',
-      memo: row.memo?.trim() ?? '',
-      error: validation.valid ? undefined : validation.error,
-    };
-  });
+  return { rows, parseErrors };
+}
+
+export function isBatchFileTooLarge(sizeBytes: number): boolean {
+  return sizeBytes > MAX_BATCH_FILE_BYTES;
 }
 
 export function validateBatchFile(
-  rows: ParsedBatchRow[]
+  parsed: ParsedBatchCsv
 ): { valid: true } | { valid: false; reason: BatchFileError } {
-  if (rows.length === 0) {
+  if (parsed.parseErrors.length > 0) {
+    return { valid: false, reason: 'parseError' };
+  }
+
+  if (parsed.rows.length === 0) {
     return { valid: false, reason: 'emptyFile' };
   }
 
-  const validCount = rows.filter((row) => !row.error).length;
-  if (validCount > MAX_BATCH_PAYMENTS) {
+  if (parsed.rows.length > MAX_BATCH_PAYMENTS) {
     return { valid: false, reason: 'tooManyPayments' };
   }
 

@@ -5,6 +5,7 @@ import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import {
   type BatchRowErrorCode,
   MAX_BATCH_PAYMENTS,
+  isBatchFileTooLarge,
   parseBatchCsv,
   validateBatchFile,
 } from '@/lib/batch-payment-csv';
@@ -109,6 +110,11 @@ export default function BatchPage() {
         return;
       }
 
+      if (isBatchFileTooLarge(file.size)) {
+        setFileError(t('fileTooLarge'));
+        return;
+      }
+
       setFileError(null);
 
       file
@@ -118,15 +124,17 @@ export default function BatchPage() {
           const fileCheck = validateBatchFile(parsed);
 
           if (!fileCheck.valid) {
-            setFileError(
-              fileCheck.reason === 'tooManyPayments'
-                ? t('tooManyRows', { max: MAX_BATCH_PAYMENTS })
-                : t('noValidRows')
-            );
+            if (fileCheck.reason === 'tooManyPayments') {
+              setFileError(t('tooManyRows', { max: MAX_BATCH_PAYMENTS }));
+            } else if (fileCheck.reason === 'parseError') {
+              setFileError(t('invalidFile'));
+            } else {
+              setFileError(t('noValidRows'));
+            }
             return;
           }
 
-          const batchRows: BatchRow[] = parsed.map((row, index) => ({
+          const batchRows: BatchRow[] = parsed.rows.map((row, index) => ({
             id: `row-${index}`,
             address: row.address,
             amount: row.amount,
