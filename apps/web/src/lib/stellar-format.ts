@@ -13,7 +13,14 @@ export function truncatePublicKey(publicKey: string, chars = 4): string {
  * Formats a Stellar amount to a human-readable string.
  */
 export function formatAmount(amount: string, asset: string): string {
-  const num = new Decimal(amount);
+  let num: Decimal;
+
+  try {
+    num = new Decimal(amount);
+  } catch {
+    return `0 ${asset}`;
+  }
+
   if (!num.isFinite() || num.isNaN()) return `0 ${asset}`;
   // XLM needs 7 decimal places, USDC needs 2 decimal places
   const decimalPlaces = asset === 'XLM' ? 7 : 2;

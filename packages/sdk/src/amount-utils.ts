@@ -43,20 +43,24 @@ export function validateAmount(amount: Decimal, asset: string): boolean {
   if (!amount.isFinite()) {
     return false;
   }
-  
+
   // Check if amount is negative (negative amounts should not be allowed)
   if (amount.isNegative()) {
     return false;
   }
-  
-  // For USDC, check that we have exactly 2 decimal places when displayed
+
+  const decimalPlaces = amount.decimalPlaces();
+
+  // For USDC, check that we do not exceed 2 decimal places.
   if (asset === 'USDC') {
-    // This is more of a display validation - the actual input
-    // should already be validated by Zod schema
-    const formatted = amount.toFixed(2);
-    return amount.toString() === formatted || parseFloat(formatted) === amount.toNumber();
+    return decimalPlaces <= 2;
   }
-  
+
+  // For XLM, check that we do not exceed 7 decimal places.
+  if (asset === 'XLM') {
+    return decimalPlaces <= 7;
+  }
+
   return true;
 }
 
@@ -86,17 +90,14 @@ export function parseAndValidateAmount(amount: string, asset: string, fieldName:
   
   // Additional validation for USDC decimal places
   if (asset === 'USDC') {
-    // Ensure we have at most 2 decimal places for display
-    const decimalPlaces = decimalAmount.toString().split('.')[1]?.length || 0;
-    if (decimalPlaces > 2) {
+    if (decimalAmount.decimalPlaces() > 2) {
       throw new Error(`${fieldName} must have at most 2 decimal places for USDC`);
     }
   }
-  
+
   // For XLM, check that we have at most 7 decimal places
   if (asset === 'XLM') {
-    const decimalPlaces = decimalAmount.toString().split('.')[1]?.length || 0;
-    if (decimalPlaces > 7) {
+    if (decimalAmount.decimalPlaces() > 7) {
       throw new Error(`${fieldName} must have at most 7 decimal places for XLM`);
     }
   }
