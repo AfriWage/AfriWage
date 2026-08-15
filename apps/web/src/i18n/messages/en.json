@@ -185,6 +185,7 @@
     "startOver": "Start Over",
     "invalidFile": "Please upload a valid .csv file",
     "noValidRows": "No valid payment rows found",
+    "tooManyRows": "Batch file exceeds the limit of {max} payments per file",
     "invalidAddress": "Invalid Stellar address",
     "invalidAmount": "Amount must be a positive number",
     "missingFields": "Missing required fields (address, amount)",

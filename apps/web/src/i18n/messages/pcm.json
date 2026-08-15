@@ -185,6 +185,7 @@
     "startOver": "Start Over",
     "invalidFile": "Abeg upload correct .csv file",
     "noValidRows": "No valid payment rows dey",
+    "tooManyRows": "Batch file pass di limit of {max} payments per file",
     "invalidAddress": "Stellar address no correct",
     "invalidAmount": "Amount must be positive number",
     "missingFields": "Required fields dey miss (address, amount)",
