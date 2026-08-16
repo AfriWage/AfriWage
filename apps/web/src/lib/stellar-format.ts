@@ -16,13 +16,21 @@ export function formatAmount(amount: string, asset: string): string {
   let num: Decimal;
 
   try {
-    num = new Decimal(amount);
+    num = new Decimal(amount.trim());
   } catch {
     return `0 ${asset}`;
   }
 
   if (!num.isFinite() || num.isNaN()) return `0 ${asset}`;
-  // XLM needs 7 decimal places, USDC needs 2 decimal places
+
+  // XLM needs 7 decimal places, USDC needs 2 decimal places.
+  // Preserve the existing en-US grouping contract while keeping the
+  // decimal-safe fixed precision required by the asset-specific display.
   const decimalPlaces = asset === 'XLM' ? 7 : 2;
-  return `${num.toFixed(decimalPlaces)} ${asset}`;
+  const fixedAmount = num.toFixed(decimalPlaces);
+  const [integerPart, fractionalPart = ''] = fixedAmount.split('.');
+  const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const localizedAmount = fractionalPart ? `${groupedInteger}.${fractionalPart}` : groupedInteger;
+
+  return `${localizedAmount} ${asset}`;
 }
