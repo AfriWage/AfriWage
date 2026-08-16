@@ -70,7 +70,14 @@
     "queueStatus": "Ipo ọ̀nà",
     "needsAttention": "Ohun ti o nilo akitiyan",
     "recentActivity": "Iṣẹ laipẹ",
-    "confidenceFeed": "Akopọ igbẹkẹle sisan"
+    "confidenceFeed": "Akopọ igbẹkẹle sisan",
+    "connectForActivity": "So wallet lati gba iṣẹ aipẹ.",
+    "failedTransactions": "Kuna lati gba awọn iṣowo aipẹ.",
+    "noTransactions": "Ko si iṣowo fun wallet yii.",
+    "paymentReceived": "A gba owo",
+    "paymentSent": "A fi owo ranṣẹ",
+    "confirmed": "Ti jẹrisi",
+    "failed": "Kuna"
   },
   "send": {
     "title": "Fi Owo ranṣẹ",
