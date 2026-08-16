@@ -70,7 +70,14 @@
     "queueStatus": "Queue status",
     "needsAttention": "Wetin need attention next",
     "recentActivity": "Recent activity",
-    "confidenceFeed": "Payment confidence feed"
+    "confidenceFeed": "Payment confidence feed",
+    "connectForActivity": "Connect wallet to load recent activity.",
+    "failedTransactions": "No fit load recent transactions.",
+    "noTransactions": "No transaction dey for this wallet.",
+    "paymentReceived": "Payment enter",
+    "paymentSent": "Payment send",
+    "confirmed": "Confirmed",
+    "failed": "Fail"
   },
   "send": {
     "title": "Send Payment",
