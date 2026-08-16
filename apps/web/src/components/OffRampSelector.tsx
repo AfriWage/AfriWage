@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 interface OffRampSelectorProps {
   account?: string;
@@ -31,6 +31,7 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
   const [statusMessage, setStatusMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [anchorInfo, setAnchorInfo] = useState<AnchorInfoResponse | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const canSubmit = useMemo(() => {
     return Boolean(
@@ -57,9 +58,14 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
     }
   }, []);
 
-  useEffect(() => {
-    void fetchAnchorInfo();
-  }, [fetchAnchorInfo]);
+  const handleToggle = useCallback(() => {
+    const nextExpanded = !isExpanded;
+    setIsExpanded(nextExpanded);
+
+    if (nextExpanded && !anchorInfo && !isLoading) {
+      void fetchAnchorInfo();
+    }
+  }, [anchorInfo, fetchAnchorInfo, isExpanded, isLoading]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) {
@@ -107,7 +113,27 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
 
   return (
     <div className={className}>
-      <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+      <button
+        type="button"
+        aria-controls="yellowcard-off-ramp"
+        aria-expanded={isExpanded}
+        onClick={handleToggle}
+        className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-5 py-4 text-left"
+      >
+        <span>
+          <span className="block text-sm font-semibold text-[#111111]">
+            Off-ramp to a bank account
+          </span>
+          <span className="mt-1 block text-xs text-[#6B7280]">Yellow Card (NGN)</span>
+        </span>
+        <span className="text-sm font-semibold text-[#111111]">{isExpanded ? 'Hide' : 'Open'}</span>
+      </button>
+
+      <div
+        id="yellowcard-off-ramp"
+        hidden={!isExpanded}
+        className="mt-3 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5"
+      >
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-[#111111]">Off-ramp provider</p>

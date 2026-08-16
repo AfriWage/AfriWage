@@ -1,12 +1,16 @@
-import { fileURLToPath } from 'url';
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, 'src'),
       // Point workspace packages directly at their TypeScript source so Vitest
       // doesn't need a prior `pnpm build` to resolve them from dist/.
       '@AfriWage/sdk': path.resolve(__dirname, '../../packages/sdk/src/index.ts'),
