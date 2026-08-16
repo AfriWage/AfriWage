@@ -95,9 +95,9 @@ export async function fundTestnetAccount(
  *
  * @returns A `Promise` resolving to:
  * - `true` — the account exists on the testnet and is activated
- * - `false` — the account does not exist, has not been funded, or the request failed
+ * - `false` — Horizon confirms the account does not exist or has not been funded
  *
- * @throws Never — all errors are caught internally and result in `false` being returned
+ * @throws {Error} If Horizon is unavailable or returns a non-404 error response
  *
  * @example
  * ```ts
@@ -115,10 +115,15 @@ export async function fundTestnetAccount(
  * ```
  */
 export async function accountExists(publicKey: string): Promise<boolean> {
-  try {
-    const response = await fetch(`${HORIZON_TESTNET_URL}/accounts/${publicKey}`);
-    return response.ok;
-  } catch {
+  const response = await fetch(`${HORIZON_TESTNET_URL}/accounts/${publicKey}`);
+
+  if (response.status === 404) {
     return false;
   }
+
+  if (!response.ok) {
+    throw new Error(`Horizon account lookup failed with HTTP ${response.status}`);
+  }
+
+  return true;
 }
