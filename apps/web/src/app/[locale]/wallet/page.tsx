@@ -170,7 +170,7 @@ function ConnectedWallet({
                 USDC Balance
               </p>
               <p className="mt-3 text-4xl font-bold text-[#102033]">
-                {formatAmount(balance.usdc, '')}
+                {formatAmount(balance.usdc, 'USDC')}
               </p>
               <p className="mt-2 text-sm text-[#637085]">USD Coin · Stellar testnet</p>
               <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#dff3e8] px-3 py-1 text-xs font-semibold text-[#1f8f55]">
@@ -185,7 +185,7 @@ function ConnectedWallet({
                 XLM Balance
               </p>
               <p className="mt-3 text-4xl font-bold text-[#102033]">
-                {formatAmount(balance.xlm, '')}
+                {formatAmount(balance.xlm, 'XLM')}
               </p>
               <p className="mt-2 text-sm text-[#637085]">Stellar Lumens · Gas fees</p>
             </div>

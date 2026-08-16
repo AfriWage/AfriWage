@@ -99,6 +99,16 @@ describe('batch payment CSV parsing', () => {
     expect(parsed.rows.every((row) => row.error === undefined)).toBe(true);
   });
 
+  it('validates positive decimal amounts without relying on floating-point parsing', () => {
+    const address = publicKey();
+    const csv = `address,amount,memo\n${address},0.0000001,valid\n${address},0.1,valid\n${address},0.3000000,valid\n${address},0,invalid`;
+
+    const parsed = parseBatchCsv(csv);
+
+    expect(parsed.parseErrors).toEqual([]);
+    expect(parsed.rows.map((row) => row.error)).toEqual([undefined, undefined, undefined, 'invalidAmount']);
+  });
+
   it('rejects rows with missing required columns', () => {
     const address = publicKey();
     const csv = `address,amount,memo\n${address},,missing amount\n,25.00,missing address`;

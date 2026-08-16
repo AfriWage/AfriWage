@@ -1,4 +1,5 @@
 import { Account, Keypair, Networks, TransactionBuilder } from '@stellar/stellar-sdk';
+import { Decimal } from 'decimal.js';
 import { describe, expect, it } from 'vitest';
 import {
   buildPaymentTransactionXdr,
@@ -34,7 +35,7 @@ describe('build payment transactions', () => {
         throw new Error('Expected a payment operation');
       }
       expect(operation.destination).toBe(payments[index].recipientPublicKey);
-      expect(operation.amount).toBe(Number.parseFloat(payments[index].amount).toFixed(7));
+      expect(new Decimal(operation.amount).eq(payments[index].amount)).toBe(true);
       expect(operation.asset.getCode()).toBe('USDC');
     }
   });
@@ -116,6 +117,17 @@ describe('build payment transactions', () => {
       expect(() =>
         parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '' })
       ).toThrow(BuildPaymentRequestError);
+    });
+
+    it('accepts precision-sensitive amounts without floating-point corruption', () => {
+      const senderPublicKey = publicKey();
+      const recipientPublicKey = publicKey();
+
+      expect(
+        parseBuildPaymentRequest({ senderPublicKey, recipientPublicKey, amount: '0.0000001' })
+      ).toMatchObject({
+        payments: [{ recipientPublicKey, amount: '0.0000001' }],
+      });
     });
 
     it('rejects amounts with more than 7 decimal places', () => {

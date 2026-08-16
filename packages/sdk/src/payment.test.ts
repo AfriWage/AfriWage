@@ -57,6 +57,23 @@ describe('getBalance', () => {
     expect(balance).toEqual({ xlm: '100.5000000', usdc: '50.12' });
   });
 
+  it('formats valid USDC balances with more than two decimal places instead of rejecting them', async () => {
+    mockLoadAccount.mockResolvedValue({
+      balances: [
+        {
+          asset_type: 'credit_alphanum4',
+          asset_code: USDC_ASSET_CODE,
+          asset_issuer: USDC_ISSUER_TESTNET,
+          balance: '12.3456',
+        },
+      ],
+    });
+
+    const balance = await getBalance('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
+
+    expect(balance.usdc).toBe('12.35');
+  });
+
   it('returns zero balances when account has no matching assets', async () => {
     mockLoadAccount.mockResolvedValue({ balances: [] });
 
@@ -193,5 +210,46 @@ describe('getTransactionHistory', () => {
       },
     ]);
     expect(history[1].memo).toBeUndefined();
+  });
+
+  it('formats native XLM payments without applying USDC validation first', async () => {
+    const transaction = {
+      id: 'id',
+      source_account: 'GSENDER',
+      created_at: '2025-01-01T00:00:00Z',
+      successful: true,
+      hash: 'xlm-payment-hash',
+      memo_type: 'none',
+    };
+    const request = {
+      call: vi.fn().mockResolvedValue({ records: [transaction] }),
+      forAccount: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+    };
+    mockTransactions.mockReturnValue(request);
+    mockOperations.mockReturnValue({
+      forTransaction: vi.fn(() => ({
+        call: vi.fn().mockResolvedValue({
+          records: [
+            {
+              type: 'payment',
+              amount: '1.2345678',
+              asset_type: 'native',
+              from: 'GSENDER',
+              to: 'GRECIPIENT',
+            },
+          ],
+        }),
+      })),
+    });
+
+    const history = await getTransactionHistory('GACCOUNT');
+
+    expect(history[0]).toMatchObject({
+      type: 'payment',
+      amount: '1.23',
+      asset: 'XLM',
+    });
   });
 });

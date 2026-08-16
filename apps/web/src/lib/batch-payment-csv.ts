@@ -1,5 +1,6 @@
 import { SendPaymentParamsSchema } from '@AfriWage/sdk';
 import { StrKey } from '@stellar/stellar-sdk';
+import { Decimal } from 'decimal.js';
 import Papa from 'papaparse';
 import { MAX_PAYMENT_OPERATIONS } from '../app/api/build-payment/build-payment';
 
@@ -56,7 +57,16 @@ export function validateBatchRow(row: BatchCsvRow): BatchRowValidation {
   }
 
   const amountCheck = BATCH_AMOUNT_SCHEMA.safeParse(amount);
-  if (!amountCheck.success || Number.parseFloat(amountCheck.data) <= 0) {
+  if (!amountCheck.success) {
+    return { valid: false, error: 'invalidAmount' };
+  }
+
+  try {
+    const parsedAmount = new Decimal(amountCheck.data);
+    if (!parsedAmount.isFinite() || parsedAmount.lte(0)) {
+      return { valid: false, error: 'invalidAmount' };
+    }
+  } catch {
     return { valid: false, error: 'invalidAmount' };
   }
 
