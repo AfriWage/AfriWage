@@ -1,17 +1,31 @@
-import { NextResponse } from 'next/server';
 import { Horizon } from '@stellar/stellar-sdk';
+import { NextResponse } from 'next/server';
 
 const server = new Horizon.Server('https://horizon-testnet.stellar.org');
+const TRANSACTION_HASH_PATTERN = /^[0-9a-f]{64}$/i;
+
+function getHorizonStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+
+  const errorLike = error as {
+    status?: unknown;
+    response?: { status?: unknown };
+  };
+
+  if (typeof errorLike.status === 'number') return errorLike.status;
+  return typeof errorLike.response?.status === 'number' ? errorLike.response.status : undefined;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const hash = searchParams.get('hash');
 
   if (!hash) {
-    return NextResponse.json(
-      { message: 'Transaction hash is required' },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: 'Transaction hash is required' }, { status: 400 });
+  }
+
+  if (!TRANSACTION_HASH_PATTERN.test(hash)) {
+    return NextResponse.json({ message: 'Invalid transaction hash' }, { status: 400 });
   }
 
   try {
@@ -32,9 +46,10 @@ export async function GET(request: Request) {
         sender = payOp.from;
         recipient = payOp.to;
         amount = payOp.amount;
-        asset = payOp.asset_type === 'native'
-          ? 'XLM'
-          : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
+        asset =
+          payOp.asset_type === 'native'
+            ? 'XLM'
+            : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
         break;
       }
     }
@@ -52,9 +67,17 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
+
+    if (getHorizonStatus(error) === 404) {
+      return NextResponse.json(
+        { message: 'Transaction not found', verified: false },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
-      { message: 'Transaction not found', verified: false },
-      { status: 404 }
+      { message: 'Payment verification temporarily unavailable', verified: false },
+      { status: 502 }
     );
   }
 }

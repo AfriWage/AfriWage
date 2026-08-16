@@ -37,6 +37,7 @@ const transaction = {
   memo: 'Payroll',
   created_at: '2025-01-01T00:00:00Z',
 };
+const validHash = 'a'.repeat(64);
 
 describe('GET /api/payment/verify', () => {
   it('verifies a payment and extracts its payment details', async () => {
@@ -60,7 +61,7 @@ describe('GET /api/payment/verify', () => {
       }),
     });
 
-    const request = new Request('http://localhost/api/payment/verify?hash=tx-hash');
+    const request = new Request(`http://localhost/api/payment/verify?hash=${validHash}`);
     const response = await GET(request);
 
     expect(response.status).toBe(200);
@@ -99,7 +100,7 @@ describe('GET /api/payment/verify', () => {
       }),
     });
 
-    const request = new Request('http://localhost/api/payment/verify?hash=tx-hash');
+    const request = new Request(`http://localhost/api/payment/verify?hash=${validHash}`);
     const response = await GET(request);
 
     expect(response.status).toBe(200);
@@ -115,19 +116,50 @@ describe('GET /api/payment/verify', () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ message: 'Transaction hash is required' });
+    expect(mockTransactions).not.toHaveBeenCalled();
+  });
+
+  it('rejects a malformed hash before calling Horizon', async () => {
+    const request = new Request('http://localhost/api/payment/verify?hash=not-a-hash');
+    const response = await GET(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ message: 'Invalid transaction hash' });
+    expect(mockTransactions).not.toHaveBeenCalled();
+    expect(mockOperations).not.toHaveBeenCalled();
   });
 
   it('returns 404 when the transaction cannot be found', async () => {
     mockTransactions.mockReturnValue({
       transaction: vi.fn().mockReturnValue({
-        call: vi.fn().mockRejectedValue(new Error('not found')),
+        call: vi.fn().mockRejectedValue({ response: { status: 404 } }),
       }),
     });
 
-    const request = new Request('http://localhost/api/payment/verify?hash=missing');
+    const request = new Request(`http://localhost/api/payment/verify?hash=${validHash}`);
     const response = await GET(request);
 
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ message: 'Transaction not found', verified: false });
+  });
+
+  it.each([
+    ['a network failure', new Error('network unavailable')],
+    ['an upstream 503', { response: { status: 503 } }],
+  ])('returns 502 for %s', async (_label, error) => {
+    mockTransactions.mockReturnValue({
+      transaction: vi.fn().mockReturnValue({
+        call: vi.fn().mockRejectedValue(error),
+      }),
+    });
+
+    const request = new Request(`http://localhost/api/payment/verify?hash=${validHash}`);
+    const response = await GET(request);
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      message: 'Payment verification temporarily unavailable',
+      verified: false,
+    });
   });
 });
