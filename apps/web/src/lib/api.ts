@@ -30,6 +30,19 @@ export interface PaymentReceipt {
   explorerUrl: string;
 }
 
+export class PaymentVerificationError extends Error {
+  readonly retryable: boolean;
+
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message);
+    this.name = 'PaymentVerificationError';
+    this.retryable = status >= 500;
+  }
+}
+
 /**
  * Verifies a payment against the Stellar network by looking up the transaction
  * on Horizon via the /api/payment/verify route. Throws if the transaction
@@ -41,7 +54,10 @@ export async function verifyPayment(hash: string): Promise<PaymentReceipt> {
 
   if (!response.ok) {
     const errorBody = (await response.json().catch(() => ({}))) as { message?: string };
-    throw new Error(errorBody.message ?? 'Transaction not found');
+    throw new PaymentVerificationError(
+      errorBody.message ?? 'Unable to verify transaction',
+      response.status
+    );
   }
 
   return (await response.json()) as PaymentReceipt;
