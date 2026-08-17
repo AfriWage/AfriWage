@@ -166,8 +166,13 @@ Need testnet XLM to try the app? Use the **[public faucet](http://localhost:3000
 | `NEXT_PUBLIC_HORIZON_URL` | Horizon API endpoint | `https://horizon-testnet.stellar.org` |
 | `NEXT_PUBLIC_NETWORK_PASSPHRASE` | Stellar network passphrase | `Test SDF Network ; September 2015` |
 | `NEXT_PUBLIC_APP_URL` | Public app URL | `http://localhost:3000` |
+| `POSTGRES_URL` | Postgres connection string (server-side, required) | `postgres://user:password@host:5432/dbname` |
+| `YELLOWCARD_API_KEY` | Yellow Card anchor API key (server-side, required) | `your-yellowcard-sandbox-api-key` |
+| `YELLOWCARD_API_URL` | Yellow Card API base URL (server-side, optional) | `https://api.yellowcard.io` |
 
 > ⚠️ All `NEXT_PUBLIC_` vars are client-side. Never store private keys in environment variables.
+>
+> Required server-side variables (`POSTGRES_URL`, `YELLOWCARD_API_KEY`) are validated at server startup — the app refuses to boot with a clear error naming any missing or invalid variable. See `apps/web/src/lib/env.ts`.
 
 ---
 
