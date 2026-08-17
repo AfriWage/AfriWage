@@ -28,8 +28,19 @@ const serverEnvSchema = z.object({
     .trim()
     .min(1, 'POSTGRES_URL must not be empty')
     .refine(
-      (value) => value.startsWith('postgres://') || value.startsWith('postgresql://'),
-      'POSTGRES_URL must be a postgres:// or postgresql:// connection string'
+      (value) => {
+        try {
+          const url = new URL(value);
+          const hasPostgresScheme =
+            url.protocol === 'postgres:' || url.protocol === 'postgresql:';
+          // `new URL('postgres://')` parses successfully with an empty host, so
+          // a scheme-prefix check is not enough — require a real host too.
+          return hasPostgresScheme && url.hostname !== '';
+        } catch {
+          return false;
+        }
+      },
+      'POSTGRES_URL must be a valid postgres:// or postgresql:// connection string with a host'
     ),
 
   /** API key for the Yellow Card anchor (server-side SEP-6 off-ramp). */
