@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getBalance, accountExists } from '@AfriWage/sdk';
+import { NotFoundError } from '@stellar/stellar-sdk';
+import { getBalance } from '@AfriWage/sdk';
 
 export async function GET(
   _request: Request,
@@ -15,15 +16,6 @@ export async function GET(
   }
 
   try {
-    const exists = await accountExists(address);
-
-    if (!exists) {
-      return NextResponse.json(
-        { message: 'Account not found on testnet', address, exists: false },
-        { status: 404 }
-      );
-    }
-
     const balances = await getBalance(address);
 
     return NextResponse.json({
@@ -32,6 +24,16 @@ export async function GET(
       balances,
     });
   } catch (error) {
+    // `getBalance` already proves whether the account exists, so a confirmed
+    // Horizon 404 is mapped to the not-found response instead of a preflight
+    // `accountExists` request that would load the same account a second time.
+    if (error instanceof NotFoundError) {
+      return NextResponse.json(
+        { message: 'Account not found on testnet', address, exists: false },
+        { status: 404 }
+      );
+    }
+
     console.error('Error fetching account:', error);
     return NextResponse.json(
       { message: 'Failed to fetch account from Stellar network' },

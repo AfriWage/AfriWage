@@ -1,12 +1,11 @@
+import { NotFoundError } from '@stellar/stellar-sdk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockAccountExists, mockGetBalance } = vi.hoisted(() => ({
-  mockAccountExists: vi.fn(),
+const { mockGetBalance } = vi.hoisted(() => ({
   mockGetBalance: vi.fn(),
 }));
 
 vi.mock('@AfriWage/sdk', () => ({
-  accountExists: mockAccountExists,
   getBalance: mockGetBalance,
 }));
 
@@ -21,8 +20,7 @@ beforeEach(() => {
 const address = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
 
 describe('GET /api/account/[address]', () => {
-  it('returns balances for an existing account', async () => {
-    mockAccountExists.mockResolvedValue(true);
+  it('returns balances for an existing account with a single Horizon request', async () => {
     mockGetBalance.mockResolvedValue({ xlm: '100.0000000', usdc: '25.00' });
 
     const response = await GET(new Request('http://localhost'), { params: { address } });
@@ -33,8 +31,8 @@ describe('GET /api/account/[address]', () => {
       exists: true,
       balances: { xlm: '100.0000000', usdc: '25.00' },
     });
-    expect(mockAccountExists).toHaveBeenCalledWith(address);
     expect(mockGetBalance).toHaveBeenCalledWith(address);
+    expect(mockGetBalance).toHaveBeenCalledTimes(1);
   });
 
   it('rejects an invalid Stellar public key', async () => {
@@ -42,11 +40,11 @@ describe('GET /api/account/[address]', () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ message: 'Invalid Stellar public key' });
-    expect(mockAccountExists).not.toHaveBeenCalled();
+    expect(mockGetBalance).not.toHaveBeenCalled();
   });
 
-  it('returns 404 for an account that does not exist', async () => {
-    mockAccountExists.mockResolvedValue(false);
+  it('maps a confirmed Horizon 404 to a not-found response without a preflight', async () => {
+    mockGetBalance.mockRejectedValue(new NotFoundError('Not Found', { status: 404 }));
 
     const response = await GET(new Request('http://localhost'), { params: { address } });
 
@@ -56,11 +54,11 @@ describe('GET /api/account/[address]', () => {
       address,
       exists: false,
     });
-    expect(mockGetBalance).not.toHaveBeenCalled();
+    expect(mockGetBalance).toHaveBeenCalledTimes(1);
   });
 
-  it('returns 502 when the Stellar network call fails', async () => {
-    mockAccountExists.mockRejectedValue(new Error('network error'));
+  it('returns 502 when the Stellar network call fails for another reason', async () => {
+    mockGetBalance.mockRejectedValue(new Error('network error'));
 
     const response = await GET(new Request('http://localhost'), { params: { address } });
 
@@ -68,5 +66,6 @@ describe('GET /api/account/[address]', () => {
     expect(await response.json()).toEqual({
       message: 'Failed to fetch account from Stellar network',
     });
+    expect(mockGetBalance).toHaveBeenCalledTimes(1);
   });
 });
