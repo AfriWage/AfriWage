@@ -6,7 +6,7 @@ import { type ReactNode, useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Link, usePathname } from '@/i18n/navigation';
-import { COMPANY_WALLET } from '@/lib/dashboard-data';
+import { getTreasuryWallet } from '@/lib/dashboard-data';
 import { copyToClipboard, cn } from '@/lib/utils';
 
 interface DashboardShellProps {
@@ -20,6 +20,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
   const t = useTranslations('nav');
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
+  const treasuryWallet = getTreasuryWallet();
 
   const navItems = [
     { href: '/dashboard' as const, label: t('overview'), icon: LayoutDashboard },
@@ -31,7 +32,8 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
   ];
 
   const handleCopy = async () => {
-    const success = await copyToClipboard(COMPANY_WALLET);
+    if (!treasuryWallet) return;
+    const success = await copyToClipboard(treasuryWallet);
     if (!success) return;
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
@@ -100,20 +102,26 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
 
           <div className="rounded-[24px] border border-[#eadfce] bg-white p-4 shadow-[0_18px_36px_rgba(16,32,51,0.06)] dark:border-[#1e1e3a] dark:bg-[#16163a] dark:shadow-[0_18px_36px_rgba(0,0,0,0.3)]">
             <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760] dark:text-[#7777aa]">{t('treasuryWallet')}</p>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <p className="font-mono text-sm text-[#102033] dark:text-[#c0c0e0]">{COMPANY_WALLET}</p>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f6efe6] text-[#415065] transition-colors hover:bg-[#efe3d0] dark:bg-[#1a1a3a] dark:text-[#8888aa] dark:hover:bg-[#2a2a5a]"
-                aria-label={t('copyTreasuryWallet')}
-              >
-                <Copy className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="mt-2 text-sm text-[#637085] dark:text-[#7777aa]">
-              {copied ? t('walletCopied') : t('fundPayrollBatches')}
-            </p>
+            {treasuryWallet ? (
+              <>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <p className="break-all font-mono text-sm text-[#102033] dark:text-[#c0c0e0]">{treasuryWallet}</p>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f6efe6] text-[#415065] transition-colors hover:bg-[#efe3d0] dark:bg-[#1a1a3a] dark:text-[#8888aa] dark:hover:bg-[#2a2a5a]"
+                    aria-label={t('copyTreasuryWallet')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="mt-2 text-sm text-[#637085] dark:text-[#7777aa]">
+                  {copied ? t('walletCopied') : t('fundPayrollBatches')}
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm text-[#637085] dark:text-[#7777aa]">{t('treasuryNotConfigured')}</p>
+            )}
           </div>
         </div>
       </aside>

@@ -28,7 +28,8 @@
     "treasuryWallet": "Treasury wallet",
     "walletCopied": "Wallet copied",
     "fundPayrollBatches": "Use this account to fund payroll batches.",
-    "copyTreasuryWallet": "Copy treasury wallet"
+    "copyTreasuryWallet": "Copy treasury wallet",
+    "treasuryNotConfigured": "No treasury wallet configured."
   },
   "language": {
     "label": "Language",
