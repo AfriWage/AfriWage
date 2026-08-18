@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { getAnchorInfoOnce, type AnchorInfoResponse } from '@/lib/anchor-info';
 
 interface OffRampSelectorProps {
   account?: string;
@@ -15,12 +16,6 @@ interface OffRampConfig {
   amount: string;
   assetCode?: string;
   memo?: string;
-}
-
-interface AnchorInfoResponse {
-  transferServer?: string;
-  signingKey?: string;
-  networkPassphrase?: string;
 }
 
 export function OffRampSelector({ account, className }: OffRampSelectorProps) {
@@ -40,24 +35,17 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
 
   const fetchAnchorInfo = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const response = await fetch('/api/anchor/yellowcard?action=info');
-
-      if (!response.ok) {
-        throw new Error('Unable to fetch anchor configuration');
-      }
-
-      const data = (await response.json()) as AnchorInfoResponse;
+      const data = await getAnchorInfoOnce();
       setAnchorInfo(data);
       setStatusMessage('Yellow Card anchor info loaded successfully.');
     } catch {
       setStatusMessage('Yellow Card anchor information is not available right now.');
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
+  // Discovery is deferred until the user first engages with the off-ramp
+  // fields; `getAnchorInfoOnce` deduplicates any repeated triggers.
+  const handleDiscovery = useCallback(() => {
     void fetchAnchorInfo();
   }, [fetchAnchorInfo]);
 
@@ -118,7 +106,7 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
           </span>
         </div>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4" onFocusCapture={handleDiscovery}>
           <div>
             <label htmlFor="bank-name" className="block text-sm font-semibold text-[#111111]">
               Bank name
