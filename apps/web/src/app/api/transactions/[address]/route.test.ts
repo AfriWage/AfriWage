@@ -1,12 +1,11 @@
+import { NotFoundError } from '@stellar/stellar-sdk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockAccountExists, mockGetTransactionHistory } = vi.hoisted(() => ({
-  mockAccountExists: vi.fn(),
+const { mockGetTransactionHistory } = vi.hoisted(() => ({
   mockGetTransactionHistory: vi.fn(),
 }));
 
 vi.mock('@AfriWage/sdk', () => ({
-  accountExists: mockAccountExists,
   getTransactionHistory: mockGetTransactionHistory,
 }));
 
@@ -36,16 +35,15 @@ const history = [
 ];
 
 describe('GET /api/transactions/[address]', () => {
-  it('returns transaction history for an existing account', async () => {
-    mockAccountExists.mockResolvedValue(true);
+  it('returns transaction history for an existing account with a single Horizon request', async () => {
     mockGetTransactionHistory.mockResolvedValue(history);
 
     const response = await GET(new Request('http://localhost'), { params: { address } });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ address, transactions: history });
-    expect(mockAccountExists).toHaveBeenCalledWith(address);
     expect(mockGetTransactionHistory).toHaveBeenCalledWith(address);
+    expect(mockGetTransactionHistory).toHaveBeenCalledTimes(1);
   });
 
   it('rejects an invalid Stellar public key', async () => {
@@ -53,11 +51,11 @@ describe('GET /api/transactions/[address]', () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ message: 'Invalid Stellar public key' });
-    expect(mockAccountExists).not.toHaveBeenCalled();
+    expect(mockGetTransactionHistory).not.toHaveBeenCalled();
   });
 
-  it('returns 404 for an account that does not exist', async () => {
-    mockAccountExists.mockResolvedValue(false);
+  it('maps a confirmed Horizon 404 to a not-found response without a preflight', async () => {
+    mockGetTransactionHistory.mockRejectedValue(new NotFoundError('Not Found', { status: 404 }));
 
     const response = await GET(new Request('http://localhost'), { params: { address } });
 
@@ -67,11 +65,11 @@ describe('GET /api/transactions/[address]', () => {
       address,
       transactions: [],
     });
-    expect(mockGetTransactionHistory).not.toHaveBeenCalled();
+    expect(mockGetTransactionHistory).toHaveBeenCalledTimes(1);
   });
 
-  it('returns 502 when the Stellar network call fails', async () => {
-    mockAccountExists.mockRejectedValue(new Error('network error'));
+  it('returns 502 when the Stellar network call fails for another reason', async () => {
+    mockGetTransactionHistory.mockRejectedValue(new Error('network error'));
 
     const response = await GET(new Request('http://localhost'), { params: { address } });
 
@@ -79,5 +77,6 @@ describe('GET /api/transactions/[address]', () => {
     expect(await response.json()).toEqual({
       message: 'Failed to fetch transactions from Stellar network',
     });
+    expect(mockGetTransactionHistory).toHaveBeenCalledTimes(1);
   });
 });
