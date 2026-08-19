@@ -136,8 +136,17 @@ pnpm install
 
 ```bash
 cp .env.example apps/web/.env.local
-# No secrets required for testnet — all values are public
 ```
+
+`.env.local` is gitignored, so the credentials you paste there are never committed. It holds
+two kinds of values:
+
+- **Public client config** (`NEXT_PUBLIC_*`) — safe to expose in the browser bundle.
+- **Server-only secrets** (`POSTGRES_URL`, `YELLOWCARD_API_KEY`) — read only on the server.
+
+The server validates the required secrets at startup and refuses to boot if they are missing
+or malformed (see `apps/web/src/lib/env.ts`). See the [architecture docs](./docs/architecture.md)
+for the [Database](./docs/architecture.md#database) and [Yellow Card off-ramp](./docs/architecture.md#yellow-card-off-ramp) sections.
 
 ### Run Dev Server
 
@@ -160,19 +169,33 @@ Need testnet XLM to try the app? Use the **[public faucet](http://localhost:3000
 
 ## Environment Variables
 
+### Public client variables (`NEXT_PUBLIC_*`)
+
+These are inlined into the browser bundle at build time and are safe to expose. Never put
+private keys or API secrets in a `NEXT_PUBLIC_*` variable.
+
 | Variable | Description | Example |
 |---|---|---|
 | `NEXT_PUBLIC_STELLAR_NETWORK` | Stellar network to use | `testnet` |
 | `NEXT_PUBLIC_HORIZON_URL` | Horizon API endpoint | `https://horizon-testnet.stellar.org` |
 | `NEXT_PUBLIC_NETWORK_PASSPHRASE` | Stellar network passphrase | `Test SDF Network ; September 2015` |
 | `NEXT_PUBLIC_APP_URL` | Public app URL | `http://localhost:3000` |
-| `POSTGRES_URL` | Postgres connection string (server-side, required) | `postgres://user:password@host:5432/dbname` |
-| `YELLOWCARD_API_KEY` | Yellow Card anchor API key (server-side, required) | `your-yellowcard-sandbox-api-key` |
-| `YELLOWCARD_API_URL` | Yellow Card API base URL (server-side, optional) | `https://api.yellowcard.io` |
 
-> ⚠️ All `NEXT_PUBLIC_` vars are client-side. Never store private keys in environment variables.
->
-> Required server-side variables (`POSTGRES_URL`, `YELLOWCARD_API_KEY`) are validated at server startup — the app refuses to boot with a clear error naming any missing or invalid variable. See `apps/web/src/lib/env.ts`.
+### Server-only secrets
+
+These are read only on the server and must never be committed or exposed to the client. The
+app validates them at startup (`apps/web/src/lib/env.ts`) and refuses to boot with a clear
+error naming any missing or invalid value.
+
+| Variable | Description | Example |
+|---|---|---|
+| `POSTGRES_URL` | Postgres connection string used by `@AfriWage/db` for migrations and settings persistence | `postgres://user:password@host:5432/dbname` |
+| `YELLOWCARD_API_KEY` | Yellow Card anchor API key for the server-side SEP-6 off-ramp | `your-yellowcard-sandbox-api-key` |
+| `YELLOWCARD_API_URL` | Yellow Card API base URL (optional — defaults to `https://api.yellowcard.io`) | `https://api.yellowcard.io` |
+
+> Keep real credentials in `apps/web/.env.local` (gitignored) — never in `.env.example` or the
+> repository. See [Database](./docs/architecture.md#database) and
+> [Yellow Card off-ramp](./docs/architecture.md#yellow-card-off-ramp) in the architecture docs.
 
 ---
 
