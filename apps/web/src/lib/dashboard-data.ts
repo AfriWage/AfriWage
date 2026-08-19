@@ -1,4 +1,4 @@
-export const COMPANY_WALLET = 'GA4FWQ7RZ6K2...H9X2';
+import { StrKey } from '@stellar/stellar-sdk';
 
 export const dashboardMetrics = [
   {
@@ -14,3 +14,18 @@ export const dashboardMetrics = [
     detail: 'Last 30 days of payout attempts on testnet',
   },
 ];
+
+/**
+ * Returns the configured treasury wallet public key when it is present and a
+ * valid Stellar (Ed25519) public key, otherwise null. A missing, malformed, or
+ * placeholder value never reaches the dashboard as a copyable address.
+ */
+export function getTreasuryWallet(): string | null {
+  const configured = process.env.NEXT_PUBLIC_TREASURY_WALLET?.trim();
+
+  if (!configured) {
+    return null;
+  }
+
+  return StrKey.isValidEd25519PublicKey(configured) ? configured : null;
+}
