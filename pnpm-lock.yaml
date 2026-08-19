@@ -160,6 +160,9 @@ importers:
       drizzle-kit:
         specifier: ^0.24.0
         version: 0.24.2
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
 
   packages/sdk:
     dependencies:
