@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { signTransaction } from '@/lib/freighter';
 import { cn } from '@/lib/utils';
 import {
@@ -70,6 +71,7 @@ export function WithdrawModal({
       setAnchor(discovered);
       setSep24Info(info);
     } catch (err) {
+      Sentry.captureException(err);
       setError(err instanceof Error ? err.message : 'Failed to discover anchor');
       setStep('error');
     } finally {
@@ -103,6 +105,7 @@ export function WithdrawModal({
       setStep('interactive');
       window.open(result.url, '_blank', 'noopener,noreferrer');
     } catch (err) {
+      Sentry.captureException(err);
       setError(err instanceof Error ? err.message : 'Withdrawal failed');
       setStep('error');
     }

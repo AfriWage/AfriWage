@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import {
   AlertCircle,
   AlertTriangle,
@@ -71,6 +72,7 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
       onConnect?.(key);
       void checkWalletNetwork();
     } catch (err) {
+      Sentry.captureException(err);
       setStatus('error');
 
       if (err instanceof Error && err.message === 'NOT_INSTALLED') {

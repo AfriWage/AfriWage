@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 
 const OFF_RAMP_SCOPE = {
@@ -70,6 +71,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching rates, using fallback:', error);
+    Sentry.captureException(error);
     
     return NextResponse.json(
       { ...FALLBACK_RATES, updatedAt: new Date().toISOString(), base: 'USDC', offRamp: OFF_RAMP_SCOPE },

@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { useCallback, useMemo, useState } from 'react';
 import { getAnchorInfoOnce, type AnchorInfoResponse } from '@/lib/anchor-info';
 
@@ -85,6 +86,7 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
           : 'Withdrawal request submitted successfully.'
       );
     } catch (error) {
+      Sentry.captureException(error);
       setStatusMessage(
         error instanceof Error ? error.message : 'Unable to submit the withdrawal request.'
       );

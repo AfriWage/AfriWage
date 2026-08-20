@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { Horizon, TransactionBuilder, Networks } from '@stellar/stellar-sdk';
 
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Error submitting transaction:', error);
+    Sentry.captureException(error);
 
     // Extract Horizon error details if available
     const errorDetails = error as { response?: { data?: { extras?: { result_codes?: unknown } } } };

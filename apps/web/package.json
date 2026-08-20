@@ -13,6 +13,7 @@
   "dependencies": {
     "@AfriWage/db": "workspace:*",
     "@AfriWage/sdk": "workspace:*",
+    "@sentry/nextjs": "^10.70.0",
     "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^12.3.0",
     "@tanstack/react-query": "^5.51.1",

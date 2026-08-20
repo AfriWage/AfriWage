@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { Horizon } from '@stellar/stellar-sdk';
 import {
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ xdr });
   } catch (error) {
     console.error('Error building payment transaction:', error);
+    Sentry.captureException(error);
     const message = error instanceof Error ? error.message : 'Failed to build transaction';
     const status = error instanceof BuildPaymentRequestError ? 400 : 502;
     return NextResponse.json({ message }, { status });
