@@ -196,11 +196,10 @@ export default function BatchPage() {
     setActiveChunk(null);
     setRunError(null);
 
-    // Only process rows that haven't been sent yet so a retry/resume never
-    // resends rows whose transaction already succeeded. Failed rows are
-    // retried because a failed chunk transaction is atomic (none of its rows
-    // were submitted), while already-sent rows are left untouched.
-    const paymentRows = rows.filter((row) => row.status !== 'sent');
+    // Only process rows that are still pending so a retry/resume never
+    // resends rows whose transaction already succeeded or that already
+    // failed. Already-sent and already-failed rows are left untouched.
+    const paymentRows = rows.filter((row) => row.status === 'pending');
     const chunks = Array.from(
       { length: Math.ceil(paymentRows.length / PAYMENT_CHUNK_SIZE) },
       (_, index) => paymentRows.slice(index * PAYMENT_CHUNK_SIZE, (index + 1) * PAYMENT_CHUNK_SIZE)
