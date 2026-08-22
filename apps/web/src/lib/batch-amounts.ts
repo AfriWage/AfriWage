@@ -1,9 +1,7 @@
 import { Decimal } from 'decimal.js';
 
 export function sumUsdcAmounts(amounts: string[]): string {
-  return amounts
-    .reduce((sum, amount) => sum.plus(new Decimal(amount)), new Decimal(0))
-    .toFixed(2);
+  return amounts.reduce((sum, amount) => sum.plus(new Decimal(amount)), new Decimal(0)).toFixed(2);
 }
 
 export function isValidPositiveAmount(amount: string): boolean {

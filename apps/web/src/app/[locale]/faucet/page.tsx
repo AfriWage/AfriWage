@@ -95,9 +95,7 @@ export default function FaucetPage() {
               <div className="flex items-start gap-3">
                 <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#1f8f55]" />
                 <div>
-                  <p className="font-semibold text-[#1a7a49]">
-                    ✓ Account funded with 10,000 XLM
-                  </p>
+                  <p className="font-semibold text-[#1a7a49]">✓ Account funded with 10,000 XLM</p>
                   <a
                     href={explorerUrl}
                     target="_blank"

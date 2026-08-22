@@ -215,9 +215,9 @@ describe('build payment transactions', () => {
     it('rejects missing public keys', () => {
       const recipientPublicKey = publicKey();
 
-      expect(() =>
-        parseBuildPaymentRequest({ recipientPublicKey, amount: '10.00' })
-      ).toThrow('senderPublicKey must be a valid Stellar public key');
+      expect(() => parseBuildPaymentRequest({ recipientPublicKey, amount: '10.00' })).toThrow(
+        'senderPublicKey must be a valid Stellar public key'
+      );
 
       expect(() =>
         parseBuildPaymentRequest({ senderPublicKey: publicKey(), amount: '10.00' })

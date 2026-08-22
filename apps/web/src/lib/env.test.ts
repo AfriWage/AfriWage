@@ -76,17 +76,14 @@ describe('parseEnv', () => {
     ['postgres:///', 'empty authority with a path'],
     ['postgresql://', 'postgresql scheme with no host'],
     ['postgres://:5432/dbname', 'port but no host'],
-  ])(
-    'throws when POSTGRES_URL is a malformed same-scheme value (%s — %s)',
-    (malformedValue) => {
-      expect(() =>
-        envModule.parseEnv({
-          POSTGRES_URL: malformedValue,
-          YELLOWCARD_API_KEY: 'sandbox-test-key',
-        })
-      ).toThrow(/postgres/);
-    }
-  );
+  ])('throws when POSTGRES_URL is a malformed same-scheme value (%s — %s)', (malformedValue) => {
+    expect(() =>
+      envModule.parseEnv({
+        POSTGRES_URL: malformedValue,
+        YELLOWCARD_API_KEY: 'sandbox-test-key',
+      })
+    ).toThrow(/postgres/);
+  });
 
   it('throws when YELLOWCARD_API_URL is not a valid URL', () => {
     expect(() => envModule.parseEnv({ ...validEnv, YELLOWCARD_API_URL: 'not-a-url' })).toThrow(
