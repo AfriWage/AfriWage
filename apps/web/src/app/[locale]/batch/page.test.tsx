@@ -27,7 +27,12 @@ vi.mock('@/components/WalletConnect', () => ({
 }));
 
 vi.mock('@/components/dashboard-shell', () => ({
-  DashboardShell: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DashboardShell: ({ children, actions }: { children: ReactNode; actions?: ReactNode }) => (
+    <div>
+      {actions}
+      {children}
+    </div>
+  ),
   SurfaceCard: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 
