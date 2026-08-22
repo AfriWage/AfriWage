@@ -15,7 +15,6 @@ export default async function LocaleLayout({
   children: ReactNode;
   params: { locale: string };
 }) {
-
   if (!routing.locales.includes(locale as Locale)) {
     notFound();
   }
@@ -23,9 +22,5 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
-  return (
-    <NextIntlClientProvider messages={messages}>
-      {children}
-    </NextIntlClientProvider>
-  );
+  return <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>;
 }

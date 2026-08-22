@@ -167,9 +167,7 @@ export function OffRampSelector({ account, className }: OffRampSelectorProps) {
           </p>
         )}
 
-        {statusMessage && (
-          <p className="mt-3 text-sm text-[#111111]">{statusMessage}</p>
-        )}
+        {statusMessage && <p className="mt-3 text-sm text-[#111111]">{statusMessage}</p>}
       </div>
     </div>
   );

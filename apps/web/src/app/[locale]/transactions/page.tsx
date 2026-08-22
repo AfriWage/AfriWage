@@ -143,7 +143,8 @@ function ConnectedTransactions({ publicKey }: { publicKey: string }) {
     const rows = filtered.map((tx) => {
       const incoming = tx.to === publicKey;
       const escape = (v: string) => {
-        if (v.includes(',') || v.includes('"') || v.includes('\n')) return `"${v.replace(/"/g, '""')}"`;
+        if (v.includes(',') || v.includes('"') || v.includes('\n'))
+          return `"${v.replace(/"/g, '""')}"`;
         return v;
       };
       return [
@@ -155,7 +156,9 @@ function ConnectedTransactions({ publicKey }: { publicKey: string }) {
         tx.memo || '',
         tx.hash,
         `https://stellar.expert/explorer/testnet/tx/${tx.hash}`,
-      ].map(escape).join(',');
+      ]
+        .map(escape)
+        .join(',');
     });
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -243,7 +246,9 @@ function ConnectedTransactions({ publicKey }: { publicKey: string }) {
           onClick={exportCSV}
           disabled={!transactions || transactions.length === 0}
           className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-[#637085] transition-colors hover:bg-[#f6efe6] disabled:cursor-not-allowed disabled:opacity-50"
-          title={!transactions || transactions.length === 0 ? 'No transactions to export' : 'Export CSV'}
+          title={
+            !transactions || transactions.length === 0 ? 'No transactions to export' : 'Export CSV'
+          }
         >
           <Download className="h-4 w-4" />
           Export CSV
@@ -370,9 +375,7 @@ function EmptyTransactionsState() {
   return (
     <div className="mt-6 rounded-xl bg-[#F9FAFB] p-12 text-center">
       <ArrowLeftRight className="mx-auto h-12 w-12 text-[#E5E7EB]" />
-      <h2 className="mt-4 text-lg font-semibold text-[#111111]">
-        No transactions yet
-      </h2>
+      <h2 className="mt-4 text-lg font-semibold text-[#111111]">No transactions yet</h2>
       <p className="mt-2 text-sm text-[#6B7280]">
         Your payment history will appear here once you send or receive USDC on Stellar.
       </p>

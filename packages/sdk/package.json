@@ -29,8 +29,6 @@
     "typescript": "^5.5.3",
     "vitest": "^3.2.4"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT"
 }

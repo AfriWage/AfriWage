@@ -2,27 +2,28 @@ import { NextResponse } from 'next/server';
 import { NotFoundError } from '@stellar/stellar-sdk';
 import { getBalance } from '@AfriWage/sdk';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { address: string } }
-) {
+export async function GET(_request: Request, { params }: { params: { address: string } }) {
   const { address } = params;
 
   if (!address || address.length !== 56 || !address.startsWith('G')) {
-    return NextResponse.json(
-      { message: 'Invalid Stellar public key' },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: 'Invalid Stellar public key' }, { status: 400 });
   }
 
   try {
     const balances = await getBalance(address);
 
-    return NextResponse.json({
-      address,
-      exists: true,
-      balances,
-    });
+    return NextResponse.json(
+      {
+        address,
+        exists: true,
+        balances,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=15',
+        },
+      }
+    );
   } catch (error) {
     // `getBalance` already proves whether the account exists, so a confirmed
     // Horizon 404 is mapped to the not-found response instead of a preflight

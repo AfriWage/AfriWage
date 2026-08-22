@@ -1,13 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Clock,
-  ExternalLink,
-  RefreshCw,
-} from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Clock, ExternalLink, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getTransactions } from '@/lib/api';
 import type { TransactionRecord } from '@/lib/stellar';
@@ -49,9 +43,7 @@ function EmptyState() {
       </div>
       <div>
         <p className="font-bold text-brand-navy">No transactions yet</p>
-        <p className="mt-1 text-sm text-brand-secondary">
-          Your payroll activity will appear here.
-        </p>
+        <p className="mt-1 text-sm text-brand-secondary">Your payroll activity will appear here.</p>
       </div>
     </div>
   );
@@ -81,11 +73,7 @@ export function TransactionHistory({ publicKey, className }: TransactionHistoryP
   useEffect(() => {
     if (!query.data) return;
 
-    setPages((current) =>
-      pageCursor
-        ? [...current, ...query.data]
-        : query.data
-    );
+    setPages((current) => (pageCursor ? [...current, ...query.data] : query.data));
     setNextCursor(null);
   }, [query.data, pageCursor]);
 
