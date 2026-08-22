@@ -1,32 +1,108 @@
 import { Keypair } from '@stellar/stellar-sdk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const { mockGetAnchorInfo, mockGetTransactionStatus, mockInitiateWithdrawal } = vi.hoisted(() => ({
+  mockGetAnchorInfo: vi.fn(),
+  mockGetTransactionStatus: vi.fn(),
+  mockInitiateWithdrawal: vi.fn(),
+}));
+
 vi.mock('@AfriWage/sdk', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@AfriWage/sdk')>();
   return {
     ...actual,
-    initiateYellowCardWithdrawal: vi.fn(),
+    getAnchorInfo: mockGetAnchorInfo,
+    getTransactionStatus: mockGetTransactionStatus,
+    initiateYellowCardWithdrawal: mockInitiateWithdrawal,
   };
 });
 
-import { initiateYellowCardWithdrawal } from '@AfriWage/sdk';
-import { POST } from './route';
+import { GET, POST } from './route';
 
-const mockedInitiateYellowCardWithdrawal = vi.mocked(initiateYellowCardWithdrawal);
+vi.spyOn(console, 'error').mockImplementation(() => {});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 function validPublicKey() {
   return Keypair.random().publicKey();
 }
 
-describe('POST /api/anchor/yellowcard?action=withdraw', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe('GET /api/anchor/yellowcard', () => {
+  it('returns anchor information when action=info', async () => {
+    const infoMock = { transferServer: 'https://api.yellowcard.io' };
+    mockGetAnchorInfo.mockResolvedValueOnce(infoMock);
+
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=info');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json).toEqual(infoMock);
+    expect(mockGetAnchorInfo).toHaveBeenCalledTimes(1);
   });
 
+  it('handles error when fetching anchor info fails', async () => {
+    mockGetAnchorInfo.mockRejectedValueOnce(new Error('Network error'));
+
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=info');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(json.message).toBe('Failed to fetch Yellow Card anchor information');
+  });
+
+  it('requires id parameter when action=status', async () => {
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=status');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(json.message).toBe('Transaction id is required');
+    expect(mockGetTransactionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns status when action=status and valid id provided', async () => {
+    const statusMock = { id: 'tx-123', status: 'completed' };
+    mockGetTransactionStatus.mockResolvedValueOnce(statusMock);
+
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=status&id=tx-123');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json).toEqual(statusMock);
+    expect(mockGetTransactionStatus).toHaveBeenCalledWith('tx-123');
+  });
+
+  it('handles error when fetching status fails', async () => {
+    mockGetTransactionStatus.mockRejectedValueOnce(new Error('API error'));
+
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=status&id=tx-123');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(json.message).toBe('Failed to fetch transaction status');
+  });
+
+  it('returns 400 for unsupported GET actions', async () => {
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=unknown');
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(json.message).toBe('Unsupported action');
+  });
+});
+
+describe('POST /api/anchor/yellowcard?action=withdraw', () => {
   it('successfully processes valid withdrawal payload', async () => {
     const account = validPublicKey();
     const mockResponse = { id: 'tx-123', status: 'pending' };
-    mockedInitiateYellowCardWithdrawal.mockResolvedValueOnce(mockResponse as never);
+    mockInitiateWithdrawal.mockResolvedValueOnce(mockResponse);
 
     const body = {
       amount: '100.50',
@@ -123,8 +199,8 @@ describe('POST /api/anchor/yellowcard', () => {
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
-    expect(mockedInitiateYellowCardWithdrawal).toHaveBeenCalledTimes(1);
-    expect(mockedInitiateYellowCardWithdrawal).toHaveBeenCalledWith({
+    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+    expect(mockInitiateWithdrawal).toHaveBeenCalledWith({
       amount: '100.50',
       account,
       bankAccount: '1234567890',
@@ -132,6 +208,30 @@ describe('POST /api/anchor/yellowcard', () => {
       assetCode: 'USDC',
       memo: 'withdrawal-memo',
     });
+  });
+
+  it('handles error when initiation fails with 502 status', async () => {
+    const account = validPublicKey();
+    mockInitiateWithdrawal.mockRejectedValueOnce(new Error('Anchor API down'));
+
+    const body = {
+      amount: '50.00',
+      account,
+      bankAccount: '1234567890',
+      bankName: 'Test Bank',
+    };
+
+    const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const response = await POST(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(json.message).toBe('Failed to create Yellow Card withdrawal');
   });
 
   it('rejects unsupported actions with 400 Bad Request', async () => {
@@ -146,7 +246,7 @@ describe('POST /api/anchor/yellowcard', () => {
 
     expect(response.status).toBe(400);
     expect(json.message).toBe('Unsupported action');
-    expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
+    expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
   });
 
   describe('amount validation', () => {
@@ -161,30 +261,27 @@ describe('POST /api/anchor/yellowcard', () => {
       100, // non-string
     ];
 
-    it.each(invalidAmounts)(
-      'rejects invalid amount "%s" with 400 status',
-      async (invalidAmount) => {
-        const body = {
-          amount: invalidAmount,
-          account: validPublicKey(),
-          bankAccount: '1234567890',
-          bankName: 'Test Bank',
-        };
+    it.each(invalidAmounts)('rejects invalid amount "%s" with 400 status', async (invalidAmount) => {
+      const body = {
+        amount: invalidAmount,
+        account: validPublicKey(),
+        bankAccount: '1234567890',
+        bankName: 'Test Bank',
+      };
 
-        const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
+      const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-        const response = await POST(request);
-        const json = await response.json();
+      const response = await POST(request);
+      const json = await response.json();
 
-        expect(response.status).toBe(400);
-        expect(json.message).toBeDefined();
-        expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
-      }
-    );
+      expect(response.status).toBe(400);
+      expect(json.message).toBeDefined();
+      expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
+    });
 
     it('rejects missing amount field with 400 status', async () => {
       const body = {
@@ -204,7 +301,7 @@ describe('POST /api/anchor/yellowcard', () => {
 
       expect(response.status).toBe(400);
       expect(json.message).toBeDefined();
-      expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
+      expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
     });
   });
 
@@ -238,7 +335,7 @@ describe('POST /api/anchor/yellowcard', () => {
 
         expect(response.status).toBe(400);
         expect(json.message).toBeDefined();
-        expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
+        expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
       }
     );
 
@@ -260,7 +357,7 @@ describe('POST /api/anchor/yellowcard', () => {
 
       expect(response.status).toBe(400);
       expect(json.message).toBeDefined();
-      expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
+      expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
     });
   });
 
@@ -288,7 +385,7 @@ describe('POST /api/anchor/yellowcard', () => {
 
         expect(response.status).toBe(400);
         expect(json.message).toBeDefined();
-        expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
+        expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
       }
     );
   });
@@ -317,7 +414,7 @@ describe('POST /api/anchor/yellowcard', () => {
 
         expect(response.status).toBe(400);
         expect(json.message).toBeDefined();
-        expect(mockedInitiateYellowCardWithdrawal).not.toHaveBeenCalled();
+        expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
       }
     );
   }
