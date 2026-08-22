@@ -199,7 +199,7 @@ export default function BatchPage() {
     // resends rows whose transaction already succeeded. Failed rows are
     // retried because a failed chunk transaction is atomic (none of its rows
     // were submitted), while already-sent rows are left untouched.
-    const paymentRows = rows.filter((row) => !row.error && row.status !== 'sent');
+    const paymentRows = rows.filter((row) => row.status !== 'sent');
     const chunks = Array.from(
       { length: Math.ceil(paymentRows.length / PAYMENT_CHUNK_SIZE) },
       (_, index) => paymentRows.slice(index * PAYMENT_CHUNK_SIZE, (index + 1) * PAYMENT_CHUNK_SIZE)

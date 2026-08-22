@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import BatchPage from './page';
 
@@ -26,8 +27,8 @@ vi.mock('@/components/WalletConnect', () => ({
 }));
 
 vi.mock('@/components/dashboard-shell', () => ({
-  DashboardShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  SurfaceCard: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DashboardShell: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  SurfaceCard: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock('papaparse', () => ({
