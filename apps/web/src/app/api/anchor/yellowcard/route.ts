@@ -3,7 +3,25 @@ import {
   getAnchorInfo,
   getTransactionStatus,
   initiateYellowCardWithdrawal,
+  SendPaymentParamsSchema,
 } from '@AfriWage/sdk';
+import { StrKey } from '@stellar/stellar-sdk';
+import { z } from 'zod';
+
+const YellowCardWithdrawalSchema = z.object({
+  amount: SendPaymentParamsSchema.shape.amount.refine((val) => Number.parseFloat(val) > 0, {
+    message: 'amount must be a positive decimal amount',
+  }),
+  account: z
+    .string()
+    .refine((val) => StrKey.isValidEd25519PublicKey(val), {
+      message: 'account must be a valid Stellar public key',
+    }),
+  bankAccount: z.string().trim().min(1, 'bankAccount is required'),
+  bankName: z.string().trim().min(1, 'bankName is required'),
+  assetCode: z.string().optional(),
+  memo: z.string().optional(),
+});
 
 function badRequest(message: string) {
   return NextResponse.json({ message }, { status: 400 });
@@ -37,10 +55,7 @@ export async function GET(request: Request) {
       return NextResponse.json(status);
     } catch (error) {
       console.error('Error fetching Yellow Card transaction status:', error);
-      return NextResponse.json(
-        { message: 'Failed to fetch transaction status' },
-        { status: 502 }
-      );
+      return NextResponse.json({ message: 'Failed to fetch transaction status' }, { status: 502 });
     }
   }
 
@@ -57,23 +72,22 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+    const result = YellowCardWithdrawalSchema.safeParse(body);
 
-    if (
-      typeof body.amount !== 'string' ||
-      typeof body.account !== 'string' ||
-      typeof body.bankAccount !== 'string' ||
-      typeof body.bankName !== 'string'
-    ) {
-      return badRequest('amount, account, bankAccount, and bankName are required');
+    if (!result.success) {
+      const issue = result.error.issues[0];
+      return badRequest(issue?.message || 'Invalid withdrawal parameters');
     }
 
+    const { amount, account, bankAccount, bankName, assetCode, memo } = result.data;
+
     const response = await initiateYellowCardWithdrawal({
-      amount: body.amount,
-      account: body.account,
-      bankAccount: body.bankAccount,
-      bankName: body.bankName,
-      assetCode: typeof body.assetCode === 'string' ? body.assetCode : 'USDC',
-      memo: typeof body.memo === 'string' ? body.memo : undefined,
+      amount,
+      account,
+      bankAccount,
+      bankName,
+      assetCode: typeof assetCode === 'string' && assetCode.length > 0 ? assetCode : 'USDC',
+      memo: typeof memo === 'string' && memo.length > 0 ? memo : undefined,
     });
 
     return NextResponse.json(response);
