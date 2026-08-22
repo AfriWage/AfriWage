@@ -92,17 +92,19 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
     .limit(20)
     .call();
 
-  const records: TransactionRecord[] = [];
+  if (transactions.records.length === 0) {
+    return [];
+  }
 
   for (const tx of transactions.records) {
     const opsPage = await server.operations().forTransaction(tx.hash).call();
     const ops = opsPage.records;
 
-    let type: TransactionRecord['type'] = 'other';
-    let amount = '0';
-    let asset = 'XLM';
-    let from = tx.source_account;
-    let to = '';
+      let type: TransactionRecord['type'] = 'other';
+      let amount = '0';
+      let asset = 'XLM';
+      let from = tx.source_account;
+      let to = '';
 
     for (const op of ops) {
       if (op.type === 'payment') {
@@ -132,21 +134,25 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
       memo = tx.memo;
     }
 
-    records.push({
-      id: tx.id,
-      hash: tx.hash,
-      type,
-      amount,
-      asset,
-      from,
-      to,
-      memo,
-      createdAt: tx.created_at,
-      successful: tx.successful,
-    });
-  }
+      let memo: string | undefined;
+      if (tx.memo_type === 'text' && tx.memo) {
+        memo = tx.memo;
+      }
 
-  return records;
+      return {
+        id: tx.id,
+        hash: tx.hash,
+        type,
+        amount,
+        asset,
+        from,
+        to,
+        memo,
+        createdAt: tx.created_at,
+        successful: tx.successful,
+      };
+    })
+  );
 }
 
 export async function establishUsdcTrustline(accountSecret: string): Promise<PaymentResult> {
