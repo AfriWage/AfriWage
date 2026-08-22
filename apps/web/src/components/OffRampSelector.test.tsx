@@ -81,7 +81,7 @@ describe('OffRampSelector withdrawal submission', () => {
       ([url]) => url === '/api/anchor/yellowcard?action=withdraw'
     );
     expect(withdrawCall).toBeDefined();
-    const [, init] = withdrawCall as [string, RequestInit];
+    const [, init] = withdrawCall as [string, { body?: string }];
     const body = JSON.parse(String(init.body));
     expect(body).toMatchObject({
       amount: '25.5',
