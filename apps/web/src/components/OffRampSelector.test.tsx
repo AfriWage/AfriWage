@@ -91,6 +91,6 @@ describe('OffRampSelector withdrawal submission', () => {
 
   it('labels the amount input as USDC', () => {
     render(<OffRampSelector account={account} />);
-    expect(screen.getByLabelText('USDC amount')).toBeInTheDocument();
+    expect(screen.getByLabelText('USDC amount')).toBeTruthy();
   });
 });
