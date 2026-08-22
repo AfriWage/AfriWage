@@ -189,63 +189,65 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
     .limit(20)
     .call();
 
-  const records: TransactionRecord[] = [];
-
-  for (const tx of transactions.records) {
-    // Fetch operations for this transaction to extract payment details
-    const opsPage = await server.operations().forTransaction(tx.hash).call();
-    const ops = opsPage.records;
-
-    let type: TransactionRecord['type'] = 'other';
-    let amount = '0';
-    let asset = 'XLM';
-    let from = tx.source_account;
-    let to = '';
-
-    for (const op of ops) {
-      if (op.type === 'payment') {
-        type = 'payment';
-        const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
-        amount = Number.parseFloat(payOp.amount).toFixed(2);
-        asset =
-          payOp.asset_type === 'native'
-            ? 'XLM'
-            : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
-        from = payOp.from;
-        to = payOp.to;
-        break;
-      }
-      if (op.type === 'create_account') {
-        type = 'create_account';
-        const createOp = op as Horizon.HorizonApi.CreateAccountOperationResponse;
-        amount = Number.parseFloat(createOp.starting_balance).toFixed(2);
-        asset = 'XLM';
-        to = createOp.account;
-        break;
-      }
-    }
-
-    // Decode memo if text type
-    let memo: string | undefined;
-    if (tx.memo_type === 'text' && tx.memo) {
-      memo = tx.memo;
-    }
-
-    records.push({
-      id: tx.id,
-      hash: tx.hash,
-      type,
-      amount,
-      asset,
-      from,
-      to,
-      memo,
-      createdAt: tx.created_at,
-      successful: tx.successful,
-    });
+  if (transactions.records.length === 0) {
+    return [];
   }
 
-  return records;
+  return Promise.all(
+    transactions.records.map(async (tx) => {
+      // Fetch operations for this transaction to extract payment details
+      const opsPage = await server.operations().forTransaction(tx.hash).call();
+      const ops = opsPage.records;
+
+      let type: TransactionRecord['type'] = 'other';
+      let amount = '0';
+      let asset = 'XLM';
+      let from = tx.source_account;
+      let to = '';
+
+      for (const op of ops) {
+        if (op.type === 'payment') {
+          type = 'payment';
+          const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
+          asset =
+            payOp.asset_type === 'native'
+              ? 'XLM'
+              : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
+          amount = Number.parseFloat(payOp.amount).toFixed(2);
+          from = payOp.from;
+          to = payOp.to;
+          break;
+        }
+
+        if (op.type === 'create_account') {
+          type = 'create_account';
+          const createOp = op as Horizon.HorizonApi.CreateAccountOperationResponse;
+          asset = 'XLM';
+          amount = Number.parseFloat(createOp.starting_balance).toFixed(2);
+          to = createOp.account;
+          break;
+        }
+      }
+
+      let memo: string | undefined;
+      if (tx.memo_type === 'text' && tx.memo) {
+        memo = tx.memo;
+      }
+
+      return {
+        id: tx.id,
+        hash: tx.hash,
+        type,
+        amount,
+        asset,
+        from,
+        to,
+        memo,
+        createdAt: tx.created_at,
+        successful: tx.successful,
+      };
+    })
+  );
 }
 
 /**
