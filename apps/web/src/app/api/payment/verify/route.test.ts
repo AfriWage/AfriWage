@@ -72,10 +72,71 @@ describe('GET /api/payment/verify', () => {
       recipient: 'GRECIPIENT',
       amount: '25.50',
       asset: 'USDC',
+      operations: [
+        {
+          sender: 'GSENDER',
+          recipient: 'GRECIPIENT',
+          amount: '25.50',
+          asset: 'USDC',
+        },
+      ],
       memo: 'Payroll',
       createdAt: '2025-01-01T00:00:00Z',
       explorerUrl: 'https://stellar.expert/explorer/testnet/tx/tx-hash',
     });
+  });
+
+  it('exposes every payment operation for a multi-payment hash', async () => {
+    mockTransactions.mockReturnValue({
+      transaction: vi.fn().mockReturnValue({ call: vi.fn().mockResolvedValue(transaction) }),
+    });
+    mockOperations.mockReturnValue({
+      forTransaction: vi.fn().mockReturnValue({
+        call: vi.fn().mockResolvedValue({
+          records: [
+            {
+              type: 'payment',
+              from: 'GSENDER',
+              to: 'GRECIPIENT_ONE',
+              amount: '25.50',
+              asset_type: 'credit_alphanum4',
+              asset_code: 'USDC',
+            },
+            {
+              type: 'payment',
+              from: 'GSENDER',
+              to: 'GRECIPIENT_TWO',
+              amount: '30.00',
+              asset_type: 'credit_alphanum4',
+              asset_code: 'USDC',
+            },
+          ],
+        }),
+      }),
+    });
+
+    const request = new Request(`http://localhost/api/payment/verify?hash=${validHash}`);
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.operations).toEqual([
+      {
+        sender: 'GSENDER',
+        recipient: 'GRECIPIENT_ONE',
+        amount: '25.50',
+        asset: 'USDC',
+      },
+      {
+        sender: 'GSENDER',
+        recipient: 'GRECIPIENT_TWO',
+        amount: '30.00',
+        asset: 'USDC',
+      },
+    ]);
+    // Backward-compatible single-payment fields reflect the first operation.
+    expect(body.recipient).toBe('GRECIPIENT_ONE');
+    expect(body.amount).toBe('25.50');
   });
 
   it('treats native payments as XLM', async () => {

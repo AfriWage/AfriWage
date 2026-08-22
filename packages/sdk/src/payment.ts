@@ -98,52 +98,72 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
     const opsPage = await server.operations().forTransaction(tx.hash).call();
     const ops = opsPage.records;
 
-    let type: TransactionRecord['type'] = 'other';
-    let amount = '0';
-    let asset = 'XLM';
-    let from = tx.source_account;
-    let to = '';
-
-    for (const op of ops) {
-      if (op.type === 'payment') {
-        type = 'payment';
-        const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
-        asset =
-          payOp.asset_type === 'native'
-            ? 'XLM'
-            : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
-        amount = formatTransactionHistoryAmount(payOp.amount);
-        from = payOp.from;
-        to = payOp.to;
-        break;
-      }
-      if (op.type === 'create_account') {
-        type = 'create_account';
-        const createOp = op as Horizon.HorizonApi.CreateAccountOperationResponse;
-        asset = 'XLM';
-        amount = formatTransactionHistoryAmount(createOp.starting_balance);
-        to = createOp.account;
-        break;
-      }
-    }
-
     let memo: string | undefined;
     if (tx.memo_type === 'text' && tx.memo) {
       memo = tx.memo;
     }
 
-    records.push({
-      id: tx.id,
-      hash: tx.hash,
-      type,
-      amount,
-      asset,
-      from,
-      to,
-      memo,
-      createdAt: tx.created_at,
-      successful: tx.successful,
-    });
+    let paymentCount = 0;
+    let matched = false;
+
+    for (const op of ops) {
+      if (op.type === 'payment') {
+        matched = true;
+        const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
+        const asset =
+          payOp.asset_type === 'native'
+            ? 'XLM'
+            : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
+        const amount = formatTransactionHistoryAmount(payOp.amount);
+
+        records.push({
+          id: tx.id,
+          operationId: `${tx.id}-${paymentCount}`,
+          hash: tx.hash,
+          type: 'payment',
+          amount,
+          asset,
+          from: payOp.from,
+          to: payOp.to,
+          memo,
+          createdAt: tx.created_at,
+          successful: tx.successful,
+        });
+        paymentCount += 1;
+      } else if (op.type === 'create_account' && !matched) {
+        const createOp = op as Horizon.HorizonApi.CreateAccountOperationResponse;
+        records.push({
+          id: tx.id,
+          operationId: `${tx.id}-create-account`,
+          hash: tx.hash,
+          type: 'create_account',
+          amount: formatTransactionHistoryAmount(createOp.starting_balance),
+          asset: 'XLM',
+          from: tx.source_account,
+          to: createOp.account,
+          memo,
+          createdAt: tx.created_at,
+          successful: tx.successful,
+        });
+        matched = true;
+      }
+    }
+
+    if (!matched) {
+      records.push({
+        id: tx.id,
+        operationId: `${tx.id}-other`,
+        hash: tx.hash,
+        type: 'other',
+        amount: '0',
+        asset: 'XLM',
+        from: tx.source_account,
+        to: '',
+        memo,
+        createdAt: tx.created_at,
+        successful: tx.successful,
+      });
+    }
   }
 
   return records;
