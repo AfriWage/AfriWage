@@ -28,6 +28,11 @@ export function validateWithdrawAmount(amount: string, balance: string): string 
   const trimmed = amount.trim();
   if (!trimmed) return null;
 
+  // Only accept a plain decimal string (digits with an optional single decimal
+  // point). This rejects scientific notation, multiple separators, signs, and
+  // other strings that `parseFloat`/`Decimal` would otherwise coerce.
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return 'Enter a valid amount';
+
   let value: Decimal;
   try {
     value = new Decimal(trimmed);
