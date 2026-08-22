@@ -60,12 +60,20 @@ export async function POST(request: Request) {
       return badRequest('amount, account, bankAccount, and bankName are required');
     }
 
+    // The amount is denominated in the withdrawal asset. Only USDC is supported
+    // by the Yellow Card off-ramp; reject any other asset code so a local-currency
+    // value is never silently interpreted as a USDC amount.
+    const assetCode = typeof body.assetCode === 'string' ? body.assetCode : 'USDC';
+    if (assetCode !== 'USDC') {
+      return badRequest('Only USDC withdrawals are supported');
+    }
+
     const response = await initiateYellowCardWithdrawal({
       amount: body.amount,
       account: body.account,
       bankAccount: body.bankAccount,
       bankName: body.bankName,
-      assetCode: typeof body.assetCode === 'string' ? body.assetCode : 'USDC',
+      assetCode,
       memo: typeof body.memo === 'string' ? body.memo : undefined,
     });
 
