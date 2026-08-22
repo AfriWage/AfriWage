@@ -111,38 +111,39 @@ export default function BatchPage() {
 
       setFileError(null);
 
-      file
-        .text()
-        .then((text) => {
-          const parsed = parseBatchCsv(text);
-          const fileCheck = validateBatchFile(parsed);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = typeof reader.result === 'string' ? reader.result : '';
+        const parsed = parseBatchCsv(text);
+        const fileCheck = validateBatchFile(parsed);
 
-          if (!fileCheck.valid) {
-            if (fileCheck.reason === 'tooManyPayments') {
-              setFileError(t('tooManyRows', { max: MAX_BATCH_PAYMENTS }));
-            } else if (fileCheck.reason === 'parseError') {
-              setFileError(t('invalidFile'));
-            } else {
-              setFileError(t('noValidRows'));
-            }
-            return;
+        if (!fileCheck.valid) {
+          if (fileCheck.reason === 'tooManyPayments') {
+            setFileError(t('tooManyRows', { max: MAX_BATCH_PAYMENTS }));
+          } else if (fileCheck.reason === 'parseError') {
+            setFileError(t('invalidFile'));
+          } else {
+            setFileError(t('noValidRows'));
           }
+          return;
+        }
 
-          const batchRows: BatchRow[] = parsed.rows.map((row, index) => ({
-            id: `row-${index}`,
-            address: row.address,
-            amount: row.amount,
-            memo: row.memo,
-            status: 'pending' as const,
-            error: row.error ? rowErrorMessages[row.error] : undefined,
-          }));
+        const batchRows: BatchRow[] = parsed.rows.map((row, index) => ({
+          id: `row-${index}`,
+          address: row.address,
+          amount: row.amount,
+          memo: row.memo,
+          status: 'pending' as const,
+          error: row.error ? rowErrorMessages[row.error] : undefined,
+        }));
 
-          setRows(batchRows);
-          setStep('review');
-        })
-        .catch(() => {
-          setFileError(t('invalidFile'));
-        });
+        setRows(batchRows);
+        setStep('review');
+      };
+      reader.onerror = () => {
+        setFileError(t('invalidFile'));
+      };
+      reader.readAsText(file);
     },
     [t, rowErrorMessages]
   );
@@ -264,7 +265,7 @@ export default function BatchPage() {
 
   const statusLabel = (status: RowStatus, error?: string) => {
     if (error && status === 'pending') return error;
-    if (error && status === 'failed') return `${t('failed')}: ${error}`;
+    if (error && status === 'failed') return t('failed');
     switch (status) {
       case 'pending':
         return t('pending');
@@ -356,6 +357,7 @@ export default function BatchPage() {
                 <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{t('runFailed', { error: runError })}</span>
+                  <span className="font-medium">{runError}</span>
                 </div>
               )}
 
