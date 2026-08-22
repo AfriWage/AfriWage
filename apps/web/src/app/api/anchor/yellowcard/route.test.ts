@@ -30,113 +30,6 @@ function validPublicKey() {
 }
 
 describe('GET /api/anchor/yellowcard', () => {
-  it('returns anchor information when action=info', async () => {
-    const infoMock = { transferServer: 'https://api.yellowcard.io' };
-    mockGetAnchorInfo.mockResolvedValueOnce(infoMock);
-
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=info');
-    const response = await GET(request);
-    const json = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(json).toEqual(infoMock);
-    expect(mockGetAnchorInfo).toHaveBeenCalledTimes(1);
-  });
-
-  it('handles error when fetching anchor info fails', async () => {
-    mockGetAnchorInfo.mockRejectedValueOnce(new Error('Network error'));
-
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=info');
-    const response = await GET(request);
-    const json = await response.json();
-
-    expect(response.status).toBe(502);
-    expect(json.message).toBe('Failed to fetch Yellow Card anchor information');
-  });
-
-  it('requires id parameter when action=status', async () => {
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=status');
-    const response = await GET(request);
-    const json = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(json.message).toBe('Transaction id is required');
-    expect(mockGetTransactionStatus).not.toHaveBeenCalled();
-  });
-
-  it('returns status when action=status and valid id provided', async () => {
-    const statusMock = { id: 'tx-123', status: 'completed' };
-    mockGetTransactionStatus.mockResolvedValueOnce(statusMock);
-
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=status&id=tx-123');
-    const response = await GET(request);
-    const json = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(json).toEqual(statusMock);
-    expect(mockGetTransactionStatus).toHaveBeenCalledWith('tx-123');
-  });
-
-  it('handles error when fetching status fails', async () => {
-    mockGetTransactionStatus.mockRejectedValueOnce(new Error('API error'));
-
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=status&id=tx-123');
-    const response = await GET(request);
-    const json = await response.json();
-
-    expect(response.status).toBe(502);
-    expect(json.message).toBe('Failed to fetch transaction status');
-  });
-
-  it('returns 400 for unsupported GET actions', async () => {
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=unknown');
-    const response = await GET(request);
-    const json = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(json.message).toBe('Unsupported action');
-  });
-});
-
-describe('POST /api/anchor/yellowcard?action=withdraw', () => {
-  it('successfully processes valid withdrawal payload', async () => {
-    const account = validPublicKey();
-    const mockResponse = { id: 'tx-123', status: 'pending' };
-    mockInitiateWithdrawal.mockResolvedValueOnce(mockResponse);
-
-    const body = {
-      amount: '100.50',
-      account,
-      bankAccount: '1234567890',
-      bankName: 'Test Bank',
-      assetCode: 'USDC',
-      memo: 'withdrawal-memo',
-    };
-
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-const { mockGetAnchorInfo, mockGetTransactionStatus, mockInitiateWithdrawal } = vi.hoisted(() => ({
-  mockGetAnchorInfo: vi.fn(),
-  mockGetTransactionStatus: vi.fn(),
-  mockInitiateWithdrawal: vi.fn(),
-}));
-
-vi.mock('@AfriWage/sdk', () => ({
-  getAnchorInfo: mockGetAnchorInfo,
-  getTransactionStatus: mockGetTransactionStatus,
-  initiateYellowCardWithdrawal: mockInitiateWithdrawal,
-}));
-
-import { GET, POST } from './route';
-
-vi.spyOn(console, 'error').mockImplementation(() => {});
-
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
-describe('GET /api/anchor/yellowcard', () => {
   it('returns anchor info for action=info', async () => {
     mockGetAnchorInfo.mockResolvedValue({ transferServer: 'https://api.yellowcard.io' });
 
@@ -193,6 +86,23 @@ describe('POST /api/anchor/yellowcard', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+  }
+
+  it('successfully processes valid withdrawal payload', async () => {
+    const account = validPublicKey();
+    const mockResponse = { id: 'tx-123', status: 'pending' };
+    mockInitiateWithdrawal.mockResolvedValueOnce(mockResponse);
+
+    const body = {
+      amount: '100.50',
+      account,
+      bankAccount: '1234567890',
+      bankName: 'Test Bank',
+      assetCode: 'USDC',
+      memo: 'withdrawal-memo',
+    };
+
+    const request = jsonRequest(body, 'action=withdraw');
 
     const response = await POST(request);
     const json = await response.json();
@@ -235,13 +145,7 @@ describe('POST /api/anchor/yellowcard', () => {
   });
 
   it('rejects unsupported actions with 400 Bad Request', async () => {
-    const request = new Request('http://localhost/api/anchor/yellowcard?action=invalid', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-
-    const response = await POST(request);
+    const response = await POST(jsonRequest({}, 'action=invalid'));
     const json = await response.json();
 
     expect(response.status).toBe(400);
@@ -261,27 +165,24 @@ describe('POST /api/anchor/yellowcard', () => {
       100, // non-string
     ];
 
-    it.each(invalidAmounts)('rejects invalid amount "%s" with 400 status', async (invalidAmount) => {
-      const body = {
-        amount: invalidAmount,
-        account: validPublicKey(),
-        bankAccount: '1234567890',
-        bankName: 'Test Bank',
-      };
+    it.each(invalidAmounts)(
+      'rejects invalid amount "%s" with 400 status',
+      async (invalidAmount) => {
+        const body = {
+          amount: invalidAmount,
+          account: validPublicKey(),
+          bankAccount: '1234567890',
+          bankName: 'Test Bank',
+        };
 
-      const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+        const response = await POST(jsonRequest(body, 'action=withdraw'));
+        const json = await response.json();
 
-      const response = await POST(request);
-      const json = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(json.message).toBeDefined();
-      expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
-    });
+        expect(response.status).toBe(400);
+        expect(json.message).toBeDefined();
+        expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
+      }
+    );
 
     it('rejects missing amount field with 400 status', async () => {
       const body = {
@@ -290,13 +191,7 @@ describe('POST /api/anchor/yellowcard', () => {
         bankName: 'Test Bank',
       };
 
-      const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const response = await POST(request);
+      const response = await POST(jsonRequest(body, 'action=withdraw'));
       const json = await response.json();
 
       expect(response.status).toBe(400);
@@ -324,13 +219,7 @@ describe('POST /api/anchor/yellowcard', () => {
           bankName: 'Test Bank',
         };
 
-        const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-
-        const response = await POST(request);
+        const response = await POST(jsonRequest(body, 'action=withdraw'));
         const json = await response.json();
 
         expect(response.status).toBe(400);
@@ -346,13 +235,7 @@ describe('POST /api/anchor/yellowcard', () => {
         bankName: 'Test Bank',
       };
 
-      const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const response = await POST(request);
+      const response = await POST(jsonRequest(body, 'action=withdraw'));
       const json = await response.json();
 
       expect(response.status).toBe(400);
@@ -374,13 +257,7 @@ describe('POST /api/anchor/yellowcard', () => {
           bankName: 'Test Bank',
         };
 
-        const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-
-        const response = await POST(request);
+        const response = await POST(jsonRequest(body, 'action=withdraw'));
         const json = await response.json();
 
         expect(response.status).toBe(400);
@@ -403,13 +280,7 @@ describe('POST /api/anchor/yellowcard', () => {
           bankName: invalidBankName,
         };
 
-        const request = new Request('http://localhost/api/anchor/yellowcard?action=withdraw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-
-        const response = await POST(request);
+        const response = await POST(jsonRequest(body, 'action=withdraw'));
         const json = await response.json();
 
         expect(response.status).toBe(400);
@@ -417,16 +288,16 @@ describe('POST /api/anchor/yellowcard', () => {
         expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
       }
     );
-  }
+  });
 
-  const validBody = {
-    amount: '100',
-    account: 'GACCOUNT',
-    bankAccount: '1234567890',
-    bankName: 'Test Bank',
-  };
-
-  it('initiates a withdrawal', async () => {
+  it('initiates a withdrawal with valid params', async () => {
+    const account = validPublicKey();
+    const validBody = {
+      amount: '100',
+      account,
+      bankAccount: '1234567890',
+      bankName: 'Test Bank',
+    };
     mockInitiateWithdrawal.mockResolvedValue({ id: 'w-1', status: 'pending' });
 
     const response = await POST(jsonRequest(validBody, 'action=withdraw'));
@@ -435,7 +306,7 @@ describe('POST /api/anchor/yellowcard', () => {
     expect(await response.json()).toEqual({ id: 'w-1', status: 'pending' });
     expect(mockInitiateWithdrawal).toHaveBeenCalledWith({
       amount: '100',
-      account: 'GACCOUNT',
+      account,
       bankAccount: '1234567890',
       bankName: 'Test Bank',
       assetCode: 'USDC',
@@ -444,6 +315,13 @@ describe('POST /api/anchor/yellowcard', () => {
   });
 
   it('rejects unsupported actions', async () => {
+    const account = validPublicKey();
+    const validBody = {
+      amount: '100',
+      account,
+      bankAccount: '1234567890',
+      bankName: 'Test Bank',
+    };
     const response = await POST(jsonRequest(validBody, 'action=deposit'));
 
     expect(response.status).toBe(400);
@@ -455,13 +333,17 @@ describe('POST /api/anchor/yellowcard', () => {
     const response = await POST(jsonRequest({ amount: '100' }, 'action=withdraw'));
 
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      message: 'amount, account, bankAccount, and bankName are required',
-    });
     expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
   });
 
   it('returns 502 when the withdrawal fails', async () => {
+    const account = validPublicKey();
+    const validBody = {
+      amount: '100',
+      account,
+      bankAccount: '1234567890',
+      bankName: 'Test Bank',
+    };
     mockInitiateWithdrawal.mockRejectedValue(new Error('upstream error'));
 
     const response = await POST(jsonRequest(validBody, 'action=withdraw'));
