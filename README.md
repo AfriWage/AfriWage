@@ -12,6 +12,7 @@
 
 [![CI](https://github.com/AfriWage/AfriWage/actions/workflows/ci.yml/badge.svg)](https://github.com/AfriWage/AfriWage/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-brightgreen.svg)](./SECURITY.md)
 [![Built on Stellar](https://img.shields.io/badge/Built%20on-Stellar-blueviolet?logo=stellar)](https://stellar.org)
 [![Deploy on Vercel](https://img.shields.io/badge/Deploy%20on-Vercel-black?logo=vercel)](https://vercel.com)
 [![Docs](https://img.shields.io/badge/docs-GitBook-blue)](https://k1ngd4vid.gitbook.io/afriwage-docs)
@@ -184,6 +185,8 @@ Need testnet XLM to try the app? Use the **[public faucet](http://localhost:3000
 We welcome contributions from developers at all levels. AfriWage is a real open-source project actively building toward production.
 
 👉 Read [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
+
+👉 For security vulnerability reports, please review our [Security Policy](./SECURITY.md) to report privately.
 
 Look for issues labelled [`good-first-issue`](https://github.com/AfriWage/AfriWage/labels/good-first-issue) on GitHub.
 
