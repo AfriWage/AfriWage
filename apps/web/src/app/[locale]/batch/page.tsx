@@ -26,7 +26,7 @@ import { type DragEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { sumUsdcAmounts } from '@/lib/batch-amounts';
 
 type RowStatus = 'pending' | 'sending' | 'sent' | 'failed';
-type Step = 'upload' | 'review' | 'executing' | 'complete';
+type Step = 'upload' | 'review' | 'executing' | 'complete' | 'failed';
 
 interface BatchRow {
   id: string;
@@ -53,6 +53,7 @@ export default function BatchPage() {
   const [dragOver, setDragOver] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [activeChunk, setActiveChunk] = useState<{ current: number; total: number } | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const rowErrorMessages = useMemo<Record<BatchRowErrorCode, string>>(
@@ -192,8 +193,13 @@ export default function BatchPage() {
 
     setStep('executing');
     setActiveChunk(null);
+    setRunError(null);
 
-    const paymentRows = rows.filter((row) => !row.error);
+    // Only process rows that haven't been sent yet so a retry/resume never
+    // resends rows whose transaction already succeeded. Failed rows are
+    // retried because a failed chunk transaction is atomic (none of its rows
+    // were submitted), while already-sent rows are left untouched.
+    const paymentRows = rows.filter((row) => !row.error && row.status !== 'sent');
     const chunks = Array.from(
       { length: Math.ceil(paymentRows.length / PAYMENT_CHUNK_SIZE) },
       (_, index) => paymentRows.slice(index * PAYMENT_CHUNK_SIZE, (index + 1) * PAYMENT_CHUNK_SIZE)
@@ -231,11 +237,20 @@ export default function BatchPage() {
             chunkIds.has(r.id) ? { ...r, status: 'failed' as const, error: message } : r
           )
         );
-        break;
+        setRunError(message);
+        setActiveChunk(null);
+        setStep('failed');
+        return;
       }
     }
 
     setActiveChunk(null);
+    // If there is nothing left to send but some rows failed, stay in the
+    // failed state so the operator can still see the error and export results.
+    if (chunks.length === 0 && rows.some((r) => r.status === 'failed')) {
+      setStep('failed');
+      return;
+    }
     setStep('complete');
   };
 
@@ -244,6 +259,7 @@ export default function BatchPage() {
     setStep('upload');
     setFileError(null);
     setActiveChunk(null);
+    setRunError(null);
   };
 
   const statusLabel = (status: RowStatus, error?: string) => {
@@ -320,7 +336,10 @@ export default function BatchPage() {
           </SurfaceCard>
         )}
 
-        {(step === 'review' || step === 'executing' || step === 'complete') && (
+        {(step === 'review' ||
+          step === 'executing' ||
+          step === 'complete' ||
+          step === 'failed') && (
           <>
             <SurfaceCard>
               <h2 className="font-display text-xl font-semibold text-[#102033]">
@@ -328,8 +347,17 @@ export default function BatchPage() {
                   ? t('previewTitle')
                   : step === 'executing'
                     ? t('executingTitle')
-                    : t('completeTitle')}
+                    : step === 'failed'
+                      ? t('failedTitle')
+                      : t('completeTitle')}
               </h2>
+
+              {step === 'failed' && runError && (
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{t('runFailed', { error: runError })}</span>
+                </div>
+              )}
 
               {step === 'executing' && (
                 <div className="mt-4">
@@ -353,7 +381,7 @@ export default function BatchPage() {
                 </div>
               )}
 
-              {step === 'complete' && (
+              {(step === 'complete' || step === 'failed') && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-[18px] border border-[#dff3e8] bg-[#f0fdf4] p-4">
                     <p className="text-sm text-[#637085]">
@@ -466,6 +494,37 @@ export default function BatchPage() {
             {step === 'complete' && (
               <SurfaceCard>
                 <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={handleExportResults}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#102033] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3048]"
+                  >
+                    <Download className="h-4 w-4" />
+                    {t('exportResults')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[#d8cebe] bg-transparent px-6 py-3 text-sm font-semibold text-[#415065] transition-colors hover:bg-[#f3ecdf]"
+                  >
+                    {t('startOver')}
+                  </button>
+                </div>
+              </SurfaceCard>
+            )}
+
+            {step === 'failed' && (
+              <SurfaceCard>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={!publicKey}
+                    onClick={executePayments}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#1f8f55] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#14A800] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    {t('retry')}
+                  </button>
                   <button
                     type="button"
                     onClick={handleExportResults}
