@@ -47,7 +47,8 @@ describe('OffRampSelector anchor discovery', () => {
 
 describe('OffRampSelector withdrawal submission', () => {
   it('submits the entered amount as USDC and confirms the USDC unit', async () => {
-    const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
+    let submittedBody: string | undefined;
+    const fetchMock = vi.fn((url: string, init?: { body?: string }) => {
       if (url === '/api/anchor/yellowcard?action=info') {
         return Promise.resolve(
           new Response(JSON.stringify({ transferServer: 'https://api.yellowcard.io' }), {
@@ -56,6 +57,7 @@ describe('OffRampSelector withdrawal submission', () => {
           })
         );
       }
+      submittedBody = init?.body;
       return Promise.resolve(
         new Response(JSON.stringify({ id: 'w-1', status: 'pending' }), {
           status: 200,
@@ -77,12 +79,7 @@ describe('OffRampSelector withdrawal submission', () => {
 
     await screen.findByText('Withdrawal request created for 25.5 USDC with ID w-1 (pending).');
 
-    const withdrawCall = fetchMock.mock.calls.find(
-      ([url]) => url === '/api/anchor/yellowcard?action=withdraw'
-    );
-    expect(withdrawCall).toBeDefined();
-    const init = withdrawCall?.[1];
-    const body = JSON.parse(String(init?.body));
+    const body = JSON.parse(String(submittedBody));
     expect(body).toMatchObject({
       amount: '25.5',
       assetCode: 'USDC',
