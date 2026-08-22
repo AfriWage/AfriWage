@@ -1,13 +1,13 @@
 'use client';
 
+import { Skeleton } from '@/components/ui/skeleton';
+import { PaymentVerificationError, verifyPayment } from '@/lib/api';
+import { truncatePublicKey } from '@/lib/stellar-format';
+import { copyToClipboard, formatDate } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { Check, CheckCircle2, Copy, ExternalLink, Share2, XCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { verifyPayment } from '@/lib/api';
-import { truncatePublicKey } from '@/lib/stellar-format';
-import { copyToClipboard, formatDate } from '@/lib/utils';
 
 export default function ReceiptPage() {
   const params = useParams<{ hash: string }>();
@@ -20,6 +20,8 @@ export default function ReceiptPage() {
     queryFn: () => verifyPayment(hash),
     enabled: Boolean(hash),
   });
+  const retryableError =
+    receiptQuery.error instanceof PaymentVerificationError && receiptQuery.error.retryable;
 
   const handleCopyHash = useCallback(async () => {
     if (!receiptQuery.data?.hash) return;
@@ -59,7 +61,11 @@ export default function ReceiptPage() {
             </div>
           ) : receiptQuery.isError ? (
             <div className="rounded-[24px] border border-red-100 bg-red-50 p-6 text-center">
-              <p className="text-lg font-semibold text-red-600">Receipt verification failed</p>
+              <p className="text-lg font-semibold text-red-600">
+                {retryableError
+                  ? 'Verification temporarily unavailable'
+                  : 'Receipt verification failed'}
+              </p>
               <p className="mt-2 text-sm text-red-500">
                 {receiptQuery.error instanceof Error
                   ? receiptQuery.error.message
@@ -70,7 +76,9 @@ export default function ReceiptPage() {
             <div className="space-y-6">
               <div className="flex flex-col gap-4 rounded-[24px] bg-[#fffaf2] p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Verification status</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
+                    Verification status
+                  </p>
                   <p className="mt-2 font-display text-2xl font-semibold text-[#102033]">
                     {receiptQuery.data.verified ? 'Payment verified' : 'Verification failed'}
                   </p>
@@ -111,9 +119,13 @@ export default function ReceiptPage() {
                   </p>
                 </div>
                 <div className="rounded-[24px] border border-[#eadfce] bg-white p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Date &amp; time</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
+                    Date &amp; time
+                  </p>
                   <p className="mt-3 text-sm text-[#102033]">
-                    {receiptQuery.data.createdAt ? formatDate(receiptQuery.data.createdAt) : 'Unavailable'}
+                    {receiptQuery.data.createdAt
+                      ? formatDate(receiptQuery.data.createdAt)
+                      : 'Unavailable'}
                   </p>
                 </div>
               </div>
@@ -127,7 +139,9 @@ export default function ReceiptPage() {
 
               <div className="rounded-[24px] border border-[#eadfce] bg-white p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Transaction hash</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
+                    Transaction hash
+                  </p>
                   <span
                     aria-live="polite"
                     className={`text-xs font-semibold text-[#1f8f55] transition-opacity duration-200 ${

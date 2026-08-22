@@ -1,11 +1,21 @@
 'use client';
 
-import { AlertCircle, CheckCircle, Copy, ExternalLink, LogOut, Wallet } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  Copy,
+  ExternalLink,
+  LogOut,
+  Wallet,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
-import { getConnectedAddress, getPublicKey } from '@/lib/freighter';
+import { detectWalletNetworkMismatch, getConnectedAddress, getPublicKey } from '@/lib/freighter';
+import { NETWORK_PASSPHRASE } from '@/lib/stellar';
 import { truncatePublicKey } from '@/lib/stellar-format';
 import { cn, copyToClipboard } from '@/lib/utils';
+import type { NetworkMismatch } from '@/lib/freighter';
 import type { WalletStatus } from '@/types';
 
 interface WalletConnectProps {
@@ -22,6 +32,12 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [networkMismatch, setNetworkMismatch] = useState<NetworkMismatch | null>(null);
+
+  const checkWalletNetwork = useCallback(async () => {
+    const mismatch = await detectWalletNetworkMismatch(NETWORK_PASSPHRASE);
+    setNetworkMismatch(mismatch);
+  }, []);
 
   useEffect(() => {
     getConnectedAddress().then((address) => {
@@ -29,19 +45,31 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         setPublicKey(address);
         setStatus('connected');
         onConnect?.(address);
+        void checkWalletNetwork();
       }
     });
-  }, [onConnect]);
+  }, [onConnect, checkWalletNetwork]);
+
+  // Re-check the wallet network whenever the window regains focus, so the
+  // mismatch warning stays accurate if the user switches Freighter networks.
+  useEffect(() => {
+    if (status !== 'connected') return;
+    const onFocus = () => void checkWalletNetwork();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [status, checkWalletNetwork]);
 
   const handleConnect = useCallback(async () => {
     setStatus('connecting');
     setError(null);
+    setNetworkMismatch(null);
 
     try {
       const key = await getPublicKey();
       setPublicKey(key);
       setStatus('connected');
       onConnect?.(key);
+      void checkWalletNetwork();
     } catch (err) {
       setStatus('error');
 
@@ -52,13 +80,14 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
         setError(msg);
       }
     }
-  }, [onConnect, t]);
+  }, [onConnect, t, checkWalletNetwork]);
 
   const handleDisconnect = useCallback(() => {
     setPublicKey(null);
     setStatus('disconnected');
     setError(null);
     setShowDropdown(false);
+    setNetworkMismatch(null);
     onDisconnect?.();
   }, [onDisconnect]);
 
@@ -84,6 +113,26 @@ export function WalletConnect({ onConnect, onDisconnect, className }: WalletConn
           <span className="hidden sm:inline">{truncatePublicKey(publicKey, 6)}</span>
           <Wallet className="h-4 w-4 sm:hidden" />
         </button>
+
+        {networkMismatch && !showDropdown && (
+          <div
+            role="status"
+            className="absolute right-0 top-full z-[100] mt-2 w-[calc(100vw-2rem)] max-w-[20rem] sm:w-72 rounded-xl border border-amber-300 bg-amber-50 p-4 shadow-xl"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-sm font-semibold text-[#102033]">{t('networkMismatchTitle')}</p>
+                <p className="mt-1 text-xs text-[#637085]">
+                  {t('networkMismatchDescription', {
+                    expectedNetwork: networkMismatch.expectedNetwork,
+                    actualNetwork: networkMismatch.actualNetwork,
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showDropdown && (
           <div className="absolute right-0 top-full z-[100] mt-2 w-[calc(100vw-2rem)] max-w-[20rem] sm:w-72 rounded-xl border border-[#d8cebe] bg-white p-4 shadow-xl origin-top-right">

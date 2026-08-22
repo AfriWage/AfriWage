@@ -1,15 +1,21 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Clock3, MoveUpRight, RefreshCw, Wallet2 } from 'lucide-react';
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, RefreshCw, Wallet2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import { WalletConnect } from '@/components/WalletConnect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@/i18n/navigation';
-import { fundTestnet, getAccount } from '@/lib/api';
-import { dashboardMetrics, payoutQueues, recentTransactions } from '@/lib/dashboard-data';
+import { fundTestnet, getAccount, getTransactions } from '@/lib/api';
+import {
+  DASHBOARD_TRANSACTION_LIMIT,
+  getDashboardActivityState,
+  isIncomingTransaction,
+} from '@/lib/dashboard-activity';
+import { dashboardMetrics } from '@/lib/dashboard-data';
+import { formatDate } from '@/lib/utils';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
@@ -23,6 +29,17 @@ export default function DashboardPage() {
     enabled: Boolean(address),
     refetchInterval: 30000,
   });
+
+  const transactionsQuery = useQuery({
+    queryKey: ['dashboard-transactions', address],
+    queryFn: () =>
+      getTransactions(address ?? '', {
+        limit: DASHBOARD_TRANSACTION_LIMIT,
+      }),
+    enabled: Boolean(address),
+  });
+
+  const activityState = getDashboardActivityState(address, transactionsQuery);
 
   const handleConnect = useCallback((publicKey: string) => {
     setAddress(publicKey);
@@ -260,36 +277,6 @@ export default function DashboardPage() {
           <SurfaceCard>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">{t('queueStatus')}</p>
-                <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
-                  {t('needsAttention')}
-                </h3>
-              </div>
-              <Clock3 className="h-5 w-5 text-[#8c7760]" />
-            </div>
-            <div className="mt-6 space-y-4">
-              {payoutQueues.map((queue) => (
-                <div
-                  key={queue.title}
-                  className="rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="font-display text-lg font-semibold text-[#102033]">
-                      {queue.title}
-                    </p>
-                    <span className="font-mono text-sm text-[#1f8f55]">{queue.amount}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-[#637085]">{queue.detail}</p>
-                </div>
-              ))}
-            </div>
-          </SurfaceCard>
-        </section>
-
-        <section>
-          <SurfaceCard>
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
                   {t('recentActivity')}
                 </p>
@@ -306,32 +293,94 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="mt-6 space-y-3">
-              {recentTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-2xl bg-[#dff3e8] p-3 text-[#1f8f55]">
-                      <MoveUpRight className="h-5 w-5" />
+            <div className="mt-6 space-y-3" aria-live="polite">
+              {activityState.kind === 'disconnected' ? (
+                <p className="rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-6 text-sm text-[#637085]">
+                  {t('connectForActivity')}
+                </p>
+              ) : activityState.kind === 'loading' ? (
+                Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="h-11 w-11 rounded-2xl" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-44" />
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-[#102033]">{transaction.title}</p>
-                      <p className="mt-1 text-sm text-[#637085]">
-                        {transaction.counterparty} • {transaction.time}
-                      </p>
-                    </div>
+                    <Skeleton className="h-4 w-24" />
                   </div>
+                ))
+              ) : activityState.kind === 'error' ? (
+                <p className="rounded-[22px] border border-red-100 bg-red-50 p-6 text-sm font-medium text-red-600">
+                  {t('failedTransactions')}
+                </p>
+              ) : activityState.kind === 'empty' ? (
+                <p className="rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-6 text-sm text-[#637085]">
+                  {t('noTransactions')}
+                </p>
+              ) : (
+                activityState.transactions.map((transaction) => {
+                  const incoming = isIncomingTransaction(transaction, address ?? '');
+                  const counterparty = incoming ? transaction.from : transaction.to;
 
-                  <div className="flex items-center justify-between gap-3 sm:justify-end">
-                    <p className="font-mono text-sm text-[#102033]">{transaction.amount}</p>
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#8c7760]">
-                      {transaction.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="flex flex-col gap-3 rounded-[22px] border border-[#efe3d0] bg-[#fffaf2] p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`rounded-2xl p-3 ${
+                            incoming
+                              ? 'bg-[#dff3e8] text-[#1f8f55]'
+                              : 'bg-[#feecea] text-[#c45a43]'
+                          }`}
+                        >
+                          {incoming ? (
+                            <ArrowDownLeft className="h-5 w-5" />
+                          ) : (
+                            <ArrowUpRight className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-[#102033]">
+                            {transaction.memo ||
+                              (incoming ? t('paymentReceived') : t('paymentSent'))}
+                          </p>
+                          <p className="mt-1 text-sm text-[#637085]">
+                            {counterparty.slice(0, 6)}...{counterparty.slice(-4)} ·{' '}
+                            {formatDate(transaction.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 sm:justify-end">
+                        <p
+                          className={`font-mono text-sm ${
+                            incoming ? 'text-[#1f8f55]' : 'text-[#102033]'
+                          }`}
+                        >
+                          {incoming ? '+' : '-'}
+                          {transaction.amount} {transaction.asset}
+                        </p>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            transaction.successful
+                              ? 'bg-white text-[#8c7760]'
+                              : 'bg-red-50 text-red-600'
+                          }`}
+                        >
+                          {transaction.successful ? t('confirmed') : t('failed')}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </SurfaceCard>
         </section>

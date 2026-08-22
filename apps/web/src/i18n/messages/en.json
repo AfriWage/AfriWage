@@ -28,7 +28,8 @@
     "treasuryWallet": "Treasury wallet",
     "walletCopied": "Wallet copied",
     "fundPayrollBatches": "Use this account to fund payroll batches.",
-    "copyTreasuryWallet": "Copy treasury wallet"
+    "copyTreasuryWallet": "Copy treasury wallet",
+    "treasuryNotConfigured": "No treasury wallet configured."
   },
   "language": {
     "label": "Language",
@@ -70,7 +71,14 @@
     "queueStatus": "Queue status",
     "needsAttention": "What needs attention next",
     "recentActivity": "Recent activity",
-    "confidenceFeed": "Payment confidence feed"
+    "confidenceFeed": "Payment confidence feed",
+    "connectForActivity": "Connect a wallet to load recent activity.",
+    "failedTransactions": "Failed to load recent transactions.",
+    "noTransactions": "No transactions found for this wallet.",
+    "paymentReceived": "Payment received",
+    "paymentSent": "Payment sent",
+    "confirmed": "Confirmed",
+    "failed": "Failed"
   },
   "send": {
     "title": "Send Payment",
@@ -153,7 +161,9 @@
     "freighterNotFound": "Freighter not found",
     "installFreighter": "Install the Freighter browser extension to connect your Stellar wallet.",
     "installButton": "Install Freighter",
-    "connectionFailed": "Connection failed"
+    "connectionFailed": "Connection failed",
+    "networkMismatchTitle": "Wrong network",
+    "networkMismatchDescription": "Your Freighter wallet is on {actualNetwork}, but AfriWage expects {expectedNetwork}. Switch your Freighter network to {expectedNetwork} before sending a payment."
   },
   "batch": {
     "title": "Batch Payments",
@@ -185,6 +195,8 @@
     "startOver": "Start Over",
     "invalidFile": "Please upload a valid .csv file",
     "noValidRows": "No valid payment rows found",
+    "tooManyRows": "Batch file exceeds the limit of {max} payments per file",
+    "fileTooLarge": "File is too large. Maximum size is 1 MB.",
     "invalidAddress": "Invalid Stellar address",
     "invalidAmount": "Amount must be a positive number",
     "missingFields": "Missing required fields (address, amount)",
