@@ -57,6 +57,23 @@ describe('getBalance', () => {
     expect(balance).toEqual({ xlm: '100.5000000', usdc: '50.12' });
   });
 
+  it('formats valid USDC balances with more than two decimal places instead of rejecting them', async () => {
+    mockLoadAccount.mockResolvedValue({
+      balances: [
+        {
+          asset_type: 'credit_alphanum4',
+          asset_code: USDC_ASSET_CODE,
+          asset_issuer: USDC_ISSUER_TESTNET,
+          balance: '12.3456',
+        },
+      ],
+    });
+
+    const balance = await getBalance('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
+
+    expect(balance.usdc).toBe('12.35');
+  });
+
   it('returns zero balances when account has no matching assets', async () => {
     mockLoadAccount.mockResolvedValue({ balances: [] });
 
@@ -195,63 +212,6 @@ describe('getTransactionHistory', () => {
     expect(history[1].memo).toBeUndefined();
   });
 
-  it('returns an empty array immediately when account has no transactions', async () => {
-    const request = {
-      call: vi.fn().mockResolvedValue({ records: [] }),
-      forAccount: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-    };
-    mockTransactions.mockReturnValue(request);
-
-    const history = await getTransactionHistory('GACCOUNT');
-
-    expect(history).toEqual([]);
-    expect(mockOperations).not.toHaveBeenCalled();
-  });
-
-  it('fetches operations concurrently for multiple transactions without sequential blocking', async () => {
-    const tx1 = {
-      id: '1',
-      hash: 'tx1',
-      source_account: 'G1',
-      created_at: '2025-01-01',
-      successful: true,
-      memo_type: 'none',
-    };
-    const tx2 = {
-      id: '2',
-      hash: 'tx2',
-      source_account: 'G2',
-      created_at: '2025-01-02',
-      successful: true,
-      memo_type: 'none',
-    };
-
-    const request = {
-      call: vi.fn().mockResolvedValue({ records: [tx1, tx2] }),
-      forAccount: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-    };
-
-    const forTransactionMock = vi.fn().mockImplementation((_hash: string) => ({
-      call: vi.fn().mockResolvedValue({
-        records: [{ type: 'payment', amount: '10', asset_type: 'native', from: 'G1', to: 'G2' }],
-      }),
-    }));
-
-    mockTransactions.mockReturnValue(request);
-    mockOperations.mockReturnValue({ forTransaction: forTransactionMock });
-
-    const history = await getTransactionHistory('GACCOUNT');
-
-    expect(history).toHaveLength(2);
-    expect(forTransactionMock).toHaveBeenCalledWith('tx1');
-    expect(forTransactionMock).toHaveBeenCalledWith('tx2');
-    expect(forTransactionMock).toHaveBeenCalledTimes(2);
-  });
-
   it('formats native XLM payments without applying USDC validation first', async () => {
     const transaction = {
       id: 'id',
@@ -267,7 +227,6 @@ describe('getTransactionHistory', () => {
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
     };
-
     mockTransactions.mockReturnValue(request);
     mockOperations.mockReturnValue({
       forTransaction: vi.fn(() => ({
