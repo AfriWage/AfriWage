@@ -18,6 +18,13 @@ export async function getTransactions(address: string, options?: { limit?: numbe
   }
   return txs;
 }
+export interface PaymentOperation {
+  sender: string;
+  recipient: string;
+  amount: string;
+  asset: string;
+}
+
 export interface PaymentReceipt {
   verified: boolean;
   hash: string;
@@ -25,6 +32,7 @@ export interface PaymentReceipt {
   recipient: string;
   amount: string;
   asset: string;
+  operations: PaymentOperation[];
   memo?: string;
   createdAt: string;
   explorerUrl: string;
