@@ -95,7 +95,7 @@ export function WithdrawModal({
         authToken,
         assetCode: 'USDC',
         account: publicKey,
-        amount,
+        amount: normalizeWithdrawalAmount(amount),
         destinationAsset: currency,
       });
 
