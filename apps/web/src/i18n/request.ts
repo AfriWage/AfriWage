@@ -17,7 +17,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
   };
 });
 
-function deepMerge<T extends Record<string, unknown>>(base: T, override: Record<string, unknown>): T {
+function deepMerge<T extends Record<string, unknown>>(
+  base: T,
+  override: Record<string, unknown>
+): T {
   const result = { ...base } as Record<string, unknown>;
 
   for (const key of Object.keys(override)) {

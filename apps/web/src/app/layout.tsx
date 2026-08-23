@@ -41,7 +41,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         />
       </head>
-      <body className="font-sans text-brand-on-surface antialiased" style={{ backgroundColor: '#060A06' }}>
+      <body
+        className="font-sans text-brand-on-surface antialiased"
+        style={{ backgroundColor: '#060A06' }}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

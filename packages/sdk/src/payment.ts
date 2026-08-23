@@ -165,8 +165,63 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
       });
     }
   }
+  if (transactions.records.length === 0) {
+    return [];
+  }
 
-  return records;
+  return Promise.all(
+    transactions.records.map(async (tx) => {
+      const opsPage = await server.operations().forTransaction(tx.hash).call();
+      const ops = opsPage.records;
+
+      let type: TransactionRecord['type'] = 'other';
+      let amount = '0';
+      let asset = 'XLM';
+      let from = tx.source_account;
+      let to = '';
+
+      for (const op of ops) {
+        if (op.type === 'payment') {
+          type = 'payment';
+          const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
+          asset =
+            payOp.asset_type === 'native'
+              ? 'XLM'
+              : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
+          amount = formatTransactionHistoryAmount(payOp.amount);
+          from = payOp.from;
+          to = payOp.to;
+          break;
+        }
+        if (op.type === 'create_account') {
+          type = 'create_account';
+          const createOp = op as Horizon.HorizonApi.CreateAccountOperationResponse;
+          asset = 'XLM';
+          amount = formatTransactionHistoryAmount(createOp.starting_balance);
+          to = createOp.account;
+          break;
+        }
+      }
+
+      let memo: string | undefined;
+      if (tx.memo_type === 'text' && tx.memo) {
+        memo = tx.memo;
+      }
+
+      return {
+        id: tx.id,
+        hash: tx.hash,
+        type,
+        amount,
+        asset,
+        from,
+        to,
+        memo,
+        createdAt: tx.created_at,
+        successful: tx.successful,
+      };
+    })
+  );
 }
 
 export async function establishUsdcTrustline(accountSecret: string): Promise<PaymentResult> {

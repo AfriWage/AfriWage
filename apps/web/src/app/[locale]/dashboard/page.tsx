@@ -118,7 +118,9 @@ export default function DashboardPage() {
           <SurfaceCard className="bg-[#fff8ef]">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">{t('payrollRunway')}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
+                  {t('payrollRunway')}
+                </p>
                 <h3 className="mt-2 font-display text-2xl font-semibold text-[#102033]">
                   {address ? t('connectedTreasury') : t('connectTreasury')}
                 </h3>
@@ -180,7 +182,10 @@ export default function DashboardPage() {
                     {funding ? t('funding') : t('fundTestnet')}
                   </button>
                   <p className="text-sm text-[#637085]">
-                    <Link href="/faucet" className="font-medium text-[#1f8f55] underline-offset-2 hover:underline">
+                    <Link
+                      href="/faucet"
+                      className="font-medium text-[#1f8f55] underline-offset-2 hover:underline"
+                    >
                       Public faucet
                     </Link>{' '}
                     &mdash; fund any address without connecting a wallet.
@@ -213,16 +218,17 @@ export default function DashboardPage() {
                     {funding ? t('funding') : t('fundTestnet')}
                   </button>
                   <p className="text-sm text-[#637085]">
-                    <Link href="/faucet" className="font-medium text-[#1f8f55] underline-offset-2 hover:underline">
+                    <Link
+                      href="/faucet"
+                      className="font-medium text-[#1f8f55] underline-offset-2 hover:underline"
+                    >
                       Public faucet
                     </Link>{' '}
                     &mdash; fund any address without connecting a wallet.
                   </p>
                 </div>
               ) : (
-                <p className="font-medium text-[#102033]">
-                  {t('connectToLoad')}
-                </p>
+                <p className="font-medium text-[#102033]">{t('connectToLoad')}</p>
               )}
             </div>
           </SurfaceCard>
@@ -335,9 +341,7 @@ export default function DashboardPage() {
                       <div className="flex items-start gap-4">
                         <div
                           className={`rounded-2xl p-3 ${
-                            incoming
-                              ? 'bg-[#dff3e8] text-[#1f8f55]'
-                              : 'bg-[#feecea] text-[#c45a43]'
+                            incoming ? 'bg-[#dff3e8] text-[#1f8f55]' : 'bg-[#feecea] text-[#c45a43]'
                           }`}
                         >
                           {incoming ? (

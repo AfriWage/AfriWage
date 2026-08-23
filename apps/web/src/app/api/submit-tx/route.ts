@@ -12,10 +12,7 @@ export async function POST(request: Request) {
     const { signedXdr } = body;
 
     if (!signedXdr) {
-      return NextResponse.json(
-        { message: 'signedXdr is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'signedXdr is required' }, { status: 400 });
     }
 
     const transaction = TransactionBuilder.fromXDR(signedXdr, Networks.TESTNET);
