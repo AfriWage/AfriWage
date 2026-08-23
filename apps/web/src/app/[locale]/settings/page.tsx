@@ -15,17 +15,15 @@ export default function SettingsPage() {
   const [twoFa, setTwoFa] = useState(true);
 
   return (
-    <DashboardShell
-      title={t('title')}
-      description={t('description')}
-      actions={<WalletConnect />}
-    >
+    <DashboardShell title={t('title')} description={t('description')} actions={<WalletConnect />}>
       <div className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
         <div className="space-y-6">
           <SurfaceCard>
             <div className="flex items-center gap-3">
               <Building2 className="h-5 w-5 text-[#1f8f55]" />
-              <h2 className="font-display text-2xl font-semibold text-[#102033]">Organization profile</h2>
+              <h2 className="font-display text-2xl font-semibold text-[#102033]">
+                Organization profile
+              </h2>
             </div>
             <div className="mt-6 grid gap-5">
               <label className="grid gap-2 text-sm text-[#637085]">
@@ -52,7 +50,9 @@ export default function SettingsPage() {
           <SurfaceCard>
             <div className="flex items-center gap-3">
               <LockKeyhole className="h-5 w-5 text-[#1f8f55]" />
-              <h2 className="font-display text-2xl font-semibold text-[#102033]">Security posture</h2>
+              <h2 className="font-display text-2xl font-semibold text-[#102033]">
+                Security posture
+              </h2>
             </div>
             <div className="mt-6 flex items-center justify-between rounded-[22px] border border-[#efe3d0] bg-[#fff8ef] p-4">
               <div>
@@ -81,7 +81,9 @@ export default function SettingsPage() {
           <SurfaceCard>
             <div className="flex items-center gap-3">
               <Wallet2 className="h-5 w-5 text-[#1f8f55]" />
-              <h2 className="font-display text-2xl font-semibold text-[#102033]">Payment preferences</h2>
+              <h2 className="font-display text-2xl font-semibold text-[#102033]">
+                Payment preferences
+              </h2>
             </div>
             <div className="mt-6 grid gap-5">
               <label className="grid gap-2 text-sm text-[#637085]">
@@ -111,7 +113,6 @@ export default function SettingsPage() {
               </label>
             </div>
           </SurfaceCard>
-
         </div>
       </div>
     </DashboardShell>

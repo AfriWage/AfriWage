@@ -25,6 +25,8 @@ const nextConfig = {
   experimental: {
     // Required for monorepo workspace packages
     externalDir: true,
+    // Enable src/instrumentation.ts so required server env vars are validated at startup
+    instrumentationHook: true,
   },
 };
 

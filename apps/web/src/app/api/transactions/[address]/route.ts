@@ -1,36 +1,39 @@
 import { NextResponse } from 'next/server';
-import { getTransactionHistory, accountExists } from '@AfriWage/sdk';
+import { NotFoundError } from '@stellar/stellar-sdk';
+import { getTransactionHistory } from '@AfriWage/sdk';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { address: string } }
-) {
+export async function GET(_request: Request, { params }: { params: { address: string } }) {
   const { address } = params;
 
   if (!address || address.length !== 56 || !address.startsWith('G')) {
-    return NextResponse.json(
-      { message: 'Invalid Stellar public key' },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: 'Invalid Stellar public key' }, { status: 400 });
   }
 
   try {
-    const exists = await accountExists(address);
+    const transactions = await getTransactionHistory(address);
 
-    if (!exists) {
+    return NextResponse.json(
+      {
+        address,
+        transactions,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=15',
+        },
+      }
+    );
+  } catch (error) {
+    // `getTransactionHistory` already performs an account-scoped Horizon
+    // request, so a confirmed 404 is mapped to the not-found response instead
+    // of a preflight `accountExists` request that would hit Horizon twice.
+    if (error instanceof NotFoundError) {
       return NextResponse.json(
         { message: 'Account not found on testnet', address, transactions: [] },
         { status: 404 }
       );
     }
 
-    const transactions = await getTransactionHistory(address);
-
-    return NextResponse.json({
-      address,
-      transactions,
-    });
-  } catch (error) {
     console.error('Error fetching transactions:', error);
     return NextResponse.json(
       { message: 'Failed to fetch transactions from Stellar network' },

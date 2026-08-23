@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^12.3.0",
+    "decimal.js": "^10.4.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -29,8 +30,6 @@
     "typescript": "^5.5.3",
     "vitest": "^3.2.4"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT"
 }

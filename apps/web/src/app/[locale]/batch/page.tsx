@@ -1,6 +1,16 @@
 'use client';
 
-import { StrKey } from '@stellar/stellar-sdk';
+import { WalletConnect } from '@/components/WalletConnect';
+import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
+import {
+  type BatchRowErrorCode,
+  MAX_BATCH_PAYMENTS,
+  isBatchFileTooLarge,
+  parseBatchCsv,
+  validateBatchFile,
+} from '@/lib/batch-payment-csv';
+import { sendBatchPaymentsViaFreighter } from '@/lib/payment-client';
+import { cn } from '@/lib/utils';
 import {
   AlertCircle,
   CheckCircle2,
@@ -13,13 +23,10 @@ import {
 import { useTranslations } from 'next-intl';
 import Papa from 'papaparse';
 import { type DragEvent, useCallback, useMemo, useRef, useState } from 'react';
-import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
-import { WalletConnect } from '@/components/WalletConnect';
-import { sendBatchPaymentsViaFreighter } from '@/lib/payment-client';
-import { cn } from '@/lib/utils';
+import { sumUsdcAmounts } from '@/lib/batch-amounts';
 
 type RowStatus = 'pending' | 'sending' | 'sent' | 'failed';
-type Step = 'upload' | 'review' | 'executing' | 'complete';
+type Step = 'upload' | 'review' | 'executing' | 'complete' | 'failed';
 
 interface BatchRow {
   id: string;
@@ -31,48 +38,11 @@ interface BatchRow {
   txHash?: string;
 }
 
-interface CsvRow {
-  address?: string;
-  amount?: string;
-  memo?: string;
-}
-
 const CSV_TEMPLATE = `address,amount,memo
 GBZXN7PIRZGNMHGA7MUUUF4GWTMWBXQKJBNV43IXRAJDYIPXZRPTXOJY,25.00,January payroll
 GCKFBEIYTKP6R7Q5E6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T5Q6T,50.00,Contractor fee`;
 
-const PAYMENT_CHUNK_SIZE = 100;
-
-function validateRow(
-  row: CsvRow,
-  t: ReturnType<typeof useTranslations<'batch'>>
-): { valid: boolean; error?: string; data?: { address: string; amount: string; memo: string } } {
-  const address = row.address?.trim() ?? '';
-  const amount = row.amount?.trim() ?? '';
-  const memo = row.memo?.trim() ?? '';
-
-  if (!address && !amount && !memo) {
-    return { valid: false, error: t('emptyRow') };
-  }
-
-  if (!address || !amount) {
-    return { valid: false, error: t('missingFields') };
-  }
-
-  if (!StrKey.isValidEd25519PublicKey(address)) {
-    return { valid: false, error: t('invalidAddress') };
-  }
-
-  const parsedAmount = Number.parseFloat(amount);
-  if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-    return { valid: false, error: t('invalidAmount') };
-  }
-
-  return {
-    valid: true,
-    data: { address, amount, memo },
-  };
-}
+const PAYMENT_CHUNK_SIZE = MAX_BATCH_PAYMENTS;
 
 export default function BatchPage() {
   const t = useTranslations('batch');
@@ -83,7 +53,18 @@ export default function BatchPage() {
   const [dragOver, setDragOver] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [activeChunk, setActiveChunk] = useState<{ current: number; total: number } | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const rowErrorMessages = useMemo<Record<BatchRowErrorCode, string>>(
+    () => ({
+      emptyRow: t('emptyRow'),
+      missingFields: t('missingFields'),
+      invalidAddress: t('invalidAddress'),
+      invalidAmount: t('invalidAmount'),
+    }),
+    [t]
+  );
 
   const handleConnect = useCallback((pk: string) => setPublicKey(pk), []);
   const handleDisconnect = useCallback(() => setPublicKey(null), []);
@@ -96,11 +77,7 @@ export default function BatchPage() {
   );
 
   const totalAmount = useMemo(
-    () =>
-      rows
-        .filter((r) => !r.error)
-        .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0)
-        .toFixed(2),
+    () => sumUsdcAmounts(rows.filter((r) => !r.error).map((r) => r.amount)),
     [rows]
   );
 
@@ -116,11 +93,7 @@ export default function BatchPage() {
     [completedCount, validRows.length]
   );
   const sentTotal = useMemo(
-    () =>
-      rows
-        .filter((r) => r.status === 'sent')
-        .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0)
-        .toFixed(2),
+    () => sumUsdcAmounts(rows.filter((r) => r.status === 'sent').map((r) => r.amount)),
     [rows]
   );
 
@@ -131,38 +104,48 @@ export default function BatchPage() {
         return;
       }
 
+      if (isBatchFileTooLarge(file.size)) {
+        setFileError(t('fileTooLarge'));
+        return;
+      }
+
       setFileError(null);
 
-      Papa.parse<CsvRow>(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const parsed: BatchRow[] = results.data.map((row, index) => {
-            const validation = validateRow(row, t);
-            return {
-              id: `row-${index}`,
-              address: row.address?.trim() ?? '',
-              amount: row.amount?.trim() ?? '',
-              memo: row.memo?.trim() ?? '',
-              status: 'pending' as const,
-              error: validation.valid ? undefined : validation.error,
-            };
-          });
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = typeof reader.result === 'string' ? reader.result : '';
+        const parsed = parseBatchCsv(text);
+        const fileCheck = validateBatchFile(parsed);
 
-          if (parsed.length === 0) {
+        if (!fileCheck.valid) {
+          if (fileCheck.reason === 'tooManyPayments') {
+            setFileError(t('tooManyRows', { max: MAX_BATCH_PAYMENTS }));
+          } else if (fileCheck.reason === 'parseError') {
+            setFileError(t('invalidFile'));
+          } else {
             setFileError(t('noValidRows'));
-            return;
           }
+          return;
+        }
 
-          setRows(parsed);
-          setStep('review');
-        },
-        error: () => {
-          setFileError(t('invalidFile'));
-        },
-      });
+        const batchRows: BatchRow[] = parsed.rows.map((row, index) => ({
+          id: `row-${index}`,
+          address: row.address,
+          amount: row.amount,
+          memo: row.memo,
+          status: 'pending' as const,
+          error: row.error ? rowErrorMessages[row.error] : undefined,
+        }));
+
+        setRows(batchRows);
+        setStep('review');
+      };
+      reader.onerror = () => {
+        setFileError(t('invalidFile'));
+      };
+      reader.readAsText(file);
     },
-    [t]
+    [t, rowErrorMessages]
   );
 
   const handleFileSelect = (file: File | undefined) => {
@@ -211,8 +194,12 @@ export default function BatchPage() {
 
     setStep('executing');
     setActiveChunk(null);
+    setRunError(null);
 
-    const paymentRows = rows.filter((row) => !row.error);
+    // Only process rows that are still pending so a retry/resume never
+    // resends rows whose transaction already succeeded or that already
+    // failed. Already-sent and already-failed rows are left untouched.
+    const paymentRows = rows.filter((row) => row.status === 'pending');
     const chunks = Array.from(
       { length: Math.ceil(paymentRows.length / PAYMENT_CHUNK_SIZE) },
       (_, index) => paymentRows.slice(index * PAYMENT_CHUNK_SIZE, (index + 1) * PAYMENT_CHUNK_SIZE)
@@ -250,11 +237,20 @@ export default function BatchPage() {
             chunkIds.has(r.id) ? { ...r, status: 'failed' as const, error: message } : r
           )
         );
-        break;
+        setRunError(message);
+        setActiveChunk(null);
+        setStep('failed');
+        return;
       }
     }
 
     setActiveChunk(null);
+    // If there is nothing left to send but some rows failed, stay in the
+    // failed state so the operator can still see the error and export results.
+    if (chunks.length === 0 && rows.some((r) => r.status === 'failed')) {
+      setStep('failed');
+      return;
+    }
     setStep('complete');
   };
 
@@ -263,11 +259,12 @@ export default function BatchPage() {
     setStep('upload');
     setFileError(null);
     setActiveChunk(null);
+    setRunError(null);
   };
 
   const statusLabel = (status: RowStatus, error?: string) => {
     if (error && status === 'pending') return error;
-    if (error && status === 'failed') return `${t('failed')}: ${error}`;
+    if (error && status === 'failed') return t('failed');
     switch (status) {
       case 'pending':
         return t('pending');
@@ -339,7 +336,10 @@ export default function BatchPage() {
           </SurfaceCard>
         )}
 
-        {(step === 'review' || step === 'executing' || step === 'complete') && (
+        {(step === 'review' ||
+          step === 'executing' ||
+          step === 'complete' ||
+          step === 'failed') && (
           <>
             <SurfaceCard>
               <h2 className="font-display text-xl font-semibold text-[#102033]">
@@ -347,8 +347,18 @@ export default function BatchPage() {
                   ? t('previewTitle')
                   : step === 'executing'
                     ? t('executingTitle')
-                    : t('completeTitle')}
+                    : step === 'failed'
+                      ? t('failedTitle')
+                      : t('completeTitle')}
               </h2>
+
+              {step === 'failed' && runError && (
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{t('runFailed', { error: runError })}</span>
+                  <span className="font-medium">{runError}</span>
+                </div>
+              )}
 
               {step === 'executing' && (
                 <div className="mt-4">
@@ -372,7 +382,7 @@ export default function BatchPage() {
                 </div>
               )}
 
-              {step === 'complete' && (
+              {(step === 'complete' || step === 'failed') && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-[18px] border border-[#dff3e8] bg-[#f0fdf4] p-4">
                     <p className="text-sm text-[#637085]">
@@ -485,6 +495,37 @@ export default function BatchPage() {
             {step === 'complete' && (
               <SurfaceCard>
                 <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={handleExportResults}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#102033] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3048]"
+                  >
+                    <Download className="h-4 w-4" />
+                    {t('exportResults')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[#d8cebe] bg-transparent px-6 py-3 text-sm font-semibold text-[#415065] transition-colors hover:bg-[#f3ecdf]"
+                  >
+                    {t('startOver')}
+                  </button>
+                </div>
+              </SurfaceCard>
+            )}
+
+            {step === 'failed' && (
+              <SurfaceCard>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={!publicKey}
+                    onClick={executePayments}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#1f8f55] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#14A800] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    {t('retry')}
+                  </button>
                   <button
                     type="button"
                     onClick={handleExportResults}

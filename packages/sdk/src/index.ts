@@ -59,6 +59,7 @@ export type {
 export {
   FRIENDBOT_URL,
   HORIZON_TESTNET_URL,
+  SendPaymentParamsSchema,
   USDC_ASSET_CODE,
   USDC_ISSUER_TESTNET,
 } from './types';
