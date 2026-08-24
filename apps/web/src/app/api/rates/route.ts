@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 
 const OFF_RAMP_SCOPE = {
