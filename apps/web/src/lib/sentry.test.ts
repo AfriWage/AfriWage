@@ -120,7 +120,7 @@ describe('beforeSend', () => {
 
     const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result).not.toBeNull();
-    expect(result!.exception!.values[0].value).toBe(
+    expect(result!.exception!.values![0]!.value).toBe(
       'Failed with key [STELLAR_SECRET]'
     );
   });
@@ -149,6 +149,7 @@ describe('beforeSend', () => {
 
   it('scrubs sensitive data in breadcrumb data values', () => {
     const event = {
+      type: 'error',
       breadcrumbs: [
         {
           message: 'click',
@@ -165,6 +166,7 @@ describe('beforeSend', () => {
 
   it('scrubs sensitive data in event.extra fields', () => {
     const event = {
+      type: 'error',
       extra: {
         config: 'api_key=abcdef1234567890abcdef12',
         safe: 'nothing sensitive here',
