@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { getAnchorInfo, getTransactionStatus, initiateYellowCardWithdrawal } from '@AfriWage/sdk';
 
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
       return NextResponse.json(info);
     } catch (error) {
       console.error('Error fetching Yellow Card info:', error);
+      Sentry.captureException(error);
       return NextResponse.json(
         { message: 'Failed to fetch Yellow Card anchor information' },
         { status: 502 }
@@ -80,6 +82,7 @@ export async function POST(request: Request) {
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error creating Yellow Card withdrawal:', error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { message: 'Failed to create Yellow Card withdrawal' },
       { status: 502 }

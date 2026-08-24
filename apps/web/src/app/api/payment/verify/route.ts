@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { Horizon } from '@stellar/stellar-sdk';
 import { NextResponse } from 'next/server';
 
@@ -67,6 +68,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
+    Sentry.captureException(error);
 
     if (getHorizonStatus(error) === 404) {
       return NextResponse.json(

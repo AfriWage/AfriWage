@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { NextResponse } from 'next/server';
 import { fundTestnetAccount } from '@AfriWage/sdk';
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Error funding testnet account:', error);
+    Sentry.captureException(error);
     const message = error instanceof Error ? error.message : 'Failed to fund account';
     return NextResponse.json({ message, funded: false }, { status: 502 });
   }
