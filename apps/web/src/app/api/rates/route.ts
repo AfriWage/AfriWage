@@ -37,7 +37,7 @@ export async function GET() {
       'https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=ngn,ghs,kes,zar,tzs,ugx,xof,xaf',
       {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         next: { revalidate: 60 },
       }
@@ -71,10 +71,14 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching rates, using fallback:', error);
-    Sentry.captureException(error);
-    
+
     return NextResponse.json(
-      { ...FALLBACK_RATES, updatedAt: new Date().toISOString(), base: 'USDC', offRamp: OFF_RAMP_SCOPE },
+      {
+        ...FALLBACK_RATES,
+        updatedAt: new Date().toISOString(),
+        base: 'USDC',
+        offRamp: OFF_RAMP_SCOPE,
+      },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',

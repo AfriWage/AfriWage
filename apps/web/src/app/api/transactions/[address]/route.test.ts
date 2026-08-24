@@ -41,6 +41,7 @@ describe('GET /api/transactions/[address]', () => {
     const response = await GET(new Request('http://localhost'), { params: { address } });
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toContain('s-maxage=15');
     expect(await response.json()).toEqual({ address, transactions: history });
     expect(mockGetTransactionHistory).toHaveBeenCalledWith(address);
     expect(mockGetTransactionHistory).toHaveBeenCalledTimes(1);

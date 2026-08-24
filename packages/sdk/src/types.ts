@@ -64,6 +64,7 @@ export type Balance = z.infer<typeof BalanceSchema>;
  */
 export const TransactionRecordSchema = z.object({
   id: z.string(),
+  operationId: z.string(),
   hash: z.string(),
   type: z.enum(['payment', 'create_account', 'other']),
   amount: z.string(),
@@ -80,6 +81,7 @@ export const TransactionRecordSchema = z.object({
  * Inferred from {@link TransactionRecordSchema}.
  *
  * - `id` — Horizon's internal transaction ID
+ * - `operationId` — stable operation-derived ID; unique per payment operation within a transaction
  * - `hash` — the transaction hash; use this for receipt links or block explorer lookups
  * - `type` — `"payment"` | `"create_account"` | `"other"`
  * - `amount` — transaction amount formatted to 2 decimal places

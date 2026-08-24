@@ -36,32 +36,32 @@ export async function GET(request: Request) {
     const opsPage = await server.operations().forTransaction(hash).call();
     const ops = opsPage.records;
 
-    let sender = tx.source_account;
-    let recipient = '';
-    let amount = '0';
-    let asset = 'XLM';
-
-    for (const op of ops) {
-      if (op.type === 'payment') {
+    const operations = ops
+      .filter((op) => op.type === 'payment')
+      .map((op) => {
         const payOp = op as Horizon.HorizonApi.PaymentOperationResponse;
-        sender = payOp.from;
-        recipient = payOp.to;
-        amount = payOp.amount;
-        asset =
-          payOp.asset_type === 'native'
-            ? 'XLM'
-            : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`;
-        break;
-      }
-    }
+        return {
+          sender: payOp.from,
+          recipient: payOp.to,
+          amount: payOp.amount,
+          asset:
+            payOp.asset_type === 'native'
+              ? 'XLM'
+              : `${(payOp as { asset_code?: string }).asset_code ?? 'UNKNOWN'}`,
+        };
+      });
+
+    // Backward-compatible single-payment fields default to the first payment operation.
+    const first = operations[0];
 
     return NextResponse.json({
       verified: tx.successful,
       hash: tx.hash,
-      sender,
-      recipient,
-      amount,
-      asset,
+      sender: first?.sender ?? tx.source_account,
+      recipient: first?.recipient ?? '',
+      amount: first?.amount ?? '0',
+      asset: first?.asset ?? 'XLM',
+      operations,
       memo: tx.memo_type === 'text' ? tx.memo : undefined,
       createdAt: tx.created_at,
       explorerUrl: `https://stellar.expert/explorer/testnet/tx/${tx.hash}`,

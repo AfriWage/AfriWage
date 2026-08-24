@@ -11,10 +11,54 @@ import {
   discoverOffRampAnchor,
   initiateWithdrawal,
 } from '@AfriWage/sdk';
+import { Decimal } from 'decimal.js';
 import { AlertCircle, ArrowDownToLine, CheckCircle2, ExternalLink, Loader2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 type WithdrawStep = 'currency' | 'amount' | 'processing' | 'interactive' | 'success' | 'error';
+
+/** USDC is a 7-digit Stellar asset but off-ramp amounts are quoted in 2-decimal fiat. */
+const USDC_PRECISION = 2;
+
+/**
+ * Validates a withdrawal amount against the connected USDC balance.
+ * Returns a user-facing validation message, or `null` when the amount is valid.
+ * An empty/blank input returns `null` so the field can be left untouched.
+ */
+export function validateWithdrawAmount(amount: string, balance: string): string | null {
+  const trimmed = amount.trim();
+  if (!trimmed) return null;
+
+  // Only accept a plain decimal string (digits with an optional single decimal
+  // point). This rejects scientific notation, multiple separators, signs, and
+  // other strings that `parseFloat`/`Decimal` would otherwise coerce.
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return 'Enter a valid amount';
+
+  let value: Decimal;
+  try {
+    value = new Decimal(trimmed);
+  } catch {
+    return 'Enter a valid amount';
+  }
+
+  if (!value.isFinite() || value.isNaN()) return 'Enter a valid amount';
+  if (value.lte(0)) return 'Amount must be greater than zero';
+
+  const decimalPlaces = value.decimalPlaces();
+  if (decimalPlaces !== null && decimalPlaces > USDC_PRECISION) {
+    return `Amount cannot have more than ${USDC_PRECISION} decimal places`;
+  }
+
+  let balanceValue: Decimal;
+  try {
+    balanceValue = new Decimal(balance);
+  } catch {
+    balanceValue = new Decimal(0);
+  }
+  if (value.gt(balanceValue)) return 'Amount exceeds your available USDC balance';
+
+  return null;
+}
 
 interface WithdrawModalProps {
   open: boolean;
@@ -82,6 +126,15 @@ export function WithdrawModal({
   const handleWithdraw = async () => {
     if (!currency || !anchor || !amount) return;
 
+    const validationMessage = validateWithdrawAmount(amount, usdcBalance);
+    if (validationMessage) {
+      setError(validationMessage);
+      return;
+    }
+
+    // Normalize the raw user string to a canonical decimal before submission.
+    const normalizedAmount = new Decimal(amount.trim()).toFixed(USDC_PRECISION);
+
     setStep('processing');
     setError(null);
 
@@ -97,7 +150,7 @@ export function WithdrawModal({
         authToken,
         assetCode: 'USDC',
         account: publicKey,
-        amount,
+        amount: normalizedAmount,
         destinationAsset: currency,
       });
 
@@ -114,6 +167,8 @@ export function WithdrawModal({
   if (!open) return null;
 
   const usdcWithdrawEnabled = sep24Info?.withdraw?.USDC?.enabled ?? true;
+  const amountValidation = validateWithdrawAmount(amount, usdcBalance);
+  const amountValid = amount.trim() !== '' && amountValidation === null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -216,9 +271,19 @@ export function WithdrawModal({
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="0.00"
+                      aria-invalid={amountValidation ? true : undefined}
                       className="mt-2 w-full rounded-xl border border-[#eadfce] bg-[#fffaf2] px-4 py-3 text-lg font-semibold text-[#102033] outline-none focus:border-[#1f8f55] dark:border-[#1e1e3a] dark:bg-[#0f0f24] dark:text-white"
                     />
                     <p className="mt-1 text-xs text-[#8c7760]">Available: {usdcBalance} USDC</p>
+                    {amountValidation && (
+                      <p
+                        role="alert"
+                        className="mt-1 flex items-start gap-1 text-xs font-medium text-red-600 dark:text-red-400"
+                      >
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        {amountValidation}
+                      </p>
+                    )}
                   </div>
 
                   {!usdcWithdrawEnabled && (
@@ -231,10 +296,10 @@ export function WithdrawModal({
                   <button
                     type="button"
                     onClick={handleWithdraw}
-                    disabled={!amount || Number.parseFloat(amount) <= 0}
+                    disabled={!amountValid}
                     className={cn(
                       'flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors',
-                      amount && Number.parseFloat(amount) > 0
+                      amountValid
                         ? 'bg-[#1f8f55] hover:bg-[#14A800]'
                         : 'cursor-not-allowed bg-[#1f8f55]/50'
                     )}

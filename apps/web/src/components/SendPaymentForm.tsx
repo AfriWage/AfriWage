@@ -46,36 +46,29 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
   const memoLength = memo.length;
 
   const colorClass =
-    memoLength < 20
-      ? 'text-[#6B7280]'
-      : memoLength < 28
-        ? 'text-[#F5A623]'
-        : 'text-[#E24B4A]';
+    memoLength < 20 ? 'text-[#6B7280]' : memoLength < 28 ? 'text-[#F5A623]' : 'text-[#E24B4A]';
 
-  const onSubmit = useCallback(
-    async () => {
-      if (!senderPublicKey) {
-        setErrorMessage(t('connectBeforeSend'));
-        setStatus('error');
-        return;
-      }
+  const onSubmit = useCallback(async () => {
+    if (!senderPublicKey) {
+      setErrorMessage(t('connectBeforeSend'));
+      setStatus('error');
+      return;
+    }
 
-      setStatus('loading');
-      setErrorMessage(null);
-      setTxHash(null);
+    setStatus('loading');
+    setErrorMessage(null);
+    setTxHash(null);
 
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        setTxHash('542a1f2...9a2f77c');
-        setStatus('success');
-        reset();
-      } catch {
-        setErrorMessage(t('paymentFailed'));
-        setStatus('error');
-      }
-    },
-    [senderPublicKey, reset, t]
-  );
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setTxHash('542a1f2...9a2f77c');
+      setStatus('success');
+      reset();
+    } catch {
+      setErrorMessage(t('paymentFailed'));
+      setStatus('error');
+    }
+  }, [senderPublicKey, reset, t]);
 
   const handleReset = useCallback(() => {
     setStatus('idle');
@@ -210,13 +203,8 @@ export function SendPaymentForm({ senderPublicKey, className }: SendPaymentFormP
                 {errors.memo.message}
               </p>
             )}
-            <p
-              aria-live="polite"
-              className={cn('text-right text-xs', colorClass)}
-            >
-              {memoLength}
-              {' '}
-              / 28
+            <p aria-live="polite" className={cn('text-right text-xs', colorClass)}>
+              {memoLength} / 28
             </p>
           </div>
 

@@ -7,11 +7,13 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { address } = body;
 
-    if (!address || typeof address !== 'string' || address.length !== 56 || !address.startsWith('G')) {
-      return NextResponse.json(
-        { message: 'Invalid Stellar public key' },
-        { status: 400 }
-      );
+    if (
+      !address ||
+      typeof address !== 'string' ||
+      address.length !== 56 ||
+      !address.startsWith('G')
+    ) {
+      return NextResponse.json({ message: 'Invalid Stellar public key' }, { status: 400 });
     }
 
     const result = await fundTestnetAccount(address);
@@ -25,9 +27,6 @@ export async function POST(request: Request) {
     console.error('Error funding testnet account:', error);
     Sentry.captureException(error);
     const message = error instanceof Error ? error.message : 'Failed to fund account';
-    return NextResponse.json(
-      { message, funded: false },
-      { status: 502 }
-    );
+    return NextResponse.json({ message, funded: false }, { status: 502 });
   }
 }

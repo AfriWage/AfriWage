@@ -8,6 +8,7 @@ import {
 
 const transaction: TransactionRecord = {
   id: 'transaction-1',
+  operationId: 'transaction-1-0',
   hash: 'hash-1',
   type: 'payment',
   amount: '25.00',

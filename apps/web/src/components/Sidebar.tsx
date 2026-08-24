@@ -38,7 +38,9 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="text-h3 font-h3 text-primary leading-tight">AfriWage</h1>
-          <p className="text-body-sm font-body-sm text-secondary dark:text-[#8888aa]">Enterprise Payroll</p>
+          <p className="text-body-sm font-body-sm text-secondary dark:text-[#8888aa]">
+            Enterprise Payroll
+          </p>
         </div>
       </div>
 
@@ -83,7 +85,9 @@ export function Sidebar() {
         <div className="bg-surface-container-highest rounded-lg p-3 flex items-center justify-between dark:bg-[#16163a]">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary-fixed-dim" />
-            <span className="font-label-mono text-label-mono text-on-surface dark:text-[#c0c0e0]">GA4F...H9X2</span>
+            <span className="font-label-mono text-label-mono text-on-surface dark:text-[#c0c0e0]">
+              GA4F...H9X2
+            </span>
           </div>
           <button
             type="button"

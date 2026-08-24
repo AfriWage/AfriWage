@@ -26,9 +26,7 @@ export default function NotFound() {
       <p className="text-6xl font-bold text-[#14A800] leading-none mb-4">404</p>
 
       {/* Heading */}
-      <h1 className="text-2xl font-bold text-[#111111] mb-3 text-center">
-        Page not found
-      </h1>
+      <h1 className="text-2xl font-bold text-[#111111] mb-3 text-center">Page not found</h1>
 
       {/* Body */}
       <p className="text-[#6B7280] text-base text-center max-w-sm mb-8">
