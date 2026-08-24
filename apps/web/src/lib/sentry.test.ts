@@ -1,3 +1,4 @@
+import type { ErrorEvent } from '@sentry/nextjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { beforeSend, isSentryEnabled, scrubSensitiveData } from './sentry';
 
@@ -118,7 +119,7 @@ describe('beforeSend', () => {
       },
     };
 
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     expect(result).not.toBeNull();
     expect(result!.exception!.values![0]!.value).toBe(
       'Failed with key [STELLAR_SECRET]'
@@ -130,7 +131,7 @@ describe('beforeSend', () => {
       message: 'api_key=abcdef1234567890abcdef12',
     };
 
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     expect(result!.message).toBe('api_key=[API_KEY_REDACTED]');
   });
 
@@ -142,14 +143,13 @@ describe('beforeSend', () => {
       ],
     };
 
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     expect(result!.breadcrumbs![0].message).toBe('api_key=[API_KEY_REDACTED]');
     expect(result!.breadcrumbs![1].message).toBe('safe breadcrumb');
   });
 
   it('scrubs sensitive data in breadcrumb data values', () => {
     const event = {
-      type: 'error',
       breadcrumbs: [
         {
           message: 'click',
@@ -158,7 +158,7 @@ describe('beforeSend', () => {
       ],
     };
 
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     const data = result!.breadcrumbs![0].data as Record<string, string>;
     expect(data.url).toBe('[DATABASE_URL_REDACTED]');
     expect(data.name).toBe('safe');
@@ -166,14 +166,13 @@ describe('beforeSend', () => {
 
   it('scrubs sensitive data in event.extra fields', () => {
     const event = {
-      type: 'error',
       extra: {
         config: 'api_key=abcdef1234567890abcdef12',
         safe: 'nothing sensitive here',
       },
     };
 
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     expect(result!.extra!.config).toBe('api_key=[API_KEY_REDACTED]');
     expect(result!.extra!.safe).toBe('nothing sensitive here');
   });
@@ -183,13 +182,13 @@ describe('beforeSend', () => {
       message: 'Everything is fine',
     };
 
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     expect(result).toEqual(event);
   });
 
   it('handles empty event gracefully', () => {
     const event = {};
-    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
+    const result = beforeSend(event as unknown as ErrorEvent);
     expect(result).toEqual({});
   });
 });
