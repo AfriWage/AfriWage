@@ -107,10 +107,26 @@ export default function ReceiptPage() {
                   </p>
                 </div>
                 <div className="rounded-[24px] border border-[#eadfce] bg-white p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Recipient</p>
-                  <p className="mt-3 font-mono text-sm text-[#102033]">
-                    {truncatePublicKey(receiptQuery.data.recipient, 6)}
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">
+                    {receiptQuery.data.operations.length > 1
+                      ? `Recipients (${receiptQuery.data.operations.length})`
+                      : 'Recipient'}
                   </p>
+                  <div className="mt-3 space-y-2">
+                    {receiptQuery.data.operations.map((op, index) => (
+                      <div
+                        key={`${op.recipient}-${index}`}
+                        className="flex flex-col gap-1 border-b border-[#eadfce] pb-2 last:border-b-0 last:pb-0"
+                      >
+                        <p className="font-mono text-sm text-[#102033]">
+                          {truncatePublicKey(op.recipient, 6)}
+                        </p>
+                        <p className="font-mono text-xs text-[#637085]">
+                          {op.amount} {op.asset}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div className="rounded-[24px] border border-[#eadfce] bg-white p-5">
                   <p className="text-xs uppercase tracking-[0.18em] text-[#8c7760]">Amount</p>

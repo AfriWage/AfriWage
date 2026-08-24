@@ -2,26 +2,27 @@ import { NextResponse } from 'next/server';
 import { NotFoundError } from '@stellar/stellar-sdk';
 import { getTransactionHistory } from '@AfriWage/sdk';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { address: string } }
-) {
+export async function GET(_request: Request, { params }: { params: { address: string } }) {
   const { address } = params;
 
   if (!address || address.length !== 56 || !address.startsWith('G')) {
-    return NextResponse.json(
-      { message: 'Invalid Stellar public key' },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: 'Invalid Stellar public key' }, { status: 400 });
   }
 
   try {
     const transactions = await getTransactionHistory(address);
 
-    return NextResponse.json({
-      address,
-      transactions,
-    });
+    return NextResponse.json(
+      {
+        address,
+        transactions,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=15',
+        },
+      }
+    );
   } catch (error) {
     // `getTransactionHistory` already performs an account-scoped Horizon
     // request, so a confirmed 404 is mapped to the not-found response instead

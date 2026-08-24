@@ -336,6 +336,16 @@ describe('POST /api/anchor/yellowcard', () => {
     expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
   });
 
+  it('rejects a non-USDC asset code so local-currency amounts are never sent as USDC', async () => {
+    const response = await POST(
+      jsonRequest({ ...validBody, assetCode: 'NGN' }, 'action=withdraw')
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ message: 'Only USDC withdrawals are supported' });
+    expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
+  });
+
   it('returns 502 when the withdrawal fails', async () => {
     const account = validPublicKey();
     const validBody = {

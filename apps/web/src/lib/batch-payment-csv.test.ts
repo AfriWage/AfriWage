@@ -106,7 +106,12 @@ describe('batch payment CSV parsing', () => {
     const parsed = parseBatchCsv(csv);
 
     expect(parsed.parseErrors).toEqual([]);
-    expect(parsed.rows.map((row) => row.error)).toEqual([undefined, undefined, undefined, 'invalidAmount']);
+    expect(parsed.rows.map((row) => row.error)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      'invalidAmount',
+    ]);
   });
 
   it('rejects rows with missing required columns', () => {

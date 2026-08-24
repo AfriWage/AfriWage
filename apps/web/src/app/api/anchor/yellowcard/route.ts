@@ -22,6 +22,7 @@ const YellowCardWithdrawalSchema = z.object({
   assetCode: z.string().optional(),
   memo: z.string().optional(),
 });
+import { getAnchorInfo, getTransactionStatus, initiateYellowCardWithdrawal } from '@AfriWage/sdk';
 
 function badRequest(message: string) {
   return NextResponse.json({ message }, { status: 400 });
@@ -88,6 +89,21 @@ export async function POST(request: Request) {
       bankName,
       assetCode: typeof assetCode === 'string' && assetCode.length > 0 ? assetCode : 'USDC',
       memo: typeof memo === 'string' && memo.length > 0 ? memo : undefined,
+    // The amount is denominated in the withdrawal asset. Only USDC is supported
+    // by the Yellow Card off-ramp; reject any other asset code so a local-currency
+    // value is never silently interpreted as a USDC amount.
+    const assetCode = typeof body.assetCode === 'string' ? body.assetCode : 'USDC';
+    if (assetCode !== 'USDC') {
+      return badRequest('Only USDC withdrawals are supported');
+    }
+
+    const response = await initiateYellowCardWithdrawal({
+      amount: body.amount,
+      account: body.account,
+      bankAccount: body.bankAccount,
+      bankName: body.bankName,
+      assetCode,
+      memo: typeof body.memo === 'string' ? body.memo : undefined,
     });
 
     return NextResponse.json(response);

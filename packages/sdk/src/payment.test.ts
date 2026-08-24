@@ -193,6 +193,7 @@ describe('getTransactionHistory', () => {
     expect(history).toMatchObject([
       {
         hash: 'payment-hash',
+        operationId: 'id-0',
         type: 'payment',
         amount: '42.57',
         asset: 'USDC',
@@ -202,6 +203,7 @@ describe('getTransactionHistory', () => {
       },
       {
         hash: 'create-hash',
+        operationId: 'id-create-account',
         type: 'create_account',
         amount: '10.00',
         asset: 'XLM',
@@ -210,6 +212,77 @@ describe('getTransactionHistory', () => {
       },
     ]);
     expect(history[1].memo).toBeUndefined();
+  });
+
+  it('returns one record per payment operation in a multi-payment transaction', async () => {
+    const transaction = {
+      id: 'batch-id',
+      source_account: 'GSENDER',
+      created_at: '2025-01-01T00:00:00Z',
+      successful: true,
+      hash: 'batch-hash',
+      memo_type: 'text',
+      memo: 'Payroll',
+    };
+    const request = {
+      call: vi.fn().mockResolvedValue({ records: [transaction] }),
+      forAccount: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+    };
+    mockTransactions.mockReturnValue(request);
+    mockOperations.mockReturnValue({
+      forTransaction: vi.fn(() => ({
+        call: vi.fn().mockResolvedValue({
+          records: [
+            {
+              type: 'payment',
+              amount: '25.00',
+              asset_type: 'credit_alphanum4',
+              asset_code: 'USDC',
+              from: 'GSENDER',
+              to: 'GRECIPIENT_ONE',
+            },
+            {
+              type: 'payment',
+              amount: '30.00',
+              asset_type: 'credit_alphanum4',
+              asset_code: 'USDC',
+              from: 'GSENDER',
+              to: 'GRECIPIENT_TWO',
+            },
+          ],
+        }),
+      })),
+    });
+
+    const history = await getTransactionHistory('GACCOUNT');
+
+    expect(history).toHaveLength(2);
+    expect(history[0]).toMatchObject({
+      hash: 'batch-hash',
+      operationId: 'batch-id-0',
+      type: 'payment',
+      amount: '25.00',
+      asset: 'USDC',
+      from: 'GSENDER',
+      to: 'GRECIPIENT_ONE',
+      memo: 'Payroll',
+      createdAt: '2025-01-01T00:00:00Z',
+      successful: true,
+    });
+    expect(history[1]).toMatchObject({
+      hash: 'batch-hash',
+      operationId: 'batch-id-1',
+      type: 'payment',
+      amount: '30.00',
+      asset: 'USDC',
+      from: 'GSENDER',
+      to: 'GRECIPIENT_TWO',
+      memo: 'Payroll',
+      createdAt: '2025-01-01T00:00:00Z',
+      successful: true,
+    });
   });
 
   it('formats native XLM payments without applying USDC validation first', async () => {

@@ -39,19 +39,30 @@ export default function HeroVisual() {
       </div>
 
       {/* Centered rotating text overlay */}
-      <div className="hero-text-overlay" style={{ display: 'flex', alignItems: 'center', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 'clamp(32px, 5vw, 54px)', fontWeight: 800, color: 'white' }}>Instant</span>
+      <div
+        className="hero-text-overlay"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        <span style={{ fontSize: 'clamp(32px, 5vw, 54px)', fontWeight: 800, color: 'white' }}>
+          Instant
+        </span>
         <RotatingText
           texts={['Payroll', 'Settlement', 'Transfers', 'Delivery']}
           mainClassName="text-[clamp(28px,4.5vw,48px)] font-extrabold px-5 sm:px-7 py-1.5 sm:py-2.5 bg-[#14A800] text-white overflow-hidden justify-center rounded-2xl"
           staggerFrom="last"
-          initial={{ y: "100%", opacity: 0 }}
+          initial={{ y: '100%', opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "-120%", opacity: 0 }}
+          exit={{ y: '-120%', opacity: 0 }}
           animatePresenceInitial={false}
           staggerDuration={0.025}
           splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-          transition={{ type: "spring", damping: 30, stiffness: 400 }}
+          transition={{ type: 'spring', damping: 30, stiffness: 400 }}
           rotationInterval={2500}
           splitBy="characters"
           auto
