@@ -118,7 +118,7 @@ describe('beforeSend', () => {
       },
     };
 
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result).not.toBeNull();
     expect(result!.exception!.values[0].value).toBe(
       'Failed with key [STELLAR_SECRET]'
@@ -130,7 +130,7 @@ describe('beforeSend', () => {
       message: 'api_key=abcdef1234567890abcdef12',
     };
 
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result!.message).toBe('api_key=[API_KEY_REDACTED]');
   });
 
@@ -142,7 +142,7 @@ describe('beforeSend', () => {
       ],
     };
 
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result!.breadcrumbs![0].message).toBe('api_key=[API_KEY_REDACTED]');
     expect(result!.breadcrumbs![1].message).toBe('safe breadcrumb');
   });
@@ -157,7 +157,7 @@ describe('beforeSend', () => {
       ],
     };
 
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     const data = result!.breadcrumbs![0].data as Record<string, string>;
     expect(data.url).toBe('[DATABASE_URL_REDACTED]');
     expect(data.name).toBe('safe');
@@ -171,7 +171,7 @@ describe('beforeSend', () => {
       },
     };
 
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result!.extra!.config).toBe('api_key=[API_KEY_REDACTED]');
     expect(result!.extra!.safe).toBe('nothing sensitive here');
   });
@@ -181,13 +181,13 @@ describe('beforeSend', () => {
       message: 'Everything is fine',
     };
 
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result).toEqual(event);
   });
 
   it('handles empty event gracefully', () => {
     const event = {};
-    const result = beforeSend(event as any);
+    const result = beforeSend(event as Parameters<typeof beforeSend>[0]);
     expect(result).toEqual({});
   });
 });
