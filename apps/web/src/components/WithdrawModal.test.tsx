@@ -120,7 +120,7 @@ describe('WithdrawModal Component Tests', () => {
       authToken: 'mock-sep10-jwt-token',
       assetCode: 'USDC',
       account: defaultProps.publicKey,
-      amount: '50.0',
+      amount: '50.00',
       destinationAsset: 'NGN',
     });
 
