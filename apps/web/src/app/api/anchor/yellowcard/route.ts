@@ -1,4 +1,27 @@
 import { NextResponse } from 'next/server';
+import {
+  getAnchorInfo,
+  getTransactionStatus,
+  initiateYellowCardWithdrawal,
+  SendPaymentParamsSchema,
+} from '@AfriWage/sdk';
+import { StrKey } from '@stellar/stellar-sdk';
+import { z } from 'zod';
+
+const YellowCardWithdrawalSchema = z.object({
+  amount: SendPaymentParamsSchema.shape.amount.refine((val) => Number.parseFloat(val) > 0, {
+    message: 'amount must be a positive decimal amount',
+  }),
+  account: z
+    .string()
+    .refine((val) => StrKey.isValidEd25519PublicKey(val), {
+      message: 'account must be a valid Stellar public key',
+    }),
+  bankAccount: z.string().trim().min(1, 'bankAccount is required'),
+  bankName: z.string().trim().min(1, 'bankName is required'),
+  assetCode: z.string().optional(),
+  memo: z.string().optional(),
+});
 import { getAnchorInfo, getTransactionStatus, initiateYellowCardWithdrawal } from '@AfriWage/sdk';
 
 function badRequest(message: string) {
@@ -50,16 +73,22 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+    const result = YellowCardWithdrawalSchema.safeParse(body);
 
-    if (
-      typeof body.amount !== 'string' ||
-      typeof body.account !== 'string' ||
-      typeof body.bankAccount !== 'string' ||
-      typeof body.bankName !== 'string'
-    ) {
-      return badRequest('amount, account, bankAccount, and bankName are required');
+    if (!result.success) {
+      const issue = result.error.issues[0];
+      return badRequest(issue?.message || 'Invalid withdrawal parameters');
     }
 
+    const { amount, account, bankAccount, bankName, assetCode, memo } = result.data;
+
+    const response = await initiateYellowCardWithdrawal({
+      amount,
+      account,
+      bankAccount,
+      bankName,
+      assetCode: typeof assetCode === 'string' && assetCode.length > 0 ? assetCode : 'USDC',
+      memo: typeof memo === 'string' && memo.length > 0 ? memo : undefined,
     // The amount is denominated in the withdrawal asset. Only USDC is supported
     // by the Yellow Card off-ramp; reject any other asset code so a local-currency
     // value is never silently interpreted as a USDC amount.
