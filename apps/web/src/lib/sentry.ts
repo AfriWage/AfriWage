@@ -9,7 +9,7 @@ const SENSITIVE_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   // Stellar secret keys (start with S, 56 chars base32)
   { pattern: /\bS[A-Z2-7]{55}\b/g, replacement: '[STELLAR_SECRET]' },
   // Yellow Card / third-party API keys (long alphanumeric strings)
-  { pattern: /(?:api[_-]?key|apikey|secret|token|bearer)\s*[:=]\s*['"]?[\w\-.]{20,}/gi, replacement: '[API_KEY_REDACTED]' },
+  { pattern: /((?:api[_-]?key|apikey|secret|token|bearer)\s*[:=]\s*['"]?)[\w\-.]{20,}/gi, replacement: '$1[API_KEY_REDACTED]' },
   // Full XDR blobs (base64, typically 100+ chars)
   { pattern: /\b[A-Za-z0-9+/_-]{100,}={0,2}\b/g, replacement: '[XDR_REDACTED]' },
   // Postgres connection strings
