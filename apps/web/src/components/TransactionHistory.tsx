@@ -78,6 +78,13 @@ export function TransactionHistory({ publicKey, className }: TransactionHistoryP
   }, [query.data, pageCursor]);
 
   const isIncoming = (tx: TransactionRecord) => tx.to === publicKey;
+
+  const filteredPages = pages.filter((tx) => {
+    if (filter === 'sent') return !isIncoming(tx);
+    if (filter === 'received') return isIncoming(tx);
+    return true;
+  });
+
   const isInitialLoading = query.isLoading && pages.length === 0;
   const hasError = query.isError && pages.length === 0;
   const isLoadingMore = query.isFetching && pages.length > 0;
@@ -139,11 +146,11 @@ export function TransactionHistory({ publicKey, className }: TransactionHistoryP
             Retry
           </button>
         </div>
-      ) : pages.length === 0 ? (
+      ) : filteredPages.length === 0 ? (
         <EmptyState />
       ) : (
         <div className="space-y-4">
-          {pages.map((tx) => {
+          {filteredPages.map((tx) => {
             const incoming = isIncoming(tx);
             const isPayment = tx.type === 'payment';
 
