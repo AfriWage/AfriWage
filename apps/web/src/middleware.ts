@@ -8,11 +8,12 @@ const intlMiddleware = createMiddleware(routing);
 
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   if (pathname.startsWith('/api/')) {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ip = request.ip ?? forwardedFor?.split(',')[0]?.trim() ?? 'unknown';
     const result = rateLimiter.check(ip, pathname);
-    
+
     if (!result.success) {
       return new NextResponse('Too Many Requests', {
         status: 429,
@@ -21,10 +22,10 @@ export default function middleware(request: NextRequest) {
         },
       });
     }
-    
+
     return NextResponse.next();
   }
-  
+
   return intlMiddleware(request);
 }
 

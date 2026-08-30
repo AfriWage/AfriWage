@@ -41,6 +41,29 @@ describe('RateLimiter', () => {
     expect(result.retryAfter).toBe(60);
   });
 
+  it('tracks testnet funding separately from other API requests', () => {
+    const ip = '127.0.0.6';
+
+    for (let i = 0; i < 60; i++) {
+      expect(rateLimiter.check(ip, '/api/build-payment').success).toBe(true);
+    }
+
+    expect(rateLimiter.check(ip, '/api/build-payment').success).toBe(false);
+    expect(rateLimiter.check(ip, '/api/fund-testnet').success).toBe(true);
+  });
+
+  it('returns the remaining window in Retry-After', () => {
+    const ip = '127.0.0.7';
+
+    for (let i = 0; i < 5; i++) {
+      rateLimiter.check(ip, '/api/fund-testnet');
+    }
+
+    vi.advanceTimersByTime(15 * 1000);
+
+    expect(rateLimiter.check(ip, '/api/fund-testnet').retryAfter).toBe(45);
+  });
+
   it('resets the limit after the window expires', () => {
     const ip = '127.0.0.3';
     const endpoint = '/api/fund-testnet';

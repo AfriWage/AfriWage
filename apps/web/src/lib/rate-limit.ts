@@ -5,26 +5,29 @@ export class RateLimiter {
     const now = Date.now();
     const windowMs = 60 * 1000; // 1 minute
 
-    const limit = endpoint.startsWith('/api/fund-testnet') ? 5 : 60;
+    const isTestnetFunding = endpoint.startsWith('/api/fund-testnet');
+    const limit = isTestnetFunding ? 5 : 60;
+    const key = `${ip}:${isTestnetFunding ? 'fund-testnet' : 'api'}`;
 
-    const timestamps = this.store.get(ip) || [];
+    const timestamps = this.store.get(key) || [];
     const validTimestamps = timestamps.filter((t) => now - t < windowMs);
 
+    this.store.set(key, validTimestamps);
+
     if (validTimestamps.length >= limit) {
-      return { success: false, limit, remaining: 0, retryAfter: 60 };
+      const retryAfter = Math.max(1, Math.ceil((validTimestamps[0] + windowMs - now) / 1000));
+      return { success: false, limit, remaining: 0, retryAfter };
     }
 
     validTimestamps.push(now);
-    this.store.set(ip, validTimestamps);
 
     return { success: true, limit, remaining: limit - validTimestamps.length };
   }
 }
 
 // In Next.js middleware, globalThis is preserved between requests on the same isolate
-const global = globalThis as any;
-if (!global.apiRateLimiter) {
-  global.apiRateLimiter = new RateLimiter();
-}
+const globalForRateLimiter = globalThis as typeof globalThis & {
+  apiRateLimiter?: RateLimiter;
+};
 
-export const rateLimiter: RateLimiter = global.apiRateLimiter;
+export const rateLimiter = (globalForRateLimiter.apiRateLimiter ??= new RateLimiter());
