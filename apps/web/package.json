@@ -22,6 +22,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "decimal.js": "^10.4.3",
+    "drizzle-orm": "^0.33.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.400.0",
     "motion": "^12.38.0",
