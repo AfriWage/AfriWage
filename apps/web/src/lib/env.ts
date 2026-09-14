@@ -1,3 +1,4 @@
+import { StrKey } from '@stellar/stellar-sdk';
 import { z } from 'zod';
 
 /**
@@ -11,6 +12,11 @@ import { z } from 'zod';
  * `NEXT_PUBLIC_*` variables are intentionally excluded from server-only
  * validation: they are inlined into the client bundle at build time and read
  * with safe defaults in `src/lib/stellar.ts`.
+ *
+ * `NEXT_PUBLIC_AUTH_HOME_DOMAIN` is the one deliberate exception. SEP-10 binds
+ * a challenge to a home domain, and the server builds that challenge — so an
+ * unset or malformed value produces challenges no client can validate. It has
+ * no safe default, which is exactly what this schema exists to catch.
  */
 
 const serverEnvSchema = z.object({
@@ -62,6 +68,52 @@ const serverEnvSchema = z.object({
       .url('YELLOWCARD_API_URL must be a valid URL')
       .optional()
   ),
+
+  /**
+   * Stellar secret key the server signs SEP-10 challenge transactions with.
+   *
+   * This key is the challenge's source account and never holds funds or signs
+   * anything that moves value — an org's treasury is only ever authorised
+   * client-side via Freighter. Server-only: never import this module from a
+   * client component.
+   */
+  AUTH_SERVER_SIGNING_KEY: z
+    .string({
+      required_error: 'AUTH_SERVER_SIGNING_KEY is required — add it to your .env.local',
+      invalid_type_error: 'AUTH_SERVER_SIGNING_KEY must be a string',
+    })
+    .trim()
+    .refine(
+      (value) => StrKey.isValidEd25519SecretSeed(value),
+      'AUTH_SERVER_SIGNING_KEY must be a valid Stellar secret key (starts with S)'
+    ),
+
+  /** HMAC secret for the HS256 session JWT issued after SEP-10 verification. */
+  JWT_SECRET: z
+    .string({
+      required_error: 'JWT_SECRET is required — add it to your .env.local',
+      invalid_type_error: 'JWT_SECRET must be a string',
+    })
+    .trim()
+    .min(32, 'JWT_SECRET must be at least 32 characters'),
+
+  /**
+   * AfriWage's own home domain, used as the SEP-10 `manage_data` key
+   * (`"<home_domain> auth"`) so a challenge signed for another site cannot be
+   * replayed here. A bare hostname — no scheme, no path, no trailing slash.
+   */
+  NEXT_PUBLIC_AUTH_HOME_DOMAIN: z
+    .string({
+      required_error: 'NEXT_PUBLIC_AUTH_HOME_DOMAIN is required — add it to your .env.local',
+      invalid_type_error: 'NEXT_PUBLIC_AUTH_HOME_DOMAIN must be a string',
+    })
+    .trim()
+    .min(1, 'NEXT_PUBLIC_AUTH_HOME_DOMAIN must not be empty')
+    .refine(
+      (value) =>
+        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*(:\d+)?$/i.test(value),
+      'NEXT_PUBLIC_AUTH_HOME_DOMAIN must be a bare host such as afriwage.app or localhost:3000 — no scheme or path'
+    ),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
