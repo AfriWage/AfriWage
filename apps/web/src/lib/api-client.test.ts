@@ -54,7 +54,7 @@ describe('apiFetch', () => {
   it('flags a 401 so callers can prompt for login instead of retrying', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ message: 'Authentication required' }, 401));
 
-    const error = await apiFetch('/api/orgs').catch((caught) => caught as ApiClientError);
+    const error = (await apiFetch("/api/orgs").catch((caught) => caught)) as ApiClientError;
 
     expect(error.isUnauthenticated).toBe(true);
     expect(error.status).toBe(401);
@@ -63,7 +63,7 @@ describe('apiFetch', () => {
   it('does not flag a 403 as unauthenticated — the session is valid, the role is not', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ message: 'Not permitted' }, 403));
 
-    const error = await apiFetch('/api/orgs').catch((caught) => caught as ApiClientError);
+    const error = (await apiFetch("/api/orgs").catch((caught) => caught)) as ApiClientError;
 
     expect(error.isUnauthenticated).toBe(false);
   });

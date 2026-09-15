@@ -3,6 +3,7 @@ import { StrKey } from '@stellar/stellar-sdk';
 import { Decimal } from 'decimal.js';
 import { z } from 'zod';
 import { badRequest } from './api-errors';
+import { OFFRAMP_CURRENCIES, type OfframpCurrency, WAGE_CURRENCIES } from './org-currencies';
 import { ORG_ROLES } from './org-roles';
 
 /**
@@ -13,13 +14,8 @@ import { ORG_ROLES } from './org-roles';
  * field name rather than leaking a zod issue tree to the client.
  */
 
-/** Fiat off-ramp currencies the existing Yellow Card / SEP-24 flow supports. */
-export const OFFRAMP_CURRENCIES = ['NGN', 'GHS'] as const;
-
-export type OfframpCurrency = (typeof OFFRAMP_CURRENCIES)[number];
-
-/** Only USDC is payable today — `build-payment.ts` builds USDC operations only. */
-export const WAGE_CURRENCIES = ['USDC'] as const;
+export { OFFRAMP_CURRENCIES, WAGE_CURRENCIES };
+export type { OfframpCurrency };
 
 const OfframpCurrencySchema = z.enum(OFFRAMP_CURRENCIES);
 
