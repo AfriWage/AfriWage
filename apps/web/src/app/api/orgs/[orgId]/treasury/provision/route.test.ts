@@ -1,5 +1,6 @@
 import { Keypair } from '@stellar/stellar-sdk';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { stubServerEnv } from '@/test/env-stub';
 import { createDrizzleDouble } from '@/test/drizzle-double';
 
 const OWNER = Keypair.random().publicKey();
@@ -41,16 +42,12 @@ vi.mock('@/lib/require-org', async () => {
 let route: typeof import('./route');
 
 beforeAll(async () => {
-  vi.stubEnv('POSTGRES_URL', 'postgres://user:password@host:5432/dbname');
-  vi.stubEnv('YELLOWCARD_API_KEY', 'sandbox-test-key');
-  vi.stubEnv('AUTH_SERVER_SIGNING_KEY', Keypair.random().secret());
-  vi.stubEnv('JWT_SECRET', 'm'.repeat(32));
-  vi.stubEnv('NEXT_PUBLIC_AUTH_HOME_DOMAIN', 'afriwage.test');
+  stubServerEnv();
   vi.stubEnv(
     'CHARTER_FACTORY_CONTRACT_ID',
     'CCUQBFFRGR4RUWHKLWSRWKBL3WORHNTHFLTKMHTNUZL4T5733ODN5WD4'
   );
-  vi.stubEnv('CHARTER_FACTORY_DEPLOYER_SECRET_KEY', Keypair.random().secret());
+  stubServerEnv();
   vi.stubEnv(
     'CHARTER_TREASURY_TOKEN_CONTRACT_ID',
     'CAH4PUADD2X3K52TKETWTIL4GHPZT55LWUEVVOSH6B3D3KA2ZH7HQGTT'

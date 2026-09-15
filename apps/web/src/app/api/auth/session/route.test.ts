@@ -1,5 +1,6 @@
 import { Keypair } from '@stellar/stellar-sdk';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { stubServerEnv } from '@/test/env-stub';
 
 const WALLET = Keypair.random().publicKey();
 
@@ -7,11 +8,7 @@ let GET: typeof import('./route').GET;
 let auth: typeof import('@/lib/auth');
 
 beforeAll(async () => {
-  vi.stubEnv('POSTGRES_URL', 'postgres://user:password@host:5432/dbname');
-  vi.stubEnv('YELLOWCARD_API_KEY', 'sandbox-test-key');
-  vi.stubEnv('AUTH_SERVER_SIGNING_KEY', Keypair.random().secret());
-  vi.stubEnv('JWT_SECRET', 'h'.repeat(32));
-  vi.stubEnv('NEXT_PUBLIC_AUTH_HOME_DOMAIN', 'afriwage.test');
+  stubServerEnv();
   ({ GET } = await import('./route'));
   auth = await import('@/lib/auth');
 });

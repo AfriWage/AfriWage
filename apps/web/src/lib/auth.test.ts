@@ -1,6 +1,7 @@
 import { Keypair } from '@stellar/stellar-sdk';
 import jwt from 'jsonwebtoken';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { stubServerEnv } from '@/test/env-stub';
 
 type AuthModule = typeof import('./auth');
 
@@ -11,11 +12,10 @@ const WALLET = Keypair.random().publicKey();
 let auth: AuthModule;
 
 beforeAll(async () => {
-  vi.stubEnv('POSTGRES_URL', 'postgres://user:password@host:5432/dbname');
-  vi.stubEnv('YELLOWCARD_API_KEY', 'sandbox-test-key');
-  vi.stubEnv('AUTH_SERVER_SIGNING_KEY', Keypair.random().secret());
-  vi.stubEnv('JWT_SECRET', JWT_SECRET);
-  vi.stubEnv('NEXT_PUBLIC_AUTH_HOME_DOMAIN', HOME_DOMAIN);
+  stubServerEnv({
+    JWT_SECRET,
+    NEXT_PUBLIC_AUTH_HOME_DOMAIN: HOME_DOMAIN,
+  });
   auth = await import('./auth');
 });
 

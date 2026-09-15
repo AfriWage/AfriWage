@@ -6,6 +6,7 @@ import {
   WebAuth,
 } from '@stellar/stellar-sdk';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { stubServerEnv } from '@/test/env-stub';
 
 type Sep10Module = typeof import('./sep10');
 
@@ -15,11 +16,10 @@ const HOME_DOMAIN = 'afriwage.test';
 let sep10: Sep10Module;
 
 beforeAll(async () => {
-  vi.stubEnv('POSTGRES_URL', 'postgres://user:password@host:5432/dbname');
-  vi.stubEnv('YELLOWCARD_API_KEY', 'sandbox-test-key');
-  vi.stubEnv('AUTH_SERVER_SIGNING_KEY', SERVER_KEYPAIR.secret());
-  vi.stubEnv('JWT_SECRET', 'b'.repeat(32));
-  vi.stubEnv('NEXT_PUBLIC_AUTH_HOME_DOMAIN', HOME_DOMAIN);
+  stubServerEnv({
+    AUTH_SERVER_SIGNING_KEY: SERVER_KEYPAIR.secret(),
+    NEXT_PUBLIC_AUTH_HOME_DOMAIN: HOME_DOMAIN,
+  });
   sep10 = await import('./sep10');
 });
 
