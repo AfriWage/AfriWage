@@ -7,6 +7,10 @@
  * the server's message, which is the only useful part.
  */
 
+/** The options bag `fetch` accepts. Spelled structurally so the type does not
+ * depend on a DOM lib global being in scope for every consumer. */
+type FetchInit = Parameters<typeof fetch>[1];
+
 export class ApiClientError extends Error {
   constructor(
     message: string,
@@ -22,7 +26,7 @@ export class ApiClientError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiFetch<T>(path: string, init?: FetchInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: {

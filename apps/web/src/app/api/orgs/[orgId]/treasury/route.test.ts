@@ -179,10 +179,10 @@ describe('POST /api/orgs/[orgId]/treasury', () => {
   });
 
   it.each([
-    [{}, 'a missing hash'],
-    [{ transactionHash: 'too-short' }, 'a malformed hash'],
-    [{ transactionHash: 123 }, 'a non-string hash'],
-  ])('rejects %j (%s) with 400', async (body, _description) => {
+    { body: {}, description: 'a missing hash' },
+    { body: { transactionHash: 'too-short' }, description: 'a malformed hash' },
+    { body: { transactionHash: 123 }, description: 'a non-string hash' },
+  ])('rejects $description with 400', async ({ body }) => {
     const response = await post(body);
 
     expect(response.status).toBe(400);

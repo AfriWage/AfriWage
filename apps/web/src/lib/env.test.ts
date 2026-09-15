@@ -39,6 +39,13 @@ const validEnv = {
   CHARTER_TREASURY_TOKEN_CONTRACT_ID: TEST_TOKEN_ID,
 };
 
+/** Builds the fixture without one variable, to prove it is required by name. */
+function omit<T extends object, K extends keyof T>(source: T, key: K): Omit<T, K> {
+  const copy = { ...source };
+  delete copy[key];
+  return copy;
+}
+
 describe('parseEnv', () => {
   it('returns the parsed values when all required variables are present', () => {
     const parsed = envModule.parseEnv(validEnv);
@@ -69,15 +76,13 @@ describe('parseEnv', () => {
   });
 
   it('throws an error naming the missing POSTGRES_URL', () => {
-    const { POSTGRES_URL: _omitted, ...withoutPostgres } = validEnv;
-
-    expect(() => envModule.parseEnv(withoutPostgres)).toThrow(/POSTGRES_URL/);
+    expect(() => envModule.parseEnv(omit(validEnv, 'POSTGRES_URL'))).toThrow(/POSTGRES_URL/);
   });
 
   it('throws an error naming the missing YELLOWCARD_API_KEY', () => {
-    const { YELLOWCARD_API_KEY: _omitted, ...withoutApiKey } = validEnv;
-
-    expect(() => envModule.parseEnv(withoutApiKey)).toThrow(/YELLOWCARD_API_KEY/);
+    expect(() => envModule.parseEnv(omit(validEnv, 'YELLOWCARD_API_KEY'))).toThrow(
+      /YELLOWCARD_API_KEY/
+    );
   });
 
   it('throws when POSTGRES_URL is not a postgres connection string', () => {

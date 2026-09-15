@@ -46,7 +46,9 @@ beforeEach(() => {
 
 const params = { params: { orgId: ORG_ID } };
 
-function request(url: string, init: RequestInit = {}): Request {
+type FetchInit = Parameters<typeof fetch>[1];
+
+function request(url: string, init: FetchInit = {}): Request {
   return new Request(url, { headers: { 'Content-Type': 'application/json' }, ...init });
 }
 

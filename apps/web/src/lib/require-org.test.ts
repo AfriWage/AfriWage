@@ -5,8 +5,6 @@ import { stubServerEnv } from '@/test/env-stub';
 type RequireOrgModule = typeof import('./require-org');
 type AuthModule = typeof import('./auth');
 
-const JWT_SECRET = 'e'.repeat(32);
-const HOME_DOMAIN = 'afriwage.test';
 const ORG_ID = '4f6d2f6e-0a4f-4c11-9a4c-2f1e0d7b5c31';
 const WALLET = Keypair.random().publicKey();
 

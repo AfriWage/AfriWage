@@ -47,10 +47,10 @@ describe('parseChallengeRequest', () => {
   });
 
   it.each([
-    [undefined, 'a missing publicKey'],
-    ['not-a-key', 'a malformed publicKey'],
-    [Keypair.random().secret(), 'a secret key in place of a public key'],
-  ])('rejects %s (%s)', (publicKey, _description) => {
+    { publicKey: undefined, description: 'a missing publicKey' },
+    { publicKey: 'not-a-key', description: 'a malformed publicKey' },
+    { publicKey: Keypair.random().secret(), description: 'a secret key, not a public key' },
+  ])('rejects $description', ({ publicKey }) => {
     expect(() => sep10.parseChallengeRequest({ publicKey })).toThrow(sep10.Sep10Error);
   });
 

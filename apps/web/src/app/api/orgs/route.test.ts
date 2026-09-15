@@ -43,7 +43,9 @@ beforeEach(() => {
   drizzle.reset();
 });
 
-function authed(init: RequestInit = {}): Request {
+type FetchInit = Parameters<typeof fetch>[1];
+
+function authed(init: FetchInit = {}): Request {
   const token = auth.createSessionToken(WALLET);
   return new Request('http://localhost/api/orgs', {
     ...init,
@@ -137,11 +139,14 @@ describe('POST /api/orgs', () => {
   });
 
   it.each([
-    [{}, 'a missing name'],
-    [{ name: '   ' }, 'a blank name'],
-    [{ name: 'a'.repeat(121) }, 'an over-long name'],
-    [{ name: 'Kano', defaultOfframpCurrency: 'KES' }, 'an unsupported off-ramp currency'],
-  ])('rejects %j (%s) with 400', async (body, _description) => {
+    { body: {}, description: 'a missing name' },
+    { body: { name: '   ' }, description: 'a blank name' },
+    { body: { name: 'a'.repeat(121) }, description: 'an over-long name' },
+    {
+      body: { name: 'Kano', defaultOfframpCurrency: 'KES' },
+      description: 'an unsupported off-ramp currency',
+    },
+  ])('rejects $description with 400', async ({ body }) => {
     const response = await POST(authed({ method: 'POST', body: JSON.stringify(body) }));
 
     expect(response.status).toBe(400);

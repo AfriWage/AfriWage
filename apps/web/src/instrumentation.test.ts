@@ -30,27 +30,30 @@ beforeEach(() => {
   vi.unstubAllEnvs();
 });
 
+/** Builds the fixture without one variable, to prove it is required by name. */
+function omit<T extends object, K extends keyof T>(source: T, key: K): Omit<T, K> {
+  const copy = { ...source };
+  delete copy[key];
+  return copy;
+}
+
 describe('register()', () => {
   it('boots cleanly with a valid environment on the nodejs runtime', async () => {
     await expect(registerWith(validEnv)).resolves.toBeUndefined();
   });
 
   it('fails startup when a required auth variable is missing on the nodejs runtime', async () => {
-    const { JWT_SECRET: _omitted, ...withoutJwtSecret } = validEnv;
-
-    await expect(registerWith(withoutJwtSecret)).rejects.toThrow(/JWT_SECRET/);
+    await expect(registerWith(omit(validEnv, 'JWT_SECRET'))).rejects.toThrow(/JWT_SECRET/);
   });
 
   it('fails startup when a required variable is missing on the nodejs runtime', async () => {
-    const { POSTGRES_URL: _omitted, ...withoutPostgres } = validEnv;
-
-    await expect(registerWith(withoutPostgres)).rejects.toThrow(/POSTGRES_URL/);
+    await expect(registerWith(omit(validEnv, 'POSTGRES_URL'))).rejects.toThrow(/POSTGRES_URL/);
   });
 
   it('fails startup on a malformed same-scheme POSTGRES_URL on the nodejs runtime', async () => {
-    await expect(
-      registerWith({ ...validEnv, POSTGRES_URL: 'postgres://' })
-    ).rejects.toThrow(/POSTGRES_URL/);
+    await expect(registerWith({ ...validEnv, POSTGRES_URL: 'postgres://' })).rejects.toThrow(
+      /POSTGRES_URL/
+    );
   });
 
   it('does not import or validate the environment on other runtimes', async () => {
