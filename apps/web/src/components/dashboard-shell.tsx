@@ -3,6 +3,7 @@
 import {
   ArrowUpRight,
   Building2,
+  Receipt,
   Copy,
   LayoutDashboard,
   Settings,
@@ -36,6 +37,7 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
     { href: '/send' as const, label: t('sendPayment'), icon: ArrowUpRight },
     { href: '/batch' as const, label: t('batchPayments'), icon: Upload },
     { href: '/organizations' as const, label: t('organizations'), icon: Building2 },
+    { href: '/payroll' as const, label: t('payroll'), icon: Receipt },
     { href: '/transactions' as const, label: t('transactions'), icon: Waves },
     { href: '/wallet' as const, label: t('wallet'), icon: Wallet },
     { href: '/settings' as const, label: t('settings'), icon: Settings },
