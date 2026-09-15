@@ -80,6 +80,17 @@ export type {
   TreasuryState,
 } from './charter';
 
+// Charter indexer — optional read-only REST API in front of the contracts
+export {
+  CharterIndexerError,
+  getIndexedOrg,
+  getIndexedRequest,
+  getIndexerHealth,
+  listIndexedCategories,
+  listIndexedRequests,
+} from './charter-indexer';
+export type { IndexedCategory, IndexedOrg, IndexedRequest } from './charter-indexer';
+
 export type {
   Balance,
   PaymentResult,
