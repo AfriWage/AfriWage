@@ -29,6 +29,7 @@
     "walletCopied": "Wallet don copy",
     "fundPayrollBatches": "Use dis account to fund payroll batches.",
     "copyTreasuryWallet": "Copy treasury wallet",
+    "treasuryNotConfigured": "No treasury wallet dey configured.",
     "organizations": "Organizations",
     "payroll": "Payroll"
   },
