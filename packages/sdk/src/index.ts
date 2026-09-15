@@ -49,6 +49,36 @@ export type {
   AnchorWithdrawalParams,
 } from './anchors/yellowcard';
 
+// Charter Soroban treasury — builds unsigned XDR only, never signs
+export {
+  approvePayout,
+  CharterError,
+  createSpendCategory,
+  depositToTreasury,
+  fromTokenUnits,
+  getOrgRecord,
+  getPayoutRequest,
+  getTreasuryState,
+  provisionTreasury,
+  readDeployedOrgId,
+  requestPayout,
+  toTokenUnits,
+  TREASURY_TOKEN_DECIMALS,
+} from './charter';
+export type {
+  ApprovePayoutParams,
+  CharterCategory,
+  CharterConfig,
+  CharterOrgRecord,
+  CharterRequest,
+  CharterRequestStatus,
+  CreateSpendCategoryParams,
+  DepositParams,
+  ProvisionTreasuryParams,
+  RequestPayoutParams,
+  TreasuryState,
+} from './charter';
+
 export type {
   Balance,
   PaymentResult,
