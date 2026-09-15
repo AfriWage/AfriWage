@@ -72,3 +72,56 @@ export const employees = pgTable('employees', {
   active: boolean('active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+/**
+ * A governed payroll run.
+ *
+ * This is the persisted counterpart to the ad-hoc `/batch` CSV send, which
+ * stays as the lighter-weight option. A run moves through:
+ *
+ *   draft → pending_approval → approved → executing → settled
+ *
+ * with `failed` reachable from any in-flight state. `pending_approval` onwards
+ * mirrors a Charter spend request: `charterRequestId` is the on-chain request
+ * the org's payers approve, and Charter executes the payout itself once the
+ * approval threshold is met.
+ */
+export const payrollRuns = pgTable('payroll_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id')
+    .notNull()
+    .references(() => organizations.id),
+  status: text('status').notNull().default('draft'),
+  totalAmount: text('total_amount').notNull(),
+  /** Wallet public key of the member who created the run. */
+  createdBy: text('created_by').notNull(),
+  /** Charter request id, set once `submit_request` has been executed on-chain. */
+  charterRequestId: text('charter_request_id'),
+  createdAt: timestamp('created_at').defaultNow(),
+  executedAt: timestamp('executed_at'),
+});
+
+/**
+ * One employee's line in a payroll run, with its own settlement state.
+ *
+ * `offrampStatus` is null when the payout stays on-chain as USDC. When the
+ * employee has a `payoutOfframpCurrency`, it tracks the SEP-24 / Yellow Card
+ * withdrawal so a worker waiting on local currency can be told where their
+ * money actually is.
+ */
+export const payrollRunItems = pgTable('payroll_run_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  payrollRunId: uuid('payroll_run_id')
+    .notNull()
+    .references(() => payrollRuns.id, { onDelete: 'cascade' }),
+  employeeId: uuid('employee_id')
+    .notNull()
+    .references(() => employees.id),
+  amount: text('amount').notNull(),
+  onchainTxHash: text('onchain_tx_hash'),
+  /** null (staying on-chain) | 'pending' | 'complete' | 'failed' */
+  offrampStatus: text('offramp_status'),
+  /** Yellow Card / SEP-24 transaction id. */
+  offrampAnchorTxId: text('offramp_anchor_tx_id'),
+  settledAt: timestamp('settled_at'),
+});
