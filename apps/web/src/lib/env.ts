@@ -1,3 +1,4 @@
+import { StrKey } from '@stellar/stellar-sdk';
 import { z } from 'zod';
 
 /**
@@ -11,7 +12,30 @@ import { z } from 'zod';
  * `NEXT_PUBLIC_*` variables are intentionally excluded from server-only
  * validation: they are inlined into the client bundle at build time and read
  * with safe defaults in `src/lib/stellar.ts`.
+ *
+ * `NEXT_PUBLIC_AUTH_HOME_DOMAIN` is the one deliberate exception. SEP-10 binds
+ * a challenge to a home domain, and the server builds that challenge — so an
+ * unset or malformed value produces challenges no client can validate. It has
+ * no safe default, which is exactly what this schema exists to catch.
  */
+
+/**
+ * Soroban contract ids share one shape, so their schema is built once. A
+ * classic account id (`G…`) pasted in place of a contract id (`C…`) is the
+ * likely mistake, and StrKey rejects it by name rather than at call time.
+ */
+function contractIdSchema(name: string) {
+  return z
+    .string({
+      required_error: `${name} is required — add it to your .env.local`,
+      invalid_type_error: `${name} must be a string`,
+    })
+    .trim()
+    .refine(
+      (value) => StrKey.isValidContract(value),
+      `${name} must be a Soroban contract id (starts with C)`
+    );
+}
 
 const serverEnvSchema = z.object({
   /**
@@ -61,6 +85,119 @@ const serverEnvSchema = z.object({
       .trim()
       .url('YELLOWCARD_API_URL must be a valid URL')
       .optional()
+  ),
+
+  /**
+   * Stellar secret key the server signs SEP-10 challenge transactions with.
+   *
+   * This key is the challenge's source account and never holds funds or signs
+   * anything that moves value — an org's treasury is only ever authorised
+   * client-side via Freighter. Server-only: never import this module from a
+   * client component.
+   */
+  AUTH_SERVER_SIGNING_KEY: z
+    .string({
+      required_error: 'AUTH_SERVER_SIGNING_KEY is required — add it to your .env.local',
+      invalid_type_error: 'AUTH_SERVER_SIGNING_KEY must be a string',
+    })
+    .trim()
+    .refine(
+      (value) => StrKey.isValidEd25519SecretSeed(value),
+      'AUTH_SERVER_SIGNING_KEY must be a valid Stellar secret key (starts with S)'
+    ),
+
+  /** HMAC secret for the HS256 session JWT issued after SEP-10 verification. */
+  JWT_SECRET: z
+    .string({
+      required_error: 'JWT_SECRET is required — add it to your .env.local',
+      invalid_type_error: 'JWT_SECRET must be a string',
+    })
+    .trim()
+    .min(32, 'JWT_SECRET must be at least 32 characters'),
+
+  /**
+   * AfriWage's own home domain, used as the SEP-10 `manage_data` key
+   * (`"<home_domain> auth"`) so a challenge signed for another site cannot be
+   * replayed here. A bare hostname — no scheme, no path, no trailing slash.
+   */
+  NEXT_PUBLIC_AUTH_HOME_DOMAIN: z
+    .string({
+      required_error: 'NEXT_PUBLIC_AUTH_HOME_DOMAIN is required — add it to your .env.local',
+      invalid_type_error: 'NEXT_PUBLIC_AUTH_HOME_DOMAIN must be a string',
+    })
+    .trim()
+    .min(1, 'NEXT_PUBLIC_AUTH_HOME_DOMAIN must not be empty')
+    .refine(
+      (value) =>
+        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*(:\d+)?$/i.test(value),
+      'NEXT_PUBLIC_AUTH_HOME_DOMAIN must be a bare host such as afriwage.app or localhost:3000 — no scheme or path'
+    ),
+
+  /**
+   * Charter factory contract that deploys per-organization treasuries.
+   *
+   * @see docs/charter-treasury.md
+   */
+  CHARTER_FACTORY_CONTRACT_ID: contractIdSchema('CHARTER_FACTORY_CONTRACT_ID'),
+
+  /**
+   * Secret key of the Charter factory's registered `deployer`.
+   *
+   * Charter's factory is permissioned: `deploy_treasury` requires the stored
+   * deployer to authorise every deployment, so an organization cannot provision
+   * its own treasury unaided. This key signs **only** that deployment
+   * authorization entry. It is not an approver on any treasury and cannot
+   * submit, approve or execute a payout — those need an org member's own
+   * signature and are built unsigned for Freighter. See docs/charter-treasury.md.
+   */
+  CHARTER_FACTORY_DEPLOYER_SECRET_KEY: z
+    .string({
+      required_error: 'CHARTER_FACTORY_DEPLOYER_SECRET_KEY is required — add it to your .env.local',
+      invalid_type_error: 'CHARTER_FACTORY_DEPLOYER_SECRET_KEY must be a string',
+    })
+    .trim()
+    .refine(
+      (value) => StrKey.isValidEd25519SecretSeed(value),
+      'CHARTER_FACTORY_DEPLOYER_SECRET_KEY must be a valid Stellar secret key (starts with S)'
+    ),
+
+  /**
+   * Stellar Asset Contract address for the token treasuries hold — USDC.
+   *
+   * This is the contract-id form of the same asset `build-payment.ts` sends as
+   * a classic payment, not the issuer account.
+   */
+  CHARTER_TREASURY_TOKEN_CONTRACT_ID: contractIdSchema('CHARTER_TREASURY_TOKEN_CONTRACT_ID'),
+
+  /**
+   * Base URL of the Charter indexer's read API
+   * (https://github.com/Ch-rter/app, `indexer/`). Optional.
+   *
+   * When set, category and request reads go through it instead of simulating a
+   * contract call. It is a polling indexer rather than a push source, so it
+   * lags chain slightly and every read falls back to the contract — leaving it
+   * unset changes performance, never correctness.
+   */
+  CHARTER_INDEXER_API_URL: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z
+      .string({ invalid_type_error: 'CHARTER_INDEXER_API_URL must be a string' })
+      .trim()
+      .url('CHARTER_INDEXER_API_URL must be a valid URL')
+      .optional()
+  ),
+
+  /**
+   * Soroban RPC endpoint. Optional — defaults to the public testnet RPC, the
+   * same way `stellar.ts` defaults the Horizon URL.
+   */
+  NEXT_PUBLIC_SOROBAN_RPC_URL: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z
+      .string({ invalid_type_error: 'NEXT_PUBLIC_SOROBAN_RPC_URL must be a string' })
+      .trim()
+      .url('NEXT_PUBLIC_SOROBAN_RPC_URL must be a valid URL')
+      .default('https://soroban-testnet.stellar.org')
   ),
 });
 

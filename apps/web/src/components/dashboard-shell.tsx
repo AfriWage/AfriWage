@@ -1,6 +1,16 @@
 'use client';
 
-import { ArrowUpRight, Copy, LayoutDashboard, Settings, Upload, Wallet, Waves } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Building2,
+  Receipt,
+  Copy,
+  LayoutDashboard,
+  Settings,
+  Upload,
+  Wallet,
+  Waves,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { type ReactNode, useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -26,6 +36,8 @@ export function DashboardShell({ title, description, children, actions }: Dashbo
     { href: '/dashboard' as const, label: t('overview'), icon: LayoutDashboard },
     { href: '/send' as const, label: t('sendPayment'), icon: ArrowUpRight },
     { href: '/batch' as const, label: t('batchPayments'), icon: Upload },
+    { href: '/organizations' as const, label: t('organizations'), icon: Building2 },
+    { href: '/payroll' as const, label: t('payroll'), icon: Receipt },
     { href: '/transactions' as const, label: t('transactions'), icon: Waves },
     { href: '/wallet' as const, label: t('wallet'), icon: Wallet },
     { href: '/settings' as const, label: t('settings'), icon: Settings },
