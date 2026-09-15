@@ -506,6 +506,40 @@ export async function readDeployedOrgId(
   transactionHash: string,
   config: CharterConfig
 ): Promise<number | null> {
+  return readU32Return(transactionHash, config, {
+    action: 'Treasury deployment',
+    value: 'org id',
+  });
+}
+
+/**
+ * Reads the request id returned by a submitted `submit_request` transaction.
+ *
+ * Returns null while the transaction is still pending, so a caller can poll.
+ */
+export async function readSubmittedRequestId(
+  transactionHash: string,
+  config: CharterConfig
+): Promise<number | null> {
+  return readU32Return(transactionHash, config, {
+    action: 'Spend request',
+    value: 'request id',
+  });
+}
+
+/**
+ * Reads a `u32` return value from a submitted transaction.
+ *
+ * Charter's two id-returning entry points — `deploy_treasury` and
+ * `submit_request` — both hand back a sequential u32 that only the submitting
+ * transaction's own result can attribute. Reading a contract's counter instead
+ * would race with any concurrent caller.
+ */
+async function readU32Return(
+  transactionHash: string,
+  config: CharterConfig,
+  labels: { action: string; value: string }
+): Promise<number | null> {
   const server = rpcServer(config);
   const result = await server.getTransaction(transactionHash);
 
@@ -514,11 +548,11 @@ export async function readDeployedOrgId(
   }
 
   if (result.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
-    throw new CharterError(`Treasury deployment did not succeed (status ${result.status})`);
+    throw new CharterError(`${labels.action} did not succeed (status ${result.status})`);
   }
 
   if (!result.returnValue) {
-    throw new CharterError('Treasury deployment returned no org id');
+    throw new CharterError(`${labels.action} returned no ${labels.value}`);
   }
 
   return Number(scValToNative(result.returnValue));

@@ -61,6 +61,7 @@ export {
   getTreasuryState,
   provisionTreasury,
   readDeployedOrgId,
+  readSubmittedRequestId,
   requestPayout,
   toTokenUnits,
   TREASURY_TOKEN_DECIMALS,

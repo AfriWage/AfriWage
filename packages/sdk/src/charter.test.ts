@@ -52,6 +52,7 @@ import {
   getTreasuryState,
   provisionTreasury,
   readDeployedOrgId,
+  readSubmittedRequestId,
   requestPayout,
   toTokenUnits,
 } from './charter';
@@ -368,6 +369,39 @@ describe('readDeployedOrgId', () => {
     mockGetTransaction.mockResolvedValue({ status: rpc.Api.GetTransactionStatus.FAILED });
 
     await expect(readDeployedOrgId('abc123', config)).rejects.toThrow(CharterError);
+  });
+
+  it('names the deployment in its error, not the generic call', async () => {
+    const { rpc } = await import('@stellar/stellar-sdk');
+    mockGetTransaction.mockResolvedValue({ status: rpc.Api.GetTransactionStatus.FAILED });
+
+    await expect(readDeployedOrgId('abc123', config)).rejects.toThrow(/Treasury deployment/);
+  });
+});
+
+describe('readSubmittedRequestId', () => {
+  it('returns the request id from a successful submit_request', async () => {
+    const { rpc } = await import('@stellar/stellar-sdk');
+    mockGetTransaction.mockResolvedValue({
+      status: rpc.Api.GetTransactionStatus.SUCCESS,
+      returnValue: xdr.ScVal.scvU32(42),
+    });
+
+    await expect(readSubmittedRequestId('abc123', config)).resolves.toBe(42);
+  });
+
+  it('returns null while the transaction is still pending', async () => {
+    const { rpc } = await import('@stellar/stellar-sdk');
+    mockGetTransaction.mockResolvedValue({ status: rpc.Api.GetTransactionStatus.NOT_FOUND });
+
+    await expect(readSubmittedRequestId('abc123', config)).resolves.toBeNull();
+  });
+
+  it('names the spend request in its error rather than the deployment', async () => {
+    const { rpc } = await import('@stellar/stellar-sdk');
+    mockGetTransaction.mockResolvedValue({ status: rpc.Api.GetTransactionStatus.FAILED });
+
+    await expect(readSubmittedRequestId('abc123', config)).rejects.toThrow(/Spend request/);
   });
 });
 
