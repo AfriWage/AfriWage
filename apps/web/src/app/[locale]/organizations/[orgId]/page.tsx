@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Loader2, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { SessionBadge, WalletAuthGate } from '@/components/WalletAuthGate';
 import { ErrorNote, RoleBadge } from '@/components/org-ui';
 import { TreasuryCard } from '@/components/TreasuryCard';
@@ -92,7 +92,7 @@ function MembersCard({ orgId, canManage }: { orgId: string; canManage: boolean }
   const [wallet, setWallet] = useState('');
   const [role, setRole] = useState<OrgRole>('payer');
 
-  const handleAdd = (event: React.FormEvent) => {
+  const handleAdd = (event: FormEvent) => {
     event.preventDefault();
     if (wallet.trim() === '') return;
 
@@ -210,7 +210,7 @@ function EmployeesCard({ orgId, canManage }: { orgId: string; canManage: boolean
     payoutOfframpCurrency: '',
   });
 
-  const handleCreate = (event: React.FormEvent) => {
+  const handleCreate = (event: FormEvent) => {
     event.preventDefault();
 
     createEmployee.mutate(

@@ -2,7 +2,7 @@
 
 import { Building2, Loader2, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { SessionBadge, WalletAuthGate } from '@/components/WalletAuthGate';
 import { ErrorNote, RoleBadge } from '@/components/org-ui';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
@@ -92,7 +92,7 @@ function CreateOrganizationForm() {
   const [name, setName] = useState('');
   const [offramp, setOfframp] = useState('');
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (name.trim() === '') return;
 

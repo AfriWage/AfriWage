@@ -2,7 +2,7 @@
 
 import { Loader2, Plus, ShieldCheck, Vault } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { SurfaceCard } from '@/components/dashboard-shell';
 import { ErrorNote } from '@/components/org-ui';
 import { useCreateBudgetCategory, useProvisionTreasury, useTreasury } from '@/hooks/use-treasury';
@@ -133,7 +133,7 @@ function CategoryTable({
   const [name, setName] = useState('');
   const [capAmount, setCapAmount] = useState('');
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
     createCategory.mutate(
