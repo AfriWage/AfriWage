@@ -144,7 +144,7 @@ describe('POST /api/orgs', () => {
     [{ name: '   ' }, 'a blank name'],
     [{ name: 'a'.repeat(121) }, 'an over-long name'],
     [{ name: 'Kano', defaultOfframpCurrency: 'KES' }, 'an unsupported off-ramp currency'],
-  ])('rejects %j (%s) with 400', async (body) => {
+  ])('rejects %j (%s) with 400', async (body, _description) => {
     const response = await POST(authed({ method: 'POST', body: JSON.stringify(body) }));
 
     expect(response.status).toBe(400);

@@ -1,4 +1,10 @@
-import { Keypair, Networks, TransactionBuilder, WebAuth } from '@stellar/stellar-sdk';
+import {
+  Keypair,
+  Networks,
+  type Transaction,
+  TransactionBuilder,
+  WebAuth,
+} from '@stellar/stellar-sdk';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const SERVER_KEYPAIR = Keypair.random();
@@ -31,7 +37,7 @@ function challengeFor(client: Keypair, signer: Keypair = client): string {
     HOME_DOMAIN
   );
 
-  const tx = TransactionBuilder.fromXDR(challenge, Networks.TESTNET);
+  const tx = TransactionBuilder.fromXDR(challenge, Networks.TESTNET) as Transaction;
   tx.sign(signer);
   return tx.toEnvelope().toXDR('base64');
 }
@@ -108,7 +114,7 @@ describe('POST /api/auth/verify', () => {
       Networks.TESTNET,
       HOME_DOMAIN
     );
-    const tx = TransactionBuilder.fromXDR(foreign, Networks.TESTNET);
+    const tx = TransactionBuilder.fromXDR(foreign, Networks.TESTNET) as Transaction;
     tx.sign(client);
 
     const response = await post({ transaction: tx.toEnvelope().toXDR('base64') });

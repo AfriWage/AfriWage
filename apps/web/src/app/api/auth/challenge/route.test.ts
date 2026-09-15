@@ -1,4 +1,4 @@
-import { Keypair, Networks, TransactionBuilder } from '@stellar/stellar-sdk';
+import { Keypair, Networks, type Transaction, TransactionBuilder } from '@stellar/stellar-sdk';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const SERVER_KEYPAIR = Keypair.random();
@@ -44,7 +44,7 @@ describe('POST /api/auth/challenge', () => {
     expect(body.network_passphrase).toBe(Networks.TESTNET);
     expect(body.server_account).toBe(SERVER_KEYPAIR.publicKey());
 
-    const tx = TransactionBuilder.fromXDR(body.transaction, Networks.TESTNET);
+    const tx = TransactionBuilder.fromXDR(body.transaction, Networks.TESTNET) as Transaction;
     expect(tx.source).toBe(SERVER_KEYPAIR.publicKey());
     expect(tx.operations[0].source).toBe(publicKey);
   });

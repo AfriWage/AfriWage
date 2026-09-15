@@ -60,7 +60,7 @@ const NameSchema = z
  * "Invalid amount format" would not know which of a dozen fields it referred
  * to. Prefixing the path keeps the error actionable.
  */
-function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown): T {
+function parseOrThrow<S extends z.ZodTypeAny>(schema: S, value: unknown): z.infer<S> {
   const result = schema.safeParse(value);
 
   if (!result.success) {

@@ -1,4 +1,10 @@
-import { Keypair, Networks, TransactionBuilder, WebAuth } from '@stellar/stellar-sdk';
+import {
+  Keypair,
+  Networks,
+  type Transaction,
+  TransactionBuilder,
+  WebAuth,
+} from '@stellar/stellar-sdk';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 type Sep10Module = typeof import('./sep10');
@@ -23,9 +29,14 @@ afterAll(() => {
 
 /** Signs a challenge the way Freighter would, returning the signed envelope. */
 function signChallenge(challengeXdr: string, keypair: Keypair): string {
-  const tx = TransactionBuilder.fromXDR(challengeXdr, Networks.TESTNET);
+  const tx = readTransaction(challengeXdr);
   tx.sign(keypair);
   return tx.toEnvelope().toXDR('base64');
+}
+
+/** A challenge is never a fee-bump envelope, so narrowing here keeps tests readable. */
+function readTransaction(xdr: string): Transaction {
+  return TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
 }
 
 describe('parseChallengeRequest', () => {
@@ -39,7 +50,7 @@ describe('parseChallengeRequest', () => {
     [undefined, 'a missing publicKey'],
     ['not-a-key', 'a malformed publicKey'],
     [Keypair.random().secret(), 'a secret key in place of a public key'],
-  ])('rejects %s (%s)', (publicKey) => {
+  ])('rejects %s (%s)', (publicKey, _description) => {
     expect(() => sep10.parseChallengeRequest({ publicKey })).toThrow(sep10.Sep10Error);
   });
 
@@ -63,7 +74,7 @@ describe('buildAuthChallenge', () => {
     const client = Keypair.random();
 
     const challenge = sep10.buildAuthChallenge(client.publicKey());
-    const tx = TransactionBuilder.fromXDR(challenge, Networks.TESTNET);
+    const tx = readTransaction(challenge);
 
     expect(tx.source).toBe(SERVER_KEYPAIR.publicKey());
     expect(tx.sequence).toBe('0');
@@ -74,7 +85,7 @@ describe('buildAuthChallenge', () => {
     const client = Keypair.random();
 
     const challenge = sep10.buildAuthChallenge(client.publicKey());
-    const tx = TransactionBuilder.fromXDR(challenge, Networks.TESTNET);
+    const tx = readTransaction(challenge);
     const [authOp] = tx.operations;
 
     expect(authOp.type).toBe('manageData');
@@ -84,7 +95,7 @@ describe('buildAuthChallenge', () => {
 
   it('includes a 64-byte base64 nonce, as SEP-10 requires', () => {
     const challenge = sep10.buildAuthChallenge(Keypair.random().publicKey());
-    const tx = TransactionBuilder.fromXDR(challenge, Networks.TESTNET);
+    const tx = readTransaction(challenge);
     const value = (tx.operations[0] as { value: Buffer }).value;
 
     expect(value).toHaveLength(64);
