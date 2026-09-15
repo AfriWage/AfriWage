@@ -24,10 +24,12 @@ import { requireRun } from '@/lib/require-run';
  * AfriWage's own API key. The SEP-24 alternative would need the worker's anchor
  * token on every poll, and AfriWage deliberately does not store those.
  *
- * `fadesany/charter-app` is referenced in the brief as a possible source of an
- * events API that would remove this polling. That repository is not public, so
- * polling is what this builds on; swapping it for a webhook later only changes
- * who calls this route.
+ * Charter's own indexer (https://github.com/Ch-rter/app, `indexer/`) was checked
+ * as a possible replacement for this polling. It does not remove it: the indexer
+ * is itself a poller over Soroban events serving a read-only REST API, with no
+ * webhook or push surface. It also only indexes Charter's contract events, which
+ * say nothing about an anchor withdrawal — this route polls the anchor, not the
+ * chain. Swapping in a webhook later only changes who calls this route.
  */
 export async function POST(request: Request, { params }: { params: { runId: string } }) {
   try {

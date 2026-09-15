@@ -1,6 +1,6 @@
 # Charter treasury integration
 
-AfriWage's org treasuries are [Charter](https://github.com/fadesany/charter-contract)
+AfriWage's org treasuries are [Charter](https://github.com/Ch-rter/contract)
 Soroban contracts. AfriWage does not deploy its own treasury contract and does not
 custody any org's funds.
 
@@ -23,8 +23,8 @@ Testnet deployment used by AfriWage (from Charter's README):
 
 ## Contract functions AfriWage calls
 
-Verified against `contracts/factory/src/lib.rs` and `contracts/treasury/src/lib.rs`, not
-assumed:
+Verified against `contracts/factory/src/lib.rs` and `contracts/treasury/src/lib.rs` in
+[Ch-rter/contract](https://github.com/Ch-rter/contract), not assumed:
 
 ```rust
 // factory
@@ -99,3 +99,40 @@ transaction is submitted:
 
 Reading `get_org_count()` instead would race with any other organization provisioning at
 the same moment, so the id always comes from the caller's own transaction result.
+
+## The indexer
+
+Charter's application layer ([Ch-rter/app](https://github.com/Ch-rter/app)) ships a Go
+indexer that folds Soroban contract events into Postgres read models and serves them over
+a read-only REST API:
+
+| Method & path | Returns |
+|---------------|---------|
+| `GET /health` | Liveness + database reachability |
+| `GET /orgs` | Every indexed organization, newest first |
+| `GET /orgs/{treasury}` | One organization by treasury address |
+| `GET /orgs/{treasury}/categories` | That treasury's budget categories |
+| `GET /orgs/{treasury}/requests[?status=]` | That treasury's requests |
+| `GET /orgs/{treasury}/requests/{id}` | One request with its approvals |
+
+**It is not a push source.** The indexer polls Soroban itself on an interval
+(`POLL_INTERVAL_SECONDS`, default 5) and exposes no webhook. So AfriWage still polls for
+a payroll run's approval — the indexer makes each poll a cheap REST read instead of a
+Soroban simulation, and it is the only way to read a request's approval *list* without a
+contract call.
+
+Set `CHARTER_INDEXER_API_URL` to use it. It is entirely optional:
+
+- Categories and requests are read through it when set.
+- Balance, threshold and the approver set have no indexer endpoint and always come from
+  the contract.
+- Every indexer read falls back to the contract when the record has not been ingested yet
+  (404) or the service is unreachable. The contract is the authority; the indexer is an
+  optimisation in front of it. Leaving it unset changes read cost, never correctness.
+
+Amounts from the indexer are decimal strings in raw `i128` token units, exactly as the
+contract stores them — the same `fromTokenUnits` scaling applies.
+
+Note that the indexer only sees Charter's own contract events. It says nothing about a
+SEP-24 anchor withdrawal, so payroll off-ramp settlement polls the anchor directly and is
+unaffected by whether the indexer is running.
