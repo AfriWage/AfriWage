@@ -1,7 +1,8 @@
 import { db, orgMembers, organizations } from '@AfriWage/db';
 import { and, eq } from 'drizzle-orm';
-import { type Session, getSession } from './auth';
 import { forbidden, notFound, unauthorized } from './api-errors';
+import { type Session, getSession } from './auth';
+import { ORG_ROLES, type OrgRole, isOrgRole } from './org-roles';
 
 /**
  * Org-scoped authorisation for every organization, treasury and payroll route.
@@ -10,13 +11,8 @@ import { forbidden, notFound, unauthorized } from './api-errors';
  * the session token, so removing a member takes effect immediately.
  */
 
-export const ORG_ROLES = ['owner', 'admin', 'payer'] as const;
-
-export type OrgRole = (typeof ORG_ROLES)[number];
-
-export function isOrgRole(value: unknown): value is OrgRole {
-  return typeof value === 'string' && (ORG_ROLES as readonly string[]).includes(value);
-}
+export { ORG_ROLES, isOrgRole };
+export type { OrgRole };
 
 /**
  * Which stored roles satisfy a required role.
