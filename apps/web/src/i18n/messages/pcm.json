@@ -261,5 +261,27 @@
     "onChain": "E go remain on-chain",
     "backToOrganizations": "All organizations",
     "notFound": "Your wallet no fit see dat organization."
+  },
+  "treasury": {
+    "title": "Treasury",
+    "body": "Money dey inside Charter treasury contract. Payout need {threshold} out of {approvers} payer approvals before e go run.",
+    "notProvisioned": "Dis organization never get treasury.",
+    "notProvisionedHint": "Add at least one payer member first — na payers go be di treasury approvers.",
+    "provision": "Set up treasury",
+    "provisioning": "Dey deploy — no close dis tab…",
+    "balance": "Balance",
+    "threshold": "Approvals wey need",
+    "approvers": "Approvers",
+    "categoriesTitle": "Budget categories",
+    "categoryName": "Category",
+    "categoryCap": "Cap",
+    "categorySpent": "Don spend",
+    "categoryRemaining": "Wetin remain",
+    "noCategories": "No budget category dey yet.",
+    "addCategory": "Add category",
+    "addingCategory": "Dey wait for your wallet…",
+    "capLabel": "Lifetime cap (USDC)",
+    "thresholdLabel": "Approvals wey need",
+    "signExplainer": "Na your wallet dey sign dis — AfriWage no dey hold your treasury key."
   }
 }

@@ -261,5 +261,27 @@
     "onChain": "Yóò wà lórí ẹ̀wọ̀n",
     "backToOrganizations": "Gbogbo ilé-iṣẹ́",
     "notFound": "Apamọwọ rẹ kò le rí ilé-iṣẹ́ yẹn."
+  },
+  "treasury": {
+    "title": "Ilé-ìṣúra",
+    "body": "Owó wà nínú àdéhùn ilé-ìṣúra Charter. Sísan nílò ìfọwọsi {threshold} nínú {approvers} asanwó kí ó tó ṣẹ.",
+    "notProvisioned": "Ilé-iṣẹ́ yìí kò tíì ní ilé-ìṣúra.",
+    "notProvisionedHint": "Fi ọmọ ẹgbẹ asanwó kan kun ní àkọkọ — àwọn asanwó ni wọn yóò di afọwọsi ilé-ìṣúra.",
+    "provision": "Ṣeto ilé-ìṣúra",
+    "provisioning": "Ń fi sórí ẹ̀wọ̀n — má ṣe ti taabu yìí…",
+    "balance": "Iye tó kù",
+    "threshold": "Ìfọwọsi tí a nílò",
+    "approvers": "Àwọn afọwọsi",
+    "categoriesTitle": "Àwọn ẹ̀ka ìnáwó",
+    "categoryName": "Ẹ̀ka",
+    "categoryCap": "Ààlà",
+    "categorySpent": "Tí a ná",
+    "categoryRemaining": "Tí ó kù",
+    "noCategories": "Kò sí ẹ̀ka ìnáwó kankan síbẹ̀.",
+    "addCategory": "Fi ẹ̀ka kun",
+    "addingCategory": "N duro de apamọwọ rẹ…",
+    "capLabel": "Ààlà gbogbo ìgbà (USDC)",
+    "thresholdLabel": "Ìfọwọsi tí a nílò",
+    "signExplainer": "Apamọwọ rẹ ni ó fọwọsi èyí — AfriWage kò gbé kọkọrọ ilé-ìṣúra rẹ mọ́ra."
   }
 }

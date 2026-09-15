@@ -262,5 +262,27 @@
     "onChain": "Stays on-chain",
     "backToOrganizations": "All organizations",
     "notFound": "That organization is not available to your wallet."
+  },
+  "treasury": {
+    "title": "Treasury",
+    "body": "Funds sit in a Charter treasury contract. Payouts need {threshold} of {approvers} payer approvals before they execute.",
+    "notProvisioned": "This organization has no treasury yet.",
+    "notProvisionedHint": "Add at least one payer member first — payers become the treasury approvers.",
+    "provision": "Provision treasury",
+    "provisioning": "Deploying — keep this tab open…",
+    "balance": "Balance",
+    "threshold": "Approvals required",
+    "approvers": "Approvers",
+    "categoriesTitle": "Budget categories",
+    "categoryName": "Category",
+    "categoryCap": "Cap",
+    "categorySpent": "Spent",
+    "categoryRemaining": "Remaining",
+    "noCategories": "No budget categories yet.",
+    "addCategory": "Add category",
+    "addingCategory": "Waiting for your wallet…",
+    "capLabel": "Lifetime cap (USDC)",
+    "thresholdLabel": "Approvals required",
+    "signExplainer": "Your wallet signs this — AfriWage never holds your treasury key."
   }
 }
