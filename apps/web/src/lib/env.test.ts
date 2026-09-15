@@ -4,6 +4,8 @@ type EnvModule = typeof import('./env');
 
 const TEST_SIGNING_KEY = 'SB7TVFWNBNHILFE4TWWHWXJZEVIBRCCFUGEVA477HKXYDEWF2BTC6U73';
 const TEST_JWT_SECRET = 'a'.repeat(32);
+const TEST_FACTORY_ID = 'CCUQBFFRGR4RUWHKLWSRWKBL3WORHNTHFLTKMHTNUZL4T5733ODN5WD4';
+const TEST_TOKEN_ID = 'CAH4PUADD2X3K52TKETWTIL4GHPZT55LWUEVVOSH6B3D3KA2ZH7HQGTT';
 
 // The module-level `export const env = parseEnv()` runs at import time, so we
 // stub a valid environment before importing the module.
@@ -16,6 +18,9 @@ beforeAll(async () => {
   vi.stubEnv('AUTH_SERVER_SIGNING_KEY', TEST_SIGNING_KEY);
   vi.stubEnv('JWT_SECRET', TEST_JWT_SECRET);
   vi.stubEnv('NEXT_PUBLIC_AUTH_HOME_DOMAIN', 'afriwage.app');
+  vi.stubEnv('CHARTER_FACTORY_CONTRACT_ID', TEST_FACTORY_ID);
+  vi.stubEnv('CHARTER_FACTORY_DEPLOYER_SECRET_KEY', TEST_SIGNING_KEY);
+  vi.stubEnv('CHARTER_TREASURY_TOKEN_CONTRACT_ID', TEST_TOKEN_ID);
   envModule = await import('./env');
 });
 
@@ -29,6 +34,9 @@ const validEnv = {
   AUTH_SERVER_SIGNING_KEY: TEST_SIGNING_KEY,
   JWT_SECRET: TEST_JWT_SECRET,
   NEXT_PUBLIC_AUTH_HOME_DOMAIN: 'afriwage.app',
+  CHARTER_FACTORY_CONTRACT_ID: TEST_FACTORY_ID,
+  CHARTER_FACTORY_DEPLOYER_SECRET_KEY: TEST_SIGNING_KEY,
+  CHARTER_TREASURY_TOKEN_CONTRACT_ID: TEST_TOKEN_ID,
 };
 
 describe('parseEnv', () => {
@@ -148,6 +156,24 @@ describe('SEP-10 auth variables', () => {
   ])('rejects a home domain that %s (%s)', (value) => {
     expect(() => envModule.parseEnv({ ...validEnv, NEXT_PUBLIC_AUTH_HOME_DOMAIN: value })).toThrow(
       /NEXT_PUBLIC_AUTH_HOME_DOMAIN/
+    );
+  });
+
+  it.each([['CHARTER_FACTORY_CONTRACT_ID'], ['CHARTER_TREASURY_TOKEN_CONTRACT_ID']])(
+    'rejects an account id where %s expects a contract id',
+    (variable) => {
+      expect(() =>
+        envModule.parseEnv({
+          ...validEnv,
+          [variable]: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+        })
+      ).toThrow(new RegExp(variable));
+    }
+  );
+
+  it('defaults the Soroban RPC URL to the public testnet endpoint', () => {
+    expect(envModule.parseEnv(validEnv).NEXT_PUBLIC_SOROBAN_RPC_URL).toBe(
+      'https://soroban-testnet.stellar.org'
     );
   });
 
