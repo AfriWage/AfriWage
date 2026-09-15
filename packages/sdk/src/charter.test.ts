@@ -510,6 +510,189 @@ describe('getPayoutRequest', () => {
   });
 });
 
+describe('indexer-backed reads', () => {
+  const indexerConfig = { ...config, indexerUrl: 'http://localhost:8080' };
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock);
+    fetchMock.mockReset();
+  });
+
+  function jsonResponse(body: unknown, status = 200): Response {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  it('reads a request from the indexer, scaling its raw token units', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        requestId: 42,
+        categoryId: 1,
+        recipient: RECIPIENT.publicKey(),
+        amount: '2505000000',
+        memo: 'payroll:8f7e6d5c',
+        requester: ADMIN.publicKey(),
+        status: 'Pending',
+        createdLedger: 900,
+        approvals: [APPROVER_ONE.publicKey()],
+      })
+    );
+
+    await expect(getPayoutRequest(TREASURY_ID, 42, indexerConfig)).resolves.toMatchObject({
+      id: 42,
+      amount: '250.5000000',
+      status: 'Pending',
+      approvals: [APPROVER_ONE.publicKey()],
+    });
+    expect(mockSimulateTransaction).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the contract when the indexer has not ingested the request', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ error: 'request not found' }, 404));
+    mockSimulateTransaction.mockResolvedValue({
+      result: {
+        auth: [],
+        retval: xdr.ScVal.scvMap(
+          [
+            {
+              key: 'amount',
+              val: xdr.ScVal.scvI128(
+                new xdr.Int128Parts({
+                  hi: xdr.Int64.fromString('0'),
+                  lo: xdr.Uint64.fromString('2505000000'),
+                })
+              ),
+            },
+            { key: 'approvals', val: xdr.ScVal.scvVec([]) },
+            { key: 'category_id', val: xdr.ScVal.scvU32(1) },
+            { key: 'created_ledger', val: xdr.ScVal.scvU32(900) },
+            { key: 'id', val: xdr.ScVal.scvU32(42) },
+            { key: 'memo', val: xdr.ScVal.scvString('payroll:8f7e6d5c') },
+            { key: 'recipient', val: xdr.ScVal.scvString(RECIPIENT.publicKey()) },
+            { key: 'requester', val: xdr.ScVal.scvString(ADMIN.publicKey()) },
+            { key: 'status', val: xdr.ScVal.scvVec([xdr.ScVal.scvSymbol('Pending')]) },
+          ].map(({ key, val }) => new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol(key), val }))
+        ),
+      },
+    });
+
+    await expect(getPayoutRequest(TREASURY_ID, 42, indexerConfig)).resolves.toMatchObject({
+      id: 42,
+      amount: '250.5000000',
+    });
+    expect(mockSimulateTransaction).toHaveBeenCalled();
+  });
+
+  it('falls back to the contract when the indexer is unreachable', async () => {
+    fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
+    mockSimulateTransaction.mockResolvedValue({
+      result: {
+        auth: [],
+        retval: xdr.ScVal.scvMap(
+          [
+            {
+              key: 'amount',
+              val: xdr.ScVal.scvI128(
+                new xdr.Int128Parts({
+                  hi: xdr.Int64.fromString('0'),
+                  lo: xdr.Uint64.fromString('1'),
+                })
+              ),
+            },
+            { key: 'approvals', val: xdr.ScVal.scvVec([]) },
+            { key: 'category_id', val: xdr.ScVal.scvU32(1) },
+            { key: 'created_ledger', val: xdr.ScVal.scvU32(900) },
+            { key: 'id', val: xdr.ScVal.scvU32(42) },
+            { key: 'memo', val: xdr.ScVal.scvString('') },
+            { key: 'recipient', val: xdr.ScVal.scvString(RECIPIENT.publicKey()) },
+            { key: 'requester', val: xdr.ScVal.scvString(ADMIN.publicKey()) },
+            { key: 'status', val: xdr.ScVal.scvVec([xdr.ScVal.scvSymbol('Executed')]) },
+          ].map(({ key, val }) => new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol(key), val }))
+        ),
+      },
+    });
+
+    await expect(getPayoutRequest(TREASURY_ID, 42, indexerConfig)).resolves.toMatchObject({
+      status: 'Executed',
+    });
+  });
+
+  it('takes category ids from the indexer rather than inferring them from position', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        categories: [
+          {
+            categoryId: 3,
+            name: 'January payroll',
+            cap: '250000000000',
+            spent: '2505000000',
+            active: true,
+          },
+        ],
+      })
+    );
+
+    const responses: Record<string, xdr.ScVal> = {
+      get_balance: xdr.ScVal.scvI128(
+        new xdr.Int128Parts({
+          hi: xdr.Int64.fromString('0'),
+          lo: xdr.Uint64.fromString('5000000000'),
+        })
+      ),
+      get_threshold: xdr.ScVal.scvU32(2),
+      get_approvers: xdr.ScVal.scvVec([]),
+    };
+
+    mockSimulateTransaction.mockImplementation(async (transaction: Transaction) => {
+      const operation = transaction.operations[0] as unknown as { func: xdr.HostFunction };
+      const name = operation.func.invokeContract().functionName().toString();
+      return { result: { auth: [], retval: responses[name] } };
+    });
+
+    const state = await getTreasuryState(TREASURY_ID, indexerConfig);
+
+    expect(state.categories).toEqual([
+      { id: 3, name: 'January payroll', cap: '25000.0000000', spent: '250.5000000', active: true },
+    ]);
+  });
+
+  it('is not used at all when no indexer URL is configured', async () => {
+    mockSimulateTransaction.mockResolvedValue({
+      result: {
+        auth: [],
+        retval: xdr.ScVal.scvMap(
+          [
+            {
+              key: 'amount',
+              val: xdr.ScVal.scvI128(
+                new xdr.Int128Parts({
+                  hi: xdr.Int64.fromString('0'),
+                  lo: xdr.Uint64.fromString('1'),
+                })
+              ),
+            },
+            { key: 'approvals', val: xdr.ScVal.scvVec([]) },
+            { key: 'category_id', val: xdr.ScVal.scvU32(1) },
+            { key: 'created_ledger', val: xdr.ScVal.scvU32(900) },
+            { key: 'id', val: xdr.ScVal.scvU32(42) },
+            { key: 'memo', val: xdr.ScVal.scvString('') },
+            { key: 'recipient', val: xdr.ScVal.scvString(RECIPIENT.publicKey()) },
+            { key: 'requester', val: xdr.ScVal.scvString(ADMIN.publicKey()) },
+            { key: 'status', val: xdr.ScVal.scvVec([xdr.ScVal.scvSymbol('Pending')]) },
+          ].map(({ key, val }) => new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol(key), val }))
+        ),
+      },
+    });
+
+    await getPayoutRequest(TREASURY_ID, 42, config);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
 describe('token decimals', () => {
   it('defaults to the seven decimals a USDC Stellar Asset Contract carries', () => {
     expect(TREASURY_TOKEN_DECIMALS).toBe(7);

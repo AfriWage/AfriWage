@@ -1,7 +1,7 @@
 /**
  * Charter treasury integration.
  *
- * Charter (https://github.com/fadesany/charter-contract) is a pair of Soroban
+ * Charter (https://github.com/Ch-rter/contract) is a pair of Soroban
  * contracts: a **factory** that deploys and registers per-organization
  * treasuries from one verified wasm hash, and a **treasury** that holds a
  * single token, groups it into budget categories with lifetime caps, and
@@ -52,6 +52,13 @@ import {
   xdr,
 } from '@stellar/stellar-sdk';
 import { Decimal } from 'decimal.js';
+import {
+  CharterIndexerError,
+  type IndexedCategory,
+  type IndexedRequest,
+  getIndexedRequest,
+  listIndexedCategories,
+} from './charter-indexer';
 
 /** Raised for a failed simulation or a malformed on-chain response. */
 export class CharterError extends Error {
@@ -67,6 +74,18 @@ export interface CharterConfig {
   networkPassphrase: string;
   /** Permits a plain-http RPC, for a local quickstart only. */
   allowHttp?: boolean;
+  /**
+   * Base URL of the Charter indexer's read API (https://github.com/Ch-rter/app,
+   * `indexer/`). Optional.
+   *
+   * When set, reads that the indexer covers — categories and requests — go
+   * through it instead of simulating a contract call, which is both cheaper and
+   * the only way to see a request's approval list. It is a polling indexer, not
+   * a push source, so it lags chain slightly; every read falls back to the
+   * contract when the indexer has not ingested the record yet or is
+   * unreachable, so behaviour without it is unchanged.
+   */
+  indexerUrl?: string;
 }
 
 /**
@@ -701,6 +720,16 @@ export async function getPayoutRequest(
   config: CharterConfig,
   decimals = TREASURY_TOKEN_DECIMALS
 ): Promise<CharterRequest> {
+  if (config.indexerUrl) {
+    const indexed = await tryIndexer(() =>
+      getIndexedRequest(config.indexerUrl as string, treasuryContractId, requestId)
+    );
+
+    if (indexed) {
+      return fromIndexedRequest(indexed, decimals);
+    }
+  }
+
   const raw = (await simulateView(
     treasuryContractId,
     'get_request',
@@ -709,6 +738,51 @@ export async function getPayoutRequest(
   )) as RawRequest;
 
   return toRequest(raw, decimals);
+}
+
+/**
+ * Runs an indexer read, returning null when it cannot answer.
+ *
+ * A not-yet-ingested record (404) and an unreachable indexer are both reasons to
+ * fall back to the contract, never reasons to fail: the contract is the
+ * authority, and the indexer is an optimisation in front of it.
+ */
+async function tryIndexer<T>(read: () => Promise<T>): Promise<T | null> {
+  try {
+    return await read();
+  } catch (error) {
+    if (error instanceof CharterIndexerError && !error.isNotFound) {
+      // A 5xx or a malformed response is worth knowing about, but not worth
+      // failing a payroll poll over.
+      console.warn('Charter indexer read failed, falling back to the contract:', error.message);
+    }
+
+    return null;
+  }
+}
+
+function fromIndexedRequest(raw: IndexedRequest, decimals: number): CharterRequest {
+  return {
+    id: raw.requestId,
+    categoryId: raw.categoryId,
+    recipient: raw.recipient,
+    amount: fromTokenUnits(raw.amount, decimals),
+    memo: raw.memo,
+    requester: raw.requester,
+    approvals: raw.approvals,
+    status: normaliseStatus(raw.status),
+    createdLedger: raw.createdLedger,
+  };
+}
+
+function fromIndexedCategory(raw: IndexedCategory, decimals: number): CharterCategory {
+  return {
+    id: raw.categoryId,
+    name: raw.name,
+    cap: fromTokenUnits(raw.cap, decimals),
+    spent: fromTokenUnits(raw.spent, decimals),
+    active: raw.active,
+  };
 }
 
 /**
@@ -730,7 +804,7 @@ export async function getTreasuryState(
     simulateView(treasuryContractId, 'get_balance', [], config) as Promise<bigint>,
     simulateView(treasuryContractId, 'get_threshold', [], config) as Promise<number>,
     simulateView(treasuryContractId, 'get_approvers', [], config) as Promise<string[]>,
-    simulateView(treasuryContractId, 'get_categories', [], config) as Promise<RawCategory[]>,
+    readCategories(treasuryContractId, config, decimals),
   ]);
 
   return {
@@ -738,6 +812,39 @@ export async function getTreasuryState(
     balance: fromTokenUnits(balance, decimals),
     threshold,
     approvers,
-    categories: categories.map((category, index) => toCategory(category, index + 1, decimals)),
+    categories,
   };
+}
+
+/**
+ * Reads the category list, preferring the indexer.
+ *
+ * Balance, threshold and the approver set have no indexer endpoint, so they stay
+ * on the contract; only categories can be served from the read models. The
+ * indexer also carries each category's real id rather than requiring it to be
+ * inferred from list position.
+ */
+async function readCategories(
+  treasuryContractId: string,
+  config: CharterConfig,
+  decimals: number
+): Promise<CharterCategory[]> {
+  if (config.indexerUrl) {
+    const indexed = await tryIndexer(() =>
+      listIndexedCategories(config.indexerUrl as string, treasuryContractId)
+    );
+
+    if (indexed) {
+      return indexed.map((category) => fromIndexedCategory(category, decimals));
+    }
+  }
+
+  const categories = (await simulateView(
+    treasuryContractId,
+    'get_categories',
+    [],
+    config
+  )) as RawCategory[];
+
+  return categories.map((category, index) => toCategory(category, index + 1, decimals));
 }
