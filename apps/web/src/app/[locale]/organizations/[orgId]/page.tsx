@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { SessionBadge, WalletAuthGate } from '@/components/WalletAuthGate';
 import { ErrorNote, RoleBadge } from '@/components/org-ui';
+import { TreasuryCard } from '@/components/TreasuryCard';
 import { DashboardShell, SurfaceCard } from '@/components/dashboard-shell';
 import {
   useAddMember,
@@ -74,14 +75,9 @@ function OrganizationDetail({ orgId }: { orgId: string }) {
           </h2>
           <RoleBadge role={data.role} />
         </div>
-
-        <p className="mt-2 break-all text-sm text-[#637085] dark:text-[#8888aa]">
-          {data.treasuryContractId
-            ? `${t('treasury')}: ${data.treasuryContractId}`
-            : t('treasuryNotProvisioned')}
-        </p>
       </SurfaceCard>
 
+      <TreasuryCard orgId={orgId} role={data.role} />
       <MembersCard orgId={orgId} canManage={canManageMembers} />
       <EmployeesCard orgId={orgId} canManage={canManageEmployees} />
     </div>
