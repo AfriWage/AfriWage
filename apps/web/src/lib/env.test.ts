@@ -176,6 +176,16 @@ describe('SEP-10 auth variables', () => {
     }
   );
 
+  it('treats an unset indexer URL as absent, since the contract is the fallback', () => {
+    expect(envModule.parseEnv(validEnv).CHARTER_INDEXER_API_URL).toBeUndefined();
+  });
+
+  it('rejects a malformed indexer URL rather than failing on the first read', () => {
+    expect(() => envModule.parseEnv({ ...validEnv, CHARTER_INDEXER_API_URL: 'not-a-url' })).toThrow(
+      /CHARTER_INDEXER_API_URL/
+    );
+  });
+
   it('defaults the Soroban RPC URL to the public testnet endpoint', () => {
     expect(envModule.parseEnv(validEnv).NEXT_PUBLIC_SOROBAN_RPC_URL).toBe(
       'https://soroban-testnet.stellar.org'

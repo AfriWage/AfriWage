@@ -14,6 +14,9 @@ export function charterConfig(): CharterConfig {
   return {
     rpcUrl: env.NEXT_PUBLIC_SOROBAN_RPC_URL,
     networkPassphrase: NETWORK_PASSPHRASE,
+    // Optional. When unset the SDK reads straight from the contract, so this
+    // changes read cost, never correctness.
+    indexerUrl: env.CHARTER_INDEXER_API_URL,
   };
 }
 

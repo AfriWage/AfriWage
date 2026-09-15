@@ -170,6 +170,24 @@ const serverEnvSchema = z.object({
   CHARTER_TREASURY_TOKEN_CONTRACT_ID: contractIdSchema('CHARTER_TREASURY_TOKEN_CONTRACT_ID'),
 
   /**
+   * Base URL of the Charter indexer's read API
+   * (https://github.com/Ch-rter/app, `indexer/`). Optional.
+   *
+   * When set, category and request reads go through it instead of simulating a
+   * contract call. It is a polling indexer rather than a push source, so it
+   * lags chain slightly and every read falls back to the contract — leaving it
+   * unset changes performance, never correctness.
+   */
+  CHARTER_INDEXER_API_URL: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z
+      .string({ invalid_type_error: 'CHARTER_INDEXER_API_URL must be a string' })
+      .trim()
+      .url('CHARTER_INDEXER_API_URL must be a valid URL')
+      .optional()
+  ),
+
+  /**
    * Soroban RPC endpoint. Optional — defaults to the public testnet RPC, the
    * same way `stellar.ts` defaults the Horizon URL.
    */
