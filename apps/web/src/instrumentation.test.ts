@@ -1,3 +1,4 @@
+import { Keypair } from '@stellar/stellar-sdk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // `register()` dynamically imports `./lib/env`, whose module-level
@@ -17,6 +18,9 @@ async function registerWith(env: Record<string, string>): Promise<void> {
 const validEnv = {
   POSTGRES_URL: 'postgres://user:password@host:5432/dbname',
   YELLOWCARD_API_KEY: 'sandbox-test-key',
+  AUTH_SERVER_SIGNING_KEY: Keypair.random().secret(),
+  JWT_SECRET: 'l'.repeat(32),
+  NEXT_PUBLIC_AUTH_HOME_DOMAIN: 'afriwage.test',
 };
 
 beforeEach(() => {
@@ -28,15 +32,21 @@ describe('register()', () => {
     await expect(registerWith(validEnv)).resolves.toBeUndefined();
   });
 
+  it('fails startup when a required auth variable is missing on the nodejs runtime', async () => {
+    const { JWT_SECRET: _omitted, ...withoutJwtSecret } = validEnv;
+
+    await expect(registerWith(withoutJwtSecret)).rejects.toThrow(/JWT_SECRET/);
+  });
+
   it('fails startup when a required variable is missing on the nodejs runtime', async () => {
-    await expect(registerWith({ YELLOWCARD_API_KEY: 'sandbox-test-key' })).rejects.toThrow(
-      /POSTGRES_URL/
-    );
+    const { POSTGRES_URL: _omitted, ...withoutPostgres } = validEnv;
+
+    await expect(registerWith(withoutPostgres)).rejects.toThrow(/POSTGRES_URL/);
   });
 
   it('fails startup on a malformed same-scheme POSTGRES_URL on the nodejs runtime', async () => {
     await expect(
-      registerWith({ POSTGRES_URL: 'postgres://', YELLOWCARD_API_KEY: 'sandbox-test-key' })
+      registerWith({ ...validEnv, POSTGRES_URL: 'postgres://' })
     ).rejects.toThrow(/POSTGRES_URL/);
   });
 
