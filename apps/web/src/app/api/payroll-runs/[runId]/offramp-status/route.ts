@@ -3,7 +3,12 @@ import { getTransactionStatus } from '@AfriWage/sdk';
 import { and, eq, isNotNull } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { errorResponse } from '@/lib/api-errors';
-import { type OfframpStatus, hasFailedItem, isRunFullySettled } from '@/lib/payroll-state';
+import {
+  type OfframpStatus,
+  hasFailedItem,
+  isRunFullySettled,
+  mapAnchorStatus,
+} from '@/lib/payroll-state';
 import { requireRun } from '@/lib/require-run';
 
 /**
@@ -83,26 +88,6 @@ export async function POST(request: Request, { params }: { params: { runId: stri
   } catch (error) {
     return errorResponse(error, 'Failed to refresh off-ramp status');
   }
-}
-
-/**
- * Maps an anchor's own status vocabulary onto AfriWage's three states.
- *
- * Anchors report many intermediate states (`pending_user_transfer_start`,
- * `pending_anchor`, `pending_external`, …). Everything that is not a terminal
- * success or failure is treated as still pending, so an unfamiliar status from a
- * future anchor never reads as "paid".
- */
-export function mapAnchorStatus(anchorStatus: string): OfframpStatus {
-  if (anchorStatus === 'completed') {
-    return 'complete';
-  }
-
-  if (anchorStatus === 'error' || anchorStatus === 'refunded' || anchorStatus === 'expired') {
-    return 'failed';
-  }
-
-  return 'pending';
 }
 
 async function readAnchorStatus(anchorTxId: string): Promise<OfframpStatus> {

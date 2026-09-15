@@ -8,6 +8,7 @@ import {
   isOfframpStatus,
   isPayrollStatus,
   isRunFullySettled,
+  mapAnchorStatus,
   sumWageAmounts,
 } from './payroll-state';
 
@@ -129,6 +130,29 @@ describe('isRunFullySettled', () => {
 
   it('does not report an empty run as settled', () => {
     expect(isRunFullySettled([])).toBe(false);
+  });
+});
+
+describe('mapAnchorStatus', () => {
+  it('maps a completed withdrawal to complete', () => {
+    expect(mapAnchorStatus('completed')).toBe('complete');
+  });
+
+  it.each([['error'], ['refunded'], ['expired']])('maps %s to failed', (status) => {
+    expect(mapAnchorStatus(status)).toBe('failed');
+  });
+
+  it.each([
+    ['pending_user_transfer_start'],
+    ['pending_anchor'],
+    ['pending_external'],
+    ['incomplete'],
+  ])('treats the intermediate state %s as pending', (status) => {
+    expect(mapAnchorStatus(status)).toBe('pending');
+  });
+
+  it('treats an unfamiliar status as pending rather than paid', () => {
+    expect(mapAnchorStatus('some_future_anchor_state')).toBe('pending');
   });
 });
 

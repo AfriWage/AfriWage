@@ -101,6 +101,26 @@ export function isRunFullySettled(items: RunItemSettlement[]): boolean {
   );
 }
 
+/**
+ * Maps an anchor's own status vocabulary onto AfriWage's three states.
+ *
+ * Anchors report many intermediate states (`pending_user_transfer_start`,
+ * `pending_anchor`, `pending_external`, …). Everything that is not a terminal
+ * success or failure is treated as still pending, so an unfamiliar status from
+ * a future anchor never reads as "paid".
+ */
+export function mapAnchorStatus(anchorStatus: string): OfframpStatus {
+  if (anchorStatus === 'completed') {
+    return 'complete';
+  }
+
+  if (anchorStatus === 'error' || anchorStatus === 'refunded' || anchorStatus === 'expired') {
+    return 'failed';
+  }
+
+  return 'pending';
+}
+
 /** Whether any item has failed, which fails the run as a whole. */
 export function hasFailedItem(items: RunItemSettlement[]): boolean {
   return items.some((item) => item.offrampStatus === 'failed');

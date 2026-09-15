@@ -69,29 +69,6 @@ function post(): Promise<Response> {
   );
 }
 
-describe('mapAnchorStatus', () => {
-  it('maps a completed withdrawal to complete', () => {
-    expect(route.mapAnchorStatus('completed')).toBe('complete');
-  });
-
-  it.each([['error'], ['refunded'], ['expired']])('maps %s to failed', (status) => {
-    expect(route.mapAnchorStatus(status)).toBe('failed');
-  });
-
-  it.each([
-    ['pending_user_transfer_start'],
-    ['pending_anchor'],
-    ['pending_external'],
-    ['incomplete'],
-  ])('treats the intermediate state %s as pending', (status) => {
-    expect(route.mapAnchorStatus(status)).toBe('pending');
-  });
-
-  it('treats an unfamiliar status as pending rather than paid', () => {
-    expect(route.mapAnchorStatus('some_future_anchor_state')).toBe('pending');
-  });
-});
-
 describe('POST /api/payroll-runs/[runId]/offramp-status', () => {
   it('writes a completed withdrawal back and settles the run', async () => {
     drizzle.queue(
