@@ -4,12 +4,12 @@ Drizzle ORM schema and connection wrapper for AfriWage's PostgreSQL persistence.
 
 ## Scripts
 
-| Command | Purpose |
-|---|---|
-| `pnpm generate` | Generate a Drizzle migration from a schema change (explicit, local only). |
-| `pnpm migrate` | Apply pending migrations to the database named by `POSTGRES_URL` (explicit, local only). |
-| `pnpm type-check` | Strict TypeScript validation of the package source (`tsc --noEmit`). |
-| `pnpm build` | Deterministic compile/declaration validation (`tsc`) — output is written to `dist/` for validation only; consumers resolve the package from `src/`. |
+| Command           | Purpose                                                                                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm generate`   | Generate a Drizzle migration from a schema change (explicit, local only).                                                                           |
+| `pnpm migrate`    | Apply pending migrations to the database named by `POSTGRES_URL` (explicit, local only).                                                            |
+| `pnpm type-check` | Strict TypeScript validation of the package source (`tsc --noEmit`).                                                                                |
+| `pnpm build`      | Deterministic compile/declaration validation (`tsc`) — output is written to `dist/` for validation only; consumers resolve the package from `src/`. |
 
 ## CI contract
 

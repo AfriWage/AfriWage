@@ -122,9 +122,7 @@ describe('POST /api/anchor/yellowcard', () => {
   });
 
   it('rejects a non-USDC asset code so local-currency amounts are never sent as USDC', async () => {
-    const response = await POST(
-      jsonRequest({ ...validBody, assetCode: 'NGN' }, 'action=withdraw')
-    );
+    const response = await POST(jsonRequest({ ...validBody, assetCode: 'NGN' }, 'action=withdraw'));
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ message: 'Only USDC withdrawals are supported' });

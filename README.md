@@ -1,14 +1,13 @@
 ```
  █████╗ ███████╗██████╗ ██╗██╗    ██╗ █████╗  ██████╗ ███████╗
 ██╔══██╗██╔════╝██╔══██╗██║██║    ██║██╔══██╗██╔════╝ ██╔════╝
-███████║█████╗  ██████╔╝██║██║ █╗ ██║███████║██║  ███╗█████╗  
-██╔══██║██╔══╝  ██╔══██╗██║██║███╗██║██╔══██║██║   ██║██╔══╝  
+███████║█████╗  ██████╔╝██║██║ █╗ ██║███████║██║  ███╗█████╗
+██╔══██║██╔══╝  ██╔══██╗██║██║███╗██║██╔══██║██║   ██║██╔══╝
 ██║  ██║██║     ██║  ██║██║╚███╔███╔╝██║  ██║╚██████╔╝███████╗
 ╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
 
 **Instant, borderless payroll for African gig workers — powered by Stellar & USDC**
-
 
 [![CI](https://github.com/AfriWage/AfriWage/actions/workflows/ci.yml/badge.svg)](https://github.com/AfriWage/AfriWage/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
@@ -64,18 +63,18 @@ Over 70 million gig workers across Africa are paid through legacy wire transfers
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 14 (App Router) |
-| Language | TypeScript (strict mode) |
-| Styling | Tailwind CSS |
-| Blockchain | Stellar (testnet) |
-| Asset | USDC (Circle testnet issuer) |
-| Wallet | Freighter browser extension |
-| SDK | @stellar/stellar-sdk v12 |
-| State | React Query v5 |
-| Monorepo | pnpm workspaces + Turborepo |
-| Deploy | Vercel |
+| Layer      | Technology                   |
+| ---------- | ---------------------------- |
+| Frontend   | Next.js 14 (App Router)      |
+| Language   | TypeScript (strict mode)     |
+| Styling    | Tailwind CSS                 |
+| Blockchain | Stellar (testnet)            |
+| Asset      | USDC (Circle testnet issuer) |
+| Wallet     | Freighter browser extension  |
+| SDK        | @stellar/stellar-sdk v12     |
+| State      | React Query v5               |
+| Monorepo   | pnpm workspaces + Turborepo  |
+| Deploy     | Vercel                       |
 
 ---
 
@@ -175,12 +174,12 @@ Need testnet XLM to try the app? Use the **[public faucet](http://localhost:3000
 These are inlined into the browser bundle at build time and are safe to expose. Never put
 private keys or API secrets in a `NEXT_PUBLIC_*` variable.
 
-| Variable | Description | Example |
-|---|---|---|
-| `NEXT_PUBLIC_STELLAR_NETWORK` | Stellar network to use | `testnet` |
-| `NEXT_PUBLIC_HORIZON_URL` | Horizon API endpoint | `https://horizon-testnet.stellar.org` |
-| `NEXT_PUBLIC_NETWORK_PASSPHRASE` | Stellar network passphrase | `Test SDF Network ; September 2015` |
-| `NEXT_PUBLIC_APP_URL` | Public app URL | `http://localhost:3000` |
+| Variable                         | Description                | Example                               |
+| -------------------------------- | -------------------------- | ------------------------------------- |
+| `NEXT_PUBLIC_STELLAR_NETWORK`    | Stellar network to use     | `testnet`                             |
+| `NEXT_PUBLIC_HORIZON_URL`        | Horizon API endpoint       | `https://horizon-testnet.stellar.org` |
+| `NEXT_PUBLIC_NETWORK_PASSPHRASE` | Stellar network passphrase | `Test SDF Network ; September 2015`   |
+| `NEXT_PUBLIC_APP_URL`            | Public app URL             | `http://localhost:3000`               |
 
 ### Server-only secrets
 
@@ -188,11 +187,11 @@ These are read only on the server and must never be committed or exposed to the 
 app validates them at startup (`apps/web/src/lib/env.ts`) and refuses to boot with a clear
 error naming any missing or invalid value.
 
-| Variable | Description | Example |
-|---|---|---|
-| `POSTGRES_URL` | Postgres connection string used by `@AfriWage/db` for migrations and settings persistence | `postgres://user:password@host:5432/dbname` |
-| `YELLOWCARD_API_KEY` | Yellow Card anchor API key for the server-side SEP-6 off-ramp | `your-yellowcard-sandbox-api-key` |
-| `YELLOWCARD_API_URL` | Yellow Card API base URL (optional — defaults to `https://api.yellowcard.io`) | `https://api.yellowcard.io` |
+| Variable             | Description                                                                               | Example                                     |
+| -------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `POSTGRES_URL`       | Postgres connection string used by `@AfriWage/db` for migrations and settings persistence | `postgres://user:password@host:5432/dbname` |
+| `YELLOWCARD_API_KEY` | Yellow Card anchor API key for the server-side SEP-6 off-ramp                             | `your-yellowcard-sandbox-api-key`           |
+| `YELLOWCARD_API_URL` | Yellow Card API base URL (optional — defaults to `https://api.yellowcard.io`)             | `https://api.yellowcard.io`                 |
 
 > Keep real credentials in `apps/web/.env.local` (gitignored) — never in `.env.example` or the
 > repository. See [Database](./docs/architecture.md#database) and
@@ -202,8 +201,8 @@ error naming any missing or invalid value.
 
 ## Maintainers
 
-| Avatar | Name | Role | GitHub |
-|---|---|---|---|
+| Avatar                                                                            | Name           | Role                     | GitHub                                     |
+| --------------------------------------------------------------------------------- | -------------- | ------------------------ | ------------------------------------------ |
 | <img src="https://github.com/K1NGD4VID.png" width="40" style="border-radius:50%"> | Adesanya Fuhad | Founder & Lead Developer | [@K1NGD4VID](https://github.com/K1NGD4VID) |
 
 ---

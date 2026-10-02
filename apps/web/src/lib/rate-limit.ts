@@ -1,7 +1,10 @@
 export class RateLimiter {
   private store = new Map<string, number[]>();
 
-  check(ip: string, endpoint: string): { success: boolean; limit: number; remaining: number; retryAfter?: number } {
+  check(
+    ip: string,
+    endpoint: string
+  ): { success: boolean; limit: number; remaining: number; retryAfter?: number } {
     const now = Date.now();
     const windowMs = 60 * 1000; // 1 minute
 

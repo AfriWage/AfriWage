@@ -11,10 +11,6 @@ dist
 *.tsbuildinfo
 
 # Environment files
-.env
-.env.local
-.env.production
-.env.development
 
 # Turbo cache
 .turbo
@@ -23,7 +19,6 @@ dist
 .vercel
 
 # Editor
-.vscode
 .idea
 *.swp
 *.swo
@@ -42,3 +37,4 @@ pnpm-debug.log*
 # Test coverage
 coverage
 .nyc_output
+config.bat

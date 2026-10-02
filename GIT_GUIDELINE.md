@@ -16,15 +16,15 @@ main (protected)
 
 ### Branch Rules
 
-| Branch | Purpose | Protected? |
-|---|---|---|
-| `main` | Production-ready code. Every commit here is deployed. | ✅ Yes |
-| `develop` | Integration branch. All feature branches merge here first. | ✅ Yes |
-| `feat/*` | New features. Branch from `develop`. | No |
-| `fix/*` | Bug fixes. Branch from `develop`. | No |
-| `docs/*` | Documentation updates. Branch from `develop`. | No |
-| `chore/*` | Tooling, deps, config. Branch from `develop`. | No |
-| `hotfix/*` | Critical production fixes. Branch from `main` only. | No |
+| Branch     | Purpose                                                    | Protected? |
+| ---------- | ---------------------------------------------------------- | ---------- |
+| `main`     | Production-ready code. Every commit here is deployed.      | ✅ Yes     |
+| `develop`  | Integration branch. All feature branches merge here first. | ✅ Yes     |
+| `feat/*`   | New features. Branch from `develop`.                       | No         |
+| `fix/*`    | Bug fixes. Branch from `develop`.                          | No         |
+| `docs/*`   | Documentation updates. Branch from `develop`.              | No         |
+| `chore/*`  | Tooling, deps, config. Branch from `develop`.              | No         |
+| `hotfix/*` | Critical production fixes. Branch from `main` only.        | No         |
 
 ---
 
@@ -79,17 +79,17 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Types
 
-| Type | When to use |
-|---|---|
-| `feat` | New feature visible to users |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `chore` | Tooling, config, deps (no prod code changes) |
-| `refactor` | Code restructuring, no behaviour change |
-| `test` | Adding or updating tests |
-| `ci` | CI pipeline changes |
-| `perf` | Performance improvements |
-| `revert` | Reverting a previous commit |
+| Type       | When to use                                  |
+| ---------- | -------------------------------------------- |
+| `feat`     | New feature visible to users                 |
+| `fix`      | Bug fix                                      |
+| `docs`     | Documentation only                           |
+| `chore`    | Tooling, config, deps (no prod code changes) |
+| `refactor` | Code restructuring, no behaviour change      |
+| `test`     | Adding or updating tests                     |
+| `ci`       | CI pipeline changes                          |
+| `perf`     | Performance improvements                     |
+| `revert`   | Reverting a previous commit                  |
 
 ### Examples
 

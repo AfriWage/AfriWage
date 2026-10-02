@@ -3,12 +3,7 @@
 
 export { accountExists, createKeypair, fundTestnetAccount } from './account';
 
-export {
-  establishUsdcTrustline,
-  getBalance,
-  getTransactionHistory,
-  sendPayment,
-} from './payment';
+export { establishUsdcTrustline, getBalance, getTransactionHistory, sendPayment } from './payment';
 
 // SEP-24 anchor integration — interactive off-ramp flow (client-side)
 export {
