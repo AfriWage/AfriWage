@@ -2,11 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WithdrawModal } from './WithdrawModal';
-import {
-  authenticateWithAnchor,
-  discoverOffRampAnchor,
-  initiateWithdrawal,
-} from '@AfriWage/sdk';
+import { authenticateWithAnchor, discoverOffRampAnchor, initiateWithdrawal } from '@AfriWage/sdk';
 import { signTransaction } from '@/lib/freighter';
 
 vi.mock('@AfriWage/sdk', async () => {

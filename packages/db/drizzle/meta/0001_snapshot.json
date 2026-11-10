@@ -73,12 +73,8 @@
           "name": "employees_org_id_organizations_id_fk",
           "tableFrom": "employees",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -129,12 +125,8 @@
           "name": "org_members_org_id_organizations_id_fk",
           "tableFrom": "org_members",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -144,10 +136,7 @@
         "org_members_org_id_wallet_public_key_unique": {
           "name": "org_members_org_id_wallet_public_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "org_id",
-            "wallet_public_key"
-          ]
+          "columns": ["org_id", "wallet_public_key"]
         }
       }
     },

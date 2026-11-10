@@ -325,4 +325,73 @@ describe('getTransactionHistory', () => {
       asset: 'XLM',
     });
   });
+
+  it('handles partial failures when operation fetch rejects for a transaction', async () => {
+    const tx1 = {
+      id: 'tx1',
+      source_account: 'GSENDER',
+      created_at: '2025-01-02T00:00:00Z',
+      successful: true,
+      hash: 'hash-success',
+      memo_type: 'text',
+      memo: 'Success Tx',
+    };
+    const tx2 = {
+      id: 'tx2',
+      source_account: 'GSENDER_FAIL',
+      created_at: '2025-01-01T00:00:00Z',
+      successful: true,
+      hash: 'hash-fail',
+      memo_type: 'text',
+      memo: 'Failed Tx',
+    };
+    const request = {
+      call: vi.fn().mockResolvedValue({ records: [tx1, tx2] }),
+      forAccount: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+    };
+    mockTransactions.mockReturnValue(request);
+    mockOperations.mockReturnValue({
+      forTransaction: vi.fn((hash: string) => {
+        if (hash === 'hash-fail') {
+          return {
+            call: vi.fn().mockRejectedValue(new Error('Horizon 500 error')),
+          };
+        }
+        return {
+          call: vi.fn().mockResolvedValue({
+            records: [
+              {
+                type: 'payment',
+                amount: '10.00',
+                asset_type: 'native',
+                from: 'GSENDER',
+                to: 'GRECIPIENT',
+              },
+            ],
+          }),
+        };
+      }),
+    });
+
+    const history = await getTransactionHistory('GACCOUNT');
+
+    expect(history).toHaveLength(2);
+    expect(history[0]).toMatchObject({
+      id: 'tx1',
+      hash: 'hash-success',
+      type: 'payment',
+      amount: '10.00',
+      asset: 'XLM',
+    });
+    expect(history[1]).toMatchObject({
+      id: 'tx2',
+      hash: 'hash-fail',
+      type: 'other',
+      amount: '0',
+      from: 'GSENDER_FAIL',
+      memo: 'Failed Tx',
+    });
+  });
 });

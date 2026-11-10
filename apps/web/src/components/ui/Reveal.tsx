@@ -8,7 +8,12 @@ export default function Reveal({
   className = '',
   delay = 0,
   id,
-}: { children: React.ReactNode; className?: string; delay?: number; id?: string }) {
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  id?: string;
+}) {
   return (
     <motion.div
       id={id}

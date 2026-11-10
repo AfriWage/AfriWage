@@ -111,7 +111,7 @@ Before opening a PR, make sure:
 1. Comment on the issue saying you'd like to work on it
 2. Wait for a maintainer to assign it (usually within a day)
 3. Open a draft PR early so we can give feedback as you go
-4. Mark ready for review when CI is green   
+4. Mark ready for review when CI is green
 
 ---
 
@@ -120,4 +120,3 @@ Before opening a PR, make sure:
 For full branching strategy, PR rules, and commit signing guidance, see [GIT_GUIDELINE.md](./GIT_GUIDELINE.md).
 
 ---
-

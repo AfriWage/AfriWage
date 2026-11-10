@@ -20,7 +20,10 @@ vi.mock('lucide-react', () => ({
 
 vi.mock('@/components/WalletConnect', () => ({
   WalletConnect: ({ onConnect }: { onConnect?: (pk: string) => void }) => (
-    <button type="button" onClick={() => onConnect?.('GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5')}>
+    <button
+      type="button"
+      onClick={() => onConnect?.('GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5')}
+    >
       connect
     </button>
   ),

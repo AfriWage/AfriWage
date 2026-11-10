@@ -97,9 +97,7 @@ describe('scrubSensitiveData', () => {
   it('scrubs multiple sensitive values in one string', () => {
     const secretKey = 'S' + 'B'.repeat(55);
     const input = `key=${secretKey} db=postgres://u:p@h/d`;
-    expect(scrubSensitiveData(input)).toBe(
-      'key=[STELLAR_SECRET] db=[DATABASE_URL_REDACTED]'
-    );
+    expect(scrubSensitiveData(input)).toBe('key=[STELLAR_SECRET] db=[DATABASE_URL_REDACTED]');
   });
 
   it('can be called multiple times without stale lastIndex issues', () => {
@@ -121,9 +119,7 @@ describe('beforeSend', () => {
 
     const result = beforeSend(event as unknown as ErrorEvent);
     expect(result).not.toBeNull();
-    expect(result!.exception!.values![0]!.value).toBe(
-      'Failed with key [STELLAR_SECRET]'
-    );
+    expect(result!.exception!.values![0]!.value).toBe('Failed with key [STELLAR_SECRET]');
   });
 
   it('scrubs sensitive data from the event message', () => {

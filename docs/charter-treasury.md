@@ -17,8 +17,8 @@ Two contracts:
 
 Testnet deployment used by AfriWage (from Charter's README):
 
-| Contract | Address |
-|----------|---------|
+| Contract | Address                                                    |
+| -------- | ---------------------------------------------------------- |
 | Factory  | `CCUQBFFRGR4RUWHKLWSRWKBL3WORHNTHFLTKMHTNUZL4T5733ODN5WD4` |
 
 ## Contract functions AfriWage calls
@@ -57,7 +57,7 @@ There is exactly one server-held key in this integration, and it is not a treasu
 **`CHARTER_FACTORY_DEPLOYER_SECRET_KEY`** — the factory's registered `deployer`.
 
 Charter's factory is permissioned by design. `deploy_treasury` calls
-`deployer.require_auth()` *and* `admin.require_auth()`, so a treasury deployment cannot
+`deployer.require_auth()` _and_ `admin.require_auth()`, so a treasury deployment cannot
 be authorised by the organization alone — the factory operator must co-sign. AfriWage is
 the factory operator for its own deployment, so provisioning is built as:
 
@@ -106,19 +106,19 @@ Charter's application layer ([Ch-rter/app](https://github.com/Ch-rter/app)) ship
 indexer that folds Soroban contract events into Postgres read models and serves them over
 a read-only REST API:
 
-| Method & path | Returns |
-|---------------|---------|
-| `GET /health` | Liveness + database reachability |
-| `GET /orgs` | Every indexed organization, newest first |
-| `GET /orgs/{treasury}` | One organization by treasury address |
-| `GET /orgs/{treasury}/categories` | That treasury's budget categories |
-| `GET /orgs/{treasury}/requests[?status=]` | That treasury's requests |
-| `GET /orgs/{treasury}/requests/{id}` | One request with its approvals |
+| Method & path                             | Returns                                  |
+| ----------------------------------------- | ---------------------------------------- |
+| `GET /health`                             | Liveness + database reachability         |
+| `GET /orgs`                               | Every indexed organization, newest first |
+| `GET /orgs/{treasury}`                    | One organization by treasury address     |
+| `GET /orgs/{treasury}/categories`         | That treasury's budget categories        |
+| `GET /orgs/{treasury}/requests[?status=]` | That treasury's requests                 |
+| `GET /orgs/{treasury}/requests/{id}`      | One request with its approvals           |
 
 **It is not a push source.** The indexer polls Soroban itself on an interval
 (`POLL_INTERVAL_SECONDS`, default 5) and exposes no webhook. So AfriWage still polls for
 a payroll run's approval — the indexer makes each poll a cheap REST read instead of a
-Soroban simulation, and it is the only way to read a request's approval *list* without a
+Soroban simulation, and it is the only way to read a request's approval _list_ without a
 contract call.
 
 Set `CHARTER_INDEXER_API_URL` to use it. It is entirely optional:

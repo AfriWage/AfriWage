@@ -92,17 +92,39 @@ export async function getTransactionHistory(publicKey: string): Promise<Transact
     .limit(20)
     .call();
 
+  const opsResults = await Promise.allSettled(
+    transactions.records.map((tx) => server.operations().forTransaction(tx.hash).call())
+  );
+
   const records: TransactionRecord[] = [];
 
-  for (const tx of transactions.records) {
-    const opsPage = await server.operations().forTransaction(tx.hash).call();
-    const ops = opsPage.records;
+  for (let i = 0; i < transactions.records.length; i++) {
+    const tx = transactions.records[i];
+    const opResult = opsResults[i];
 
     let memo: string | undefined;
     if (tx.memo_type === 'text' && tx.memo) {
       memo = tx.memo;
     }
 
+    if (opResult.status === 'rejected') {
+      records.push({
+        id: tx.id,
+        operationId: `${tx.id}-unknown`,
+        hash: tx.hash,
+        type: 'other',
+        amount: '0',
+        asset: 'XLM',
+        from: tx.source_account,
+        to: '',
+        memo,
+        createdAt: tx.created_at,
+        successful: tx.successful,
+      });
+      continue;
+    }
+
+    const ops = opResult.value.records;
     let paymentCount = 0;
     let matched = false;
 

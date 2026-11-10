@@ -36,9 +36,8 @@ beforeAll(async () => {
     'CAH4PUADD2X3K52TKETWTIL4GHPZT55LWUEVVOSH6B3D3KA2ZH7HQGTT'
   );
 
-  const { Account, Networks, Operation, TransactionBuilder, BASE_FEE } = await import(
-    '@stellar/stellar-sdk'
-  );
+  const { Account, Networks, Operation, TransactionBuilder, BASE_FEE } =
+    await import('@stellar/stellar-sdk');
   const keypair = Keypair.random();
   const transaction = new TransactionBuilder(new Account(keypair.publicKey(), '1'), {
     fee: BASE_FEE,

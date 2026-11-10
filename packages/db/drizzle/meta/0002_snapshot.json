@@ -73,12 +73,8 @@
           "name": "employees_org_id_organizations_id_fk",
           "tableFrom": "employees",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -129,12 +125,8 @@
           "name": "org_members_org_id_organizations_id_fk",
           "tableFrom": "org_members",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -144,10 +136,7 @@
         "org_members_org_id_wallet_public_key_unique": {
           "name": "org_members_org_id_wallet_public_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "org_id",
-            "wallet_public_key"
-          ]
+          "columns": ["org_id", "wallet_public_key"]
         }
       }
     },
@@ -314,12 +303,8 @@
           "name": "payroll_run_items_payroll_run_id_payroll_runs_id_fk",
           "tableFrom": "payroll_run_items",
           "tableTo": "payroll_runs",
-          "columnsFrom": [
-            "payroll_run_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payroll_run_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -327,12 +312,8 @@
           "name": "payroll_run_items_employee_id_employees_id_fk",
           "tableFrom": "payroll_run_items",
           "tableTo": "employees",
-          "columnsFrom": [
-            "employee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["employee_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -402,12 +383,8 @@
           "name": "payroll_runs_org_id_organizations_id_fk",
           "tableFrom": "payroll_runs",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
